@@ -1,0 +1,38 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# env files
+.env*
+
+# local database
+*.db
+*.db-journal
+/prisma/*.db
+/prisma/*.db-journal
+
+# cloudflare
+.wrangler
+/dist
+.open-next
+
+# assistant & logs
+.gemini
+/scratch
+/artifacts
+/walkthrough.md
+/implementation_plan.md
+/task.md
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+next.config.compiled.js

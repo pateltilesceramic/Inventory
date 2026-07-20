@@ -1,0 +1,345 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --font-sans: var(--font-berthold);
+  --font-serif: var(--font-recoleta);
+}
+
+:root {
+  --background: #EEEEEE;
+  --foreground: #111111;
+  --primary: #1F6F5F;
+  --primary-foreground: #FFFFFF;
+  --secondary: #2FA084;
+  --secondary-foreground: #FFFFFF;
+  --accent: #6FCF97;
+  --accent-foreground: #111111;
+
+  /* ── Glass Surfaces ── */
+  --glass-white: rgba(255, 255, 255, 0.72);
+  --glass-white-strong: rgba(255, 255, 255, 0.88);
+  --glass-dark: rgba(17, 17, 17, 0.55);
+  --glass-primary: rgba(31, 111, 95, 0.14);
+  --glass-blur: blur(18px);
+  --glass-blur-heavy: blur(28px);
+  --glass-border: rgba(255, 255, 255, 0.28);
+  --glass-border-dark: rgba(255, 255, 255, 0.12);
+
+  /* ── Skeuomorphic Shadows ── */
+  --skeu-shadow-raised: 0 1px 0 rgba(255,255,255,0.55) inset, 0 -1px 0 rgba(0,0,0,0.12) inset, 0 4px 12px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.08);
+  --skeu-shadow-pressed: 0 1px 3px rgba(0,0,0,0.18) inset, 0 1px 0 rgba(255,255,255,0.20) inset;
+  --skeu-shadow-well: 0 2px 6px rgba(0,0,0,0.10) inset, 0 1px 2px rgba(0,0,0,0.07) inset;
+  --skeu-shadow-card: 0 1px 0 rgba(255,255,255,0.80) inset, 0 -1px 0 rgba(0,0,0,0.06) inset, 0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
+  --skeu-shadow-deep: 0 20px 60px rgba(0,0,0,0.20), 0 8px 24px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.15) inset;
+}
+
+@layer base {
+  html, body {
+    @apply text-foreground;
+    font-family: var(--font-berthold), system-ui, -apple-system, sans-serif;
+    background-color: #f2f6f4;
+    background-image: 
+      linear-gradient(rgba(31, 111, 95, 0.02) 1.5px, transparent 1.5px),
+      linear-gradient(90deg, rgba(31, 111, 95, 0.02) 1.5px, transparent 1.5px);
+    background-size: 40px 40px;
+    background-attachment: fixed;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  button, input, select, textarea, table, th, td {
+    font-family: var(--font-berthold), system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-serif, .font-recoleta {
+    font-family: var(--font-recoleta), Georgia, serif !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   STANDARDIZED TYPOGRAPHY DESIGN SYSTEM
+════════════════════════════════════════════════════════ */
+
+.typo-h1 {
+  font-family: var(--font-recoleta), Georgia, serif !important;
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #1F6F5F;
+}
+
+@media (min-width: 768px) {
+  .typo-h1 {
+    font-size: 2rem;
+    line-height: 2.5rem;
+  }
+}
+
+.typo-h2 {
+  font-family: var(--font-recoleta), Georgia, serif !important;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #1F6F5F;
+}
+
+.typo-h3 {
+  font-family: var(--font-berthold), system-ui, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
+  font-weight: 700;
+  color: #111111;
+}
+
+.typo-body {
+  font-family: var(--font-berthold), system-ui, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  color: rgba(17, 17, 17, 0.85);
+}
+
+.typo-label {
+  font-family: var(--font-berthold), system-ui, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(17, 17, 17, 0.60);
+}
+
+.typo-meta {
+  font-family: var(--font-berthold), system-ui, sans-serif;
+  font-size: 0.6875rem;
+  line-height: 0.9375rem;
+  font-weight: 700;
+  color: rgba(17, 17, 17, 0.50);
+}
+
+/* ═══════════════════════════════════════════════════════
+   GLASSMORPHISM UTILITIES
+════════════════════════════════════════════════════════ */
+.glass {
+  background: var(--glass-white);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-strong {
+  background: var(--glass-white-strong);
+  backdrop-filter: var(--glass-blur-heavy);
+  -webkit-backdrop-filter: var(--glass-blur-heavy);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-dark {
+  background: var(--glass-dark);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-dark);
+}
+
+.glass-primary {
+  background: var(--glass-primary);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(111, 207, 151, 0.18);
+}
+
+/* ═══════════════════════════════════════════════════════
+   SKEUOMORPHIC UTILITIES
+════════════════════════════════════════════════════════ */
+
+/* Raised element — looks like it's sitting on the surface */
+.skeu-raised {
+  box-shadow: var(--skeu-shadow-raised);
+}
+
+/* Pressed/inset — looks like a physical depression */
+.skeu-well {
+  box-shadow: var(--skeu-shadow-well);
+}
+
+/* Card with depth */
+.skeu-card {
+  box-shadow: var(--skeu-shadow-card);
+}
+
+/* Deep-shadow modal */
+.skeu-modal {
+  box-shadow: var(--skeu-shadow-deep);
+}
+
+/* ── Skeuomorphic Input ── */
+.skeu-input {
+  background: #E4E9E7;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.10) inset, 0 1px 2px rgba(0,0,0,0.07) inset, 0 1px 0 rgba(255,255,255,0.85);
+  border: 1px solid rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.skeu-input:focus {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.10) inset, 0 1px 2px rgba(0,0,0,0.07) inset, 0 0 0 3px rgba(111, 207, 151, 0.25), 0 1px 0 rgba(255,255,255,0.85);
+  border-color: #2FA084;
+  outline: none;
+}
+
+/* ── Skeuomorphic Primary Button ── */
+.skeu-btn-primary {
+  background: linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.30) inset, 0 -1px 0 rgba(0,0,0,0.20) inset, 0 4px 14px rgba(31,111,95,0.35), 0 1px 3px rgba(0,0,0,0.15);
+  border: 1px solid rgba(0,0,0,0.15);
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.skeu-btn-primary:hover {
+  background: linear-gradient(180deg, #37b896 0%, #25806d 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 -1px 0 rgba(0,0,0,0.20) inset, 0 6px 20px rgba(31,111,95,0.40), 0 2px 5px rgba(0,0,0,0.18);
+}
+.skeu-btn-primary:active {
+  background: linear-gradient(180deg, #1F6F5F 0%, #1a5e50 100%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.20) inset, 0 1px 0 rgba(255,255,255,0.10) inset;
+  transform: translateY(1px);
+}
+
+/* ── Skeuomorphic Ghost / Action Buttons ── */
+.skeu-btn-action {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f2f1 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 -1px 0 rgba(0,0,0,0.06) inset, 0 2px 6px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.10);
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.skeu-btn-action:hover {
+  box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 -1px 0 rgba(0,0,0,0.06) inset, 0 4px 12px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+}
+.skeu-btn-action:active {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.12) inset, 0 1px 0 rgba(255,255,255,0.70) inset;
+  transform: translateY(1px);
+}
+
+/* ── Skeu Badge — Embossed ── */
+.skeu-badge-green {
+  background: linear-gradient(180deg, #d6f5e6 0%, #c4f0dc 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.80) inset, 0 -1px 0 rgba(0,0,0,0.06) inset;
+  border-top: 1px solid rgba(255,255,255,0.80);
+  border-bottom: 1px solid rgba(111,207,151,0.35);
+}
+
+.skeu-badge-red {
+  background: linear-gradient(180deg, #fee4e4 0%, #fdd6d6 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.80) inset, 0 -1px 0 rgba(0,0,0,0.06) inset;
+  border-top: 1px solid rgba(255,255,255,0.80);
+  border-bottom: 1px solid rgba(220,50,50,0.15);
+}
+
+.skeu-badge-amber {
+  background: linear-gradient(180deg, #fef3cd 0%, #fdedb8 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.80) inset, 0 -1px 0 rgba(0,0,0,0.06) inset;
+  border-top: 1px solid rgba(255,255,255,0.80);
+  border-bottom: 1px solid rgba(180,130,0,0.15);
+}
+
+/* ── Noise Texture Overlay (Skeu) ── */
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  border-radius: inherit;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+/* ── Scrollbar ── */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(31,111,95,0.15); border-radius: 99px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(31,111,95,0.30); }
+
+/* ── Input spin arrows ── */
+.hide-arrows::-webkit-outer-spin-button,
+.hide-arrows::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.hide-arrows { -moz-appearance: textfield; }
+
+/* ── Animations ── */
+@keyframes progress {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+.animate-progress {
+  animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float { animation: float-slow 4s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ── Premium Showroom Classes (Claymorphism & 3D Glaze) ── */
+.clay-card {
+  background: rgba(253, 254, 253, 0.94);
+  border: 1px solid rgba(31, 111, 95, 0.12);
+  border-left: 4px solid #2FA084;
+  box-shadow: 0 10px 32px rgba(31, 111, 95, 0.04),
+              inset 0 3px 6px rgba(255, 255, 255, 0.90),
+              inset 0 -3px 6px rgba(31, 111, 95, 0.03);
+  position: relative;
+}
+
+.glazed-cylinder {
+  position: relative;
+  box-shadow: inset 1px 0 2px rgba(255, 255, 255, 0.4),
+              inset -2px 0 3px rgba(0, 0, 0, 0.15),
+              0 3px 8px rgba(31, 111, 95, 0.12);
+  overflow: hidden;
+}
+
+.glazed-cylinder::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 15%;
+  width: 15%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+@keyframes shine-sweep {
+  0% { transform: translateX(-100%) rotate(25deg); }
+  100% { transform: translateX(200%) rotate(25deg); }
+}
+
+.animate-shine-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.animate-shine-sweep::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  bottom: -50%;
+  left: -20%;
+  width: 30%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0) 100%);
+  animation: shine-sweep 3.5s ease-in-out infinite;
+  pointer-events: none;
+}

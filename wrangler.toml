@@ -1,0 +1,46 @@
+name = "inventory"
+compatibility_date = "2025-11-01"
+compatibility_flags = [ "nodejs_compat" ]
+main = ".open-next/worker.js"
+
+[assets]
+directory = ".open-next/assets"
+
+[vars]
+ADMIN_PASSWORD = "3128"
+GOOGLE_SERVICE_ACCOUNT_EMAIL = "parth-839@tiles-inventory-493508.iam.gserviceaccount.com"
+GOOGLE_SHEET_ID = "1RUT3pVEVNsyl1wvzkGrxR8obxri_mBPfxyHqxr6bEoQ"
+GOOGLE_PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
+MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC5zL8w2dN4fIn7
+S2qg+/EzgaU8snENveqTY4ygtoGe90crunPnIOo6bgigChyswTDqBKPzQuPEvuXn
+gTPZD04KQLzND3CUx//yrY9KUGLOwxcr9InA+RODVAB5q9g/CT2OzE7sM5r9ojCh
+yqpRgccV0xHn/0BAvghSIv6wE95FKyGowDmDcZNmDhBR39/r3H7eEIdDoj0SD5u8
+rhcc+fiE6+VTLPiFCzaFIZ0vAhJYMWAsN9O4m7dj9gldqd3clgUATtXRb9/IgZo0
+RVnggrMGOr18Ane4Ly1PsE8FDGiUGzRAAPemX32yG86ZBgdszd8TgJjVzVkFBSrN
+16aEjTdRAgMBAAECggEABoWh5niW/EE+5LPSg+EkJ98yqi1HW6ihfdf+PTv609Yx
+SN8sJ15X6oInSlrgg83qRiSwjp73+NWMo3I9HC712dVI61fR518X5HBkOcMVnNVr
+UE8usLftj+wYcizuk9PitcsFMDRlieayF1PSY7cPAnycwcyLeFpTV3LEBvFDmaDp
+JougzBoYYgrnIQCZBqDu66Ppgj0pTJmy34UY/gTDmfpSHTzfekkgxWRr8ILa4JQr
+q+mcsjRZW8cNAovHCUPFfh1LhkRlXtclk1tOAQb9kZh/1+A75xHEgy+bGozf/xNQ
+N/UGXomOomBrOe5C4I6ZJR/VNPwdCif9sfcNpEGYAQKBgQDeiefkAfUZhRhgJ9d0
+YxnT2O0vc9JwaFSgZIDdpMArikT4k858IhaLEG2CKdnUluvUd++vMpjCmL2KlzuZ
+muTnbSKZrc+e0Nagd5VK3iCGm/X07znIamHYZudqrT6d8wLgEr8/WWiw09dCoC+G
+dkOR8LuJhMCGzPuBfi7q3VtvAQKBgQDVvKo507v2jYX/2fEMTxDyu2DAyawhQy+b
+Os1MtUpBvZ+gLiZgcAT3SoHFHo1LyJxfPRG27tUaDwAZjhdKwwVTcnrk//g0lsvs
+fo0TlyppVNb06LFXMSDk2vkLRg6bZXhUs/1pyRryfQDEBLDNGVFqJ7lk6U0jbGRC
+jIBwDzcYUQKBgFLNW0QiWlFZjX1RtcAvk4+YuoAah2Wd3EclvjE6OOq6cvlO/diA
+UoUB4s04xz1rvmn7CmrU17QoYvYrWVjJInzdxa8K1iLQr9tbQ2htCAsuArFVRdnF
+g4yilV7DAXaB0kMPlqt6mBKbcA/xTF2qqW+m9BCyHXTK1pYTHl/zZy8BAoGAHPAL
+OAMTusDUeJxgR2NZDxQReGiVlndLNcATVaRh5l6vAvfcmEfyVCzRPwfw52bEzRwu
+js7tKTcIs20KeEPJL9AbFXAWgcA84csMfK+FvXcQF159zClJo9KFz2HvzlhBn24z
+DCR/Mn98IA3mhg48eJviPOhdWkNtm5j8Nq/IrNECgYAEJluDk4Hr+vz+XIa5HdDU
+OrvZKXMnY8n6JFL6epD36VlVOuBa+EC8rAlMSb+3stkIUWJIY1XyA2adVLXmj0Je
+u0QsIfk/HPN+D9/E7D/2JKmZbMdGb11abDPY9vZnp2czIq+S1KejHGL/DLH2+MOZ
+l+w4BkAlVVjqmVJx7If0wg==
+-----END PRIVATE KEY-----"""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "stock-inventory-db"
+database_id = "871539a8-dfad-4d74-b621-9f9ded65eae5"
+

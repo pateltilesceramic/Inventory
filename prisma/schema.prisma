@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Inventory {
+  id                String     @id @default(uuid())
+  name              String
+  size              String?
+  type              String     // e.g., "matte", "glossy", "high depth"
+  unit              String     // "box" or "pc"
+  stockLevel        Int        @default(0)
+  lowStockThreshold Int        @default(40)
+  category          String
+  designUrl         String?
+  isArchived        Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  billItems         BillItem[]
+  stockLogs         StockLog[]
+}
+
+model StockLog {
+  id           String    @id @default(uuid())
+  inventoryId  String
+  inventory    Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  oldLevel     Int
+  newLevel     Int
+  change       Int
+  type         String    // "Initial", "Manual Update", "Sale", "Restoration"
+  createdAt    DateTime  @default(now())
+}
+
+model Bill {
+  id              String     @id @default(uuid())
+  invoiceNo       String?    @unique
+  customerName    String
+  customerPhone   String?
+  totalAmount     Float      @default(0.0)
+  finalNetAmount  Float?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  items           BillItem[]
+}
+
+model BillItem {
+  id         String     @id @default(uuid())
+  name       String     // Item name (copied from inventory or custom)
+  unit       String     // "box" or "pc"
+  quantity   Int
+  price      Float
+  billId     String
+  itemId     String?    // Link to inventory (null for ad-hoc items)
+  adhocMode  String?    // "tile", "sanitary", or null
+  bill       Bill       @relation(fields: [billId], references: [id], onDelete: Cascade)
+  item       Inventory? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+}
+
+model PurchaseParty {
+  id        String                @id @default(uuid())
+  name      String                @unique
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  entries   PurchaseLedgerEntry[]
+}
+
+model PurchaseLedgerEntry {
+  id              String        @id @default(uuid())
+  partyId         String
+  party           PurchaseParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  date            DateTime
+  narration       String
+  debit           Float         @default(0.0)
+  credit          Float         @default(0.0)
+  createdAt       DateTime      @default(now())
+}
+
+model B2BParty {
+  id        String            @id @default(uuid())
+  name      String            @unique
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  entries   B2BLedgerEntry[]
+}
+
+model B2BLedgerEntry {
+  id              String   @id @default(uuid())
+  partyId         String
+  party           B2BParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  date            DateTime
+  narration       String
+  debit           Float    @default(0.0)
+  credit          Float    @default(0.0)
+  createdAt       DateTime @default(now())
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Buyer {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  gstNumber   String?
+  address     String?
+  city        String?
+  state       String       @default("Telangana")
+  phone       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  invoices    TaxInvoice[]
+}
+
+model TaxInvoice {
+  id              String           @id @default(uuid())
+  invoiceNo       String           @unique
+  date            DateTime         @default(now())
+  buyerId         String?
+  buyerName       String           
+  buyerGst        String?
+  buyerAddress    String?
+  buyerPhone      String?
+  placeOfSupply   String           @default("Telangana")
+  paymentMode     String           @default("CASH") 
+  totalBaseAmount Float            @default(0.0)
+  totalTaxAmount  Float            @default(0.0)
+  grandTotal      Float            @default(0.0)
+  vehicleNo       String?
+  transport       String?
+  lrNo            String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  buyer           Buyer?           @relation(fields: [buyerId], references: [id], onDelete: SetNull)
+  items           TaxInvoiceItem[]
+}
+
+model TaxInvoiceItem {
+  id          String     @id @default(uuid())
+  invoiceId   String
+  name        String
+  size        String?
+  unit        String?
+  hsnCode     String?
+  quantity    Int        @default(1)
+  price       Float      @default(0.0)
+  taxRate     Float      @default(18.0)
+  taxAmount   Float      @default(0.0)
+  invoice     TaxInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model TaxProduct {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  hsnCode   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DynamicQR {
+  id          String   @id @default(uuid())
+  code        String   @unique // Short redirect slug e.g. "tiles-catalogue", "statuary-white-3d"
+  title       String   // e.g. "Master Tiles Catalogue 2026"
+  category    String   // e.g. "Catalogue", "3D Room View", "Sample Box", "Product Spec", "General"
+  targetUrl   String   // The destination link (e.g. Google Drive / PDF / Visualizer URL)
+  description String?  // Optional internal notes
+  scans       Int      @default(0) // Lifetime scan analytics counter
+  isActive    Boolean  @default(true) // Ability to toggle redirect on/off
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
