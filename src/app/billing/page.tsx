@@ -44,19 +44,27 @@ export default function BillingPage() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   const loadData = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      await backfillInvoiceNumbers() // Ensure all bills have numbers
-      const [invData, billsData]: [any, any] = await Promise.all([getInventory(), getBills()])
-      
-      // getInventory now returns { items, categories, types }
+      await backfillInvoiceNumbers().catch(e => console.error("Error backfilling invoice numbers:", e))
+    } catch (e) {}
+
+    try {
+      const invData = await getInventory()
       setInventory(invData?.items || [])
-      setBills(billsData || [])
-    } catch (err) {
-      console.error("Error loading billing data:", err)
-    } finally {
-      setLoading(false)
+    } catch (e) {
+      console.error("Error fetching inventory for billing:", e)
+      setInventory([])
     }
+
+    try {
+      const billsData = await getBills()
+      setBills(billsData || [])
+    } catch (e) {
+      console.error("Error fetching bills for billing:", e)
+      setBills([])
+    }
+    setLoading(false)
   }
 
   useEffect(() => { loadData() }, [])
@@ -308,13 +316,16 @@ export default function BillingPage() {
                                {bi.showSuggestions && bi.name.length > 0 && (
                                  <div className="absolute z-[60] left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
                                     {inventory
-                                      .filter(i => i.name.toLowerCase().includes(bi.name.toLowerCase()) || i.category.toLowerCase().includes(bi.name.toLowerCase()))
+                                      .filter(i => 
+                                        (i?.name || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase()) || 
+                                        (i?.category || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase())
+                                      )
                                       .map(item => (
                                         <button 
                                           key={item.id} 
                                           type="button" 
                                           onClick={() => selectInventoryItem(bi.tempId, item)}
-                                          className="w-full text-left px-4 py-2 hover:bg-[#6FCF97]/10 transition-colors border-b border-gray-50 last:border-0"
+                                          className="w-full text-left px-4 py-2 hover:bg-[#6FCF97]/10 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
                                         >
                                           <div className="flex justify-between items-center">
                                             <p className="text-sm font-bold text-[#111111]">{item.name}</p>
@@ -324,7 +335,10 @@ export default function BillingPage() {
                                         </button>
                                       ))
                                     }
-                                    {inventory.filter(i => i.name.toLowerCase().includes(bi.name.toLowerCase()) || i.category.toLowerCase().includes(bi.name.toLowerCase())).length === 0 && (
+                                    {inventory.filter(i => 
+                                      (i?.name || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase()) || 
+                                      (i?.category || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase())
+                                    ).length === 0 && (
                                       <div className="px-4 py-3 text-xs italic text-[#111111]/40">Manual entry mode</div>
                                     )}
                                  </div>
