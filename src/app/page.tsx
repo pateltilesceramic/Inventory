@@ -21,12 +21,12 @@ export default function Dashboard() {
         totalBoxes: 0,
         tilesStock: 0,
         sanitaryStock: 0,
-        categoryBreakdown: [],
-        sizeBreakdown: [],
+        stockByCategory: [],
+        stockBySize: [],
+        categoriesBreakdown: [],
         lowStockItems: [],
-        recentSales: [],
-        monthlySalesTotal: 0,
-        monthlySalesCount: 0
+        monthlyRevenue: 0,
+        monthlyBillsCount: 0
       })
     })
   }, [selectedMonth, selectedYear])
@@ -116,8 +116,8 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-[10px] text-emerald-200/80 uppercase tracking-widest font-black mb-0.5">Monthly Sales</p>
-                <p className="text-xl font-black text-white leading-none">₹{stats.monthlyRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                <p className="text-[9px] text-emerald-300 font-bold mt-1 uppercase">{stats.monthlyBillsCount} Invoices Total</p>
+                <p className="text-xl font-black text-white leading-none">₹{(stats.monthlyRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-[9px] text-emerald-300 font-bold mt-1 uppercase">{(stats.monthlyBillsCount ?? 0)} Invoices Total</p>
               </div>
             </div>
 
@@ -158,7 +158,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-[10px] text-[#444444] uppercase tracking-widest font-black mb-0.5">Critical Alerts</p>
-              <p className="text-2xl font-black text-red-600 leading-none">{stats.lowStockItems.length}</p>
+              <p className="text-2xl font-black text-red-600 leading-none">{(stats.lowStockItems || []).length}</p>
               <p className="text-[9px] text-red-400 font-bold mt-1 uppercase">Action Required</p>
             </div>
           </div>
@@ -200,7 +200,7 @@ export default function Dashboard() {
               
               <div className="px-4 py-2 rounded-xl bg-emerald-50 text-[#1F6F5F] border border-emerald-100/50 flex items-baseline gap-1.5 shadow-sm">
                 <span className="text-[10px] font-black uppercase text-[#1F6F5F]/60">Total Stock:</span>
-                <span className="text-lg font-black">{stats.totalBoxes.toLocaleString()}</span>
+                <span className="text-lg font-black">{(stats.totalBoxes ?? 0).toLocaleString()}</span>
                 <span className="text-[10px] font-bold lowercase text-[#1F6F5F]/80">units</span>
               </div>
             </div>
@@ -423,12 +423,12 @@ export default function Dashboard() {
                       border: '1px solid rgba(220,50,50,0.15)'
                     }}
                   >
-                    {stats.lowStockItems.length} Items
+                    {(stats.lowStockItems || []).length} Items
                   </div>
                </div>
 
                <div className="space-y-2 overflow-y-auto max-h-[350px] pr-2 custom-scrollbar">
-                  {stats.lowStockItems.length === 0 ? (
+                  {(!stats.lowStockItems || stats.lowStockItems.length === 0) ? (
                     <div className="text-center py-20">
                       <p className="text-xs font-bold text-[#444444] uppercase tracking-widest">Warehouse is Fully Optimized</p>
                     </div>
