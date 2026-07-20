@@ -10,7 +10,7 @@ const getClient = (): PrismaClient => {
 
   let d1Binding = (process.env as any).DB;
 
-  // Attempt to get the D1 binding via OpenNext's official context
+  // 1. Attempt to get D1 binding from OpenNext context
   if (!d1Binding) {
     try {
       const { getCloudflareContext } = require("@opennextjs/cloudflare");
@@ -19,20 +19,29 @@ const getClient = (): PrismaClient => {
         d1Binding = ctx.env.DB;
       }
     } catch (error) {
-      console.warn("Could not retrieve Cloudflare context:", error);
+      // Ignore
     }
+  }
+
+  // 2. Check global context in Worker runtime
+  if (!d1Binding && (globalThis as any).DB) {
+    d1Binding = (globalThis as any).DB;
   }
 
   if (d1Binding) {
     const adapter = new PrismaD1(d1Binding)
     globalForPrisma.prisma = new PrismaClient({ adapter });
   } else {
-    // Fallback for local development using better-sqlite3 adapter for Prisma 7
-    const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
-    const localAdapter = new PrismaBetterSqlite3({
-      url: process.env.DATABASE_URL || "file:./dev.db"
-    });
-    globalForPrisma.prisma = new PrismaClient({ adapter: localAdapter });
+    // Safe fallback for local dev vs worker runtime
+    try {
+      const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
+      const localAdapter = new PrismaBetterSqlite3({
+        url: process.env.DATABASE_URL || "file:./dev.db"
+      });
+      globalForPrisma.prisma = new PrismaClient({ adapter: localAdapter });
+    } catch (err) {
+      globalForPrisma.prisma = new PrismaClient();
+    }
   }
 
   return globalForPrisma.prisma;
