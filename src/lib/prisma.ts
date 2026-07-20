@@ -8,14 +8,14 @@ const getClient = (): PrismaClient => {
     return globalForPrisma.prisma;
   }
 
-  let d1Binding = (process.env as any).DB;
+  let d1Binding: any = (process.env as any).DB || (globalThis as any).DB || (globalThis as any).__env__?.DB;
 
-  // 1. Attempt to get D1 binding from OpenNext context
+  // 1. Attempt to get D1 binding from OpenNext context safely
   if (!d1Binding) {
     try {
       const { getCloudflareContext } = require("@opennextjs/cloudflare");
       const ctx = getCloudflareContext();
-      if (ctx && ctx.env && ctx.env.DB) {
+      if (ctx && typeof ctx.then !== 'function' && ctx.env && ctx.env.DB) {
         d1Binding = ctx.env.DB;
       }
     } catch (error) {
@@ -23,14 +23,14 @@ const getClient = (): PrismaClient => {
     }
   }
 
-  // 2. Check global context in Worker runtime
-  if (!d1Binding && (globalThis as any).DB) {
-    d1Binding = (globalThis as any).DB;
-  }
-
   if (d1Binding) {
-    const adapter = new PrismaD1(d1Binding)
-    globalForPrisma.prisma = new PrismaClient({ adapter });
+    try {
+      const adapter = new PrismaD1(d1Binding);
+      globalForPrisma.prisma = new PrismaClient({ adapter });
+    } catch (err) {
+      console.error("Failed to initialize PrismaD1 adapter:", err);
+      globalForPrisma.prisma = new PrismaClient();
+    }
   } else {
     // Safe fallback for local dev vs worker runtime
     try {
