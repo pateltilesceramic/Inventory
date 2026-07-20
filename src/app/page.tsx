@@ -14,6 +14,20 @@ export default function Dashboard() {
   useEffect(() => {
     getDashboardStats(selectedMonth, selectedYear).then((data) => {
       setStats(data)
+    }).catch((err) => {
+      console.error("Error fetching dashboard stats:", err)
+      // Fallback empty stats if tables are initializing or empty
+      setStats({
+        totalBoxes: 0,
+        tilesStock: 0,
+        sanitaryStock: 0,
+        categoryBreakdown: [],
+        sizeBreakdown: [],
+        lowStockItems: [],
+        recentSales: [],
+        monthlySalesTotal: 0,
+        monthlySalesCount: 0
+      })
     })
   }, [selectedMonth, selectedYear])
 
