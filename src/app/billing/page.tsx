@@ -44,14 +44,19 @@ export default function BillingPage() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   const loadData = async () => {
-    setLoading(true)
-    await backfillInvoiceNumbers() // Ensure all bills have numbers
-    const [invData, billsData]: [any, any] = await Promise.all([getInventory(), getBills()])
-    
-    // getInventory now returns { items, categories, types }
-    setInventory(invData.items || [])
-    setBills(billsData)
-    setLoading(false)
+    try {
+      setLoading(true)
+      await backfillInvoiceNumbers() // Ensure all bills have numbers
+      const [invData, billsData]: [any, any] = await Promise.all([getInventory(), getBills()])
+      
+      // getInventory now returns { items, categories, types }
+      setInventory(invData?.items || [])
+      setBills(billsData || [])
+    } catch (err) {
+      console.error("Error loading billing data:", err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { loadData() }, [])

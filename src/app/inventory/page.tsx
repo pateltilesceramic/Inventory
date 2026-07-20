@@ -889,7 +889,7 @@ export default function InventoryPage() {
                     </div>
                   )}
                   <div className="min-w-0 flex-1 flex flex-col items-start gap-1.5">
-                    <h3 className="text-sm font-bold text-[#333333] leading-snug break-words w-full">{item.name}</h3>
+                    <h3 className="text-sm font-medium text-[#333333] leading-snug break-words w-full">{item.name}</h3>
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {item.size && (
                         <span className="text-[11px] bg-[#2FA084]/10 px-2 py-0.5 rounded-md text-[#1F6F5F] font-bold border border-[#2FA084]/25">{item.size}</span>
@@ -942,7 +942,7 @@ export default function InventoryPage() {
                       </div>
                     )}
                     <div className="min-w-0 flex-1 flex flex-col items-start gap-1.5">
-                      <h3 className="text-sm font-bold text-[#333333] leading-snug break-words w-full">{item.name}</h3>
+                      <h3 className="text-sm font-medium text-[#333333] leading-snug break-words w-full">{item.name}</h3>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {item.size && (
                           <span className="text-[10px] bg-[#2FA084]/10 px-1.5 py-0.5 rounded-md text-[#1F6F5F] font-bold border border-[#2FA084]/25">{item.size}</span>

@@ -4,10 +4,6 @@ import { PrismaD1 } from "@prisma/adapter-d1"
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
 const getClient = (): PrismaClient => {
-  if (globalForPrisma.prisma) {
-    return globalForPrisma.prisma;
-  }
-
   let d1Binding: any = (process.env as any).DB || (globalThis as any).DB || (globalThis as any).__env__?.DB;
 
   // 1. Attempt to get D1 binding from OpenNext context safely
@@ -15,7 +11,7 @@ const getClient = (): PrismaClient => {
     try {
       const { getCloudflareContext } = require("@opennextjs/cloudflare");
       const ctx = getCloudflareContext();
-      if (ctx && typeof ctx.then !== 'function' && ctx.env && ctx.env.DB) {
+      if (ctx && ctx.env && ctx.env.DB) {
         d1Binding = ctx.env.DB;
       }
     } catch (error) {
@@ -24,24 +20,37 @@ const getClient = (): PrismaClient => {
   }
 
   if (d1Binding) {
+    // If already initialized as D1 client, return it
+    if (globalForPrisma.prisma && (globalForPrisma as any).isD1) {
+      return globalForPrisma.prisma;
+    }
     try {
       const adapter = new PrismaD1(d1Binding);
       globalForPrisma.prisma = new PrismaClient({ adapter });
+      (globalForPrisma as any).isD1 = true;
     } catch (err) {
       console.error("Failed to initialize PrismaD1 adapter:", err);
       globalForPrisma.prisma = new PrismaClient();
+      (globalForPrisma as any).isD1 = false;
     }
-  } else {
-    // Safe fallback for local dev vs worker runtime
-    try {
-      const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
-      const localAdapter = new PrismaBetterSqlite3({
-        url: process.env.DATABASE_URL || "file:./dev.db"
-      });
-      globalForPrisma.prisma = new PrismaClient({ adapter: localAdapter });
-    } catch (err) {
-      globalForPrisma.prisma = new PrismaClient();
-    }
+    return globalForPrisma.prisma;
+  }
+
+  // If local dev or build time, reuse or initialize local client
+  if (globalForPrisma.prisma && !(globalForPrisma as any).isD1) {
+    return globalForPrisma.prisma;
+  }
+
+  try {
+    const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
+    const localAdapter = new PrismaBetterSqlite3({
+      url: process.env.DATABASE_URL || "file:./dev.db"
+    });
+    globalForPrisma.prisma = new PrismaClient({ adapter: localAdapter });
+    (globalForPrisma as any).isD1 = false;
+  } catch (err) {
+    globalForPrisma.prisma = new PrismaClient();
+    (globalForPrisma as any).isD1 = false;
   }
 
   return globalForPrisma.prisma;
