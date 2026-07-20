@@ -66,7 +66,9 @@ export default function PurchaseLedgerPage() {
     setIsSavingParty(true)
     try {
       const res = await createPurchaseParty(partyName)
-      if (res) {
+      if (res && !res.success) {
+        alert(res.error)
+      } else if (res && res.success) {
         setPartyName("")
         setIsAddPartyOpen(false)
         await loadData()

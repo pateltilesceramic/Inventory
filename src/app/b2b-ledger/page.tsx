@@ -66,7 +66,9 @@ export default function B2BLedgerPage() {
     setIsSavingParty(true)
     try {
       const res = await createB2BParty(partyName)
-      if (res) {
+      if (res && !res.success) {
+        alert(res.error)
+      } else if (res && res.success) {
         setPartyName("")
         setIsAddPartyOpen(false)
         await loadData()

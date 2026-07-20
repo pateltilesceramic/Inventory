@@ -793,11 +793,24 @@ export async function getPurchaseParties() {
 }
 
 export async function createPurchaseParty(name: string) {
-  const party = await prisma.purchaseParty.create({
-    data: { name: name.trim() }
-  })
-  revalidatePath("/purchase-ledger")
-  return party
+  try {
+    const trimmedName = name.trim()
+    const existing = await prisma.purchaseParty.findUnique({
+      where: { name: trimmedName }
+    })
+    if (existing) {
+      return { success: false, error: "A supplier party with this name already exists." }
+    }
+
+    const party = await prisma.purchaseParty.create({
+      data: { name: trimmedName }
+    })
+    revalidatePath("/purchase-ledger")
+    return { success: true, party }
+  } catch (err: any) {
+    console.error("Error creating purchase party:", err)
+    return { success: false, error: err.message || "Could not add party. Please try again." }
+  }
 }
 
 export async function getPurchasePartyById(id: string) {
@@ -948,11 +961,24 @@ export async function getB2BParties() {
 }
 
 export async function createB2BParty(name: string) {
-  const party = await prisma.b2BParty.create({
-    data: { name: name.trim() }
-  })
-  revalidatePath("/b2b-ledger")
-  return party
+  try {
+    const trimmedName = name.trim()
+    const existing = await prisma.b2BParty.findUnique({
+      where: { name: trimmedName }
+    })
+    if (existing) {
+      return { success: false, error: "A B2B party with this name already exists." }
+    }
+
+    const party = await prisma.b2BParty.create({
+      data: { name: trimmedName }
+    })
+    revalidatePath("/b2b-ledger")
+    return { success: true, party }
+  } catch (err: any) {
+    console.error("Error creating B2B party:", err)
+    return { success: false, error: err.message || "Could not add party. Please try again." }
+  }
 }
 
 export async function getB2BPartyById(id: string) {
