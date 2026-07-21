@@ -171,8 +171,8 @@ export default function QRStudioPage() {
       },
       imageOptions: {
         crossOrigin: "anonymous",
-        margin: 2,
-        imageSize: 0.68,
+        margin: 0,
+        imageSize: 0.78,
         hideBackgroundDots: true
       },
       cornersSquareOptions: {
