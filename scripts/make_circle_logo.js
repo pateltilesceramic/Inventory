@@ -23,7 +23,6 @@ fs.createReadStream('public/logo-emblem.png')
 
     const bboxW = maxX - minX;
     const bboxH = maxY - minY;
-    console.log(`Original bbox: ${minX},${minY} -> ${maxX},${maxY} (${bboxW}x${bboxH})`);
 
     // Create intermediate buffer for scaled logo without halo
     const scaledBuf = new Uint8Array(500 * 500 * 4);
@@ -58,9 +57,9 @@ fs.createReadStream('public/logo-emblem.png')
       }
     }
 
-    // Now compute Euclidean distance to nearest logo pixel to create crisp white halo stroke
+    // Now compute Euclidean distance to nearest logo pixel for sleek 4px white halo
     const outPNG = new PNG({ width: 500, height: 500 });
-    const haloRadius = 10; // 10px white protective border around every line
+    const haloRadius = 4; // Clean, sharp 4px white protective border without blocking internal gaps
 
     // Create binary mask of logo pixels
     const logoMask = new Uint8Array(500 * 500);
@@ -69,6 +68,8 @@ fs.createReadStream('public/logo-emblem.png')
         logoMask[i] = 1;
       }
     }
+
+    let nonZeroCount = 0;
 
     // Distance transform for halo
     for (let y = 0; y < 500; y++) {
@@ -82,6 +83,7 @@ fs.createReadStream('public/logo-emblem.png')
           outPNG.data[idx + 1] = scaledBuf[idx + 1];
           outPNG.data[idx + 2] = scaledBuf[idx + 2];
           outPNG.data[idx + 3] = a;
+          nonZeroCount++;
         } else {
           // Check distance to nearest logo pixel within haloRadius
           let minSqDist = haloRadius * haloRadius + 1;
@@ -101,11 +103,12 @@ fs.createReadStream('public/logo-emblem.png')
           }
 
           if (minSqDist <= haloRadius * haloRadius) {
-            // Draw crisp solid white halo around the line
+            // Draw sleek solid white halo around the line
             outPNG.data[idx] = 255;
             outPNG.data[idx + 1] = 255;
             outPNG.data[idx + 2] = 255;
             outPNG.data[idx + 3] = 255;
+            nonZeroCount++;
           } else {
             // Farther than haloRadius -> 100% transparent gap for QR matrix dots!
             outPNG.data[idx] = 255;
@@ -117,8 +120,10 @@ fs.createReadStream('public/logo-emblem.png')
       }
     }
 
+    console.log(`Generated 4px halo logo. Total non-transparent area: ${nonZeroCount} / 250,000 (${Math.round(nonZeroCount/250000*100)}%)`);
+
     outPNG.pack().pipe(fs.createWriteStream('public/logo-qr-circle.png'))
       .on('finish', () => {
-        console.log('Successfully generated halo-outlined logo-qr-circle.png utilizing internal white space for QR matrix dots!');
+        console.log('Successfully generated sleek 4px halo-outlined logo-qr-circle.png!');
       });
   });
