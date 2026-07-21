@@ -157,6 +157,7 @@ export default function QRStudioPage() {
     const fullUrl = `${qrOrigin}/qr/${qr.code}`
 
     const engine = new QRCodeStyling({
+      type: "svg",
       width: 280,
       height: 280,
       data: fullUrl,
@@ -170,8 +171,8 @@ export default function QRStudioPage() {
       },
       imageOptions: {
         crossOrigin: "anonymous",
-        margin: 4,
-        imageSize: 0.48,
+        margin: 2,
+        imageSize: 0.68,
         hideBackgroundDots: true
       },
       cornersSquareOptions: {
