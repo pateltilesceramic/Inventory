@@ -161,7 +161,7 @@ export default function QRStudioPage() {
       width: 280,
       height: 280,
       data: fullUrl,
-      image: "/logo-emblem.png",
+      image: "/logo-qr-circle.png",
       dotsOptions: {
         type: "rounded",
         color: "#000000"
@@ -172,7 +172,7 @@ export default function QRStudioPage() {
       imageOptions: {
         crossOrigin: "anonymous",
         margin: 0,
-        imageSize: 0.95,
+        imageSize: 1.35,
         hideBackgroundDots: false
       },
       cornersSquareOptions: {
