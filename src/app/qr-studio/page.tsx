@@ -162,7 +162,7 @@ export default function QRStudioPage() {
       data: fullUrl,
       image: "/logo-emblem.png",
       dotsOptions: {
-        type: "dots",
+        type: "rounded",
         color: "#000000"
       },
       backgroundOptions: {
@@ -170,11 +170,12 @@ export default function QRStudioPage() {
       },
       imageOptions: {
         crossOrigin: "anonymous",
-        margin: 0,
-        imageSize: 1.0
+        margin: 6,
+        imageSize: 0.38,
+        hideBackgroundDots: true
       },
       cornersSquareOptions: {
-        type: "dot",               // Bullseye / concentric circle target rings
+        type: "extra-rounded",
         color: "#000000"
       },
       cornersDotOptions: {
@@ -622,7 +623,7 @@ export default function QRStudioPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-slate-900">{selectedQR.title}</h3>
-                    <p className="text-xs text-slate-500">Dark Charcoal Black • Dotted Matrix • Large Emblem (Level H)</p>
+                    <p className="text-xs text-slate-500">Dark Charcoal Black • High-Density Rounded Matrix • Center Emblem (Level H)</p>
                   </div>
                 </div>
                 <button
