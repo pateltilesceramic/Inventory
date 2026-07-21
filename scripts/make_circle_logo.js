@@ -24,106 +24,65 @@ fs.createReadStream('public/logo-emblem.png')
     const bboxW = maxX - minX;
     const bboxH = maxY - minY;
 
-    // Create intermediate buffer for scaled logo without halo
-    const scaledBuf = new Uint8Array(500 * 500 * 4);
+    // Create a new 500x500 output image
+    const outPNG = new PNG({ width: 500, height: 500 });
     const cx = 250, cy = 250;
-    const targetSize = 460; // Scale logo to 460px inside 500x500
+    const circleRadius = 249; // Outer boundary of the solid white circular disc (498px diameter)
+    const targetSize = 418;   // Scale logo to 418px, creating a prominent ~40px solid white circular gap!
     const scale = targetSize / Math.max(bboxW, bboxH);
 
-    for (let y = 0; y < 500; y++) {
-      for (let x = 0; x < 500; x++) {
-        const origX = minX + (x - (cx - (bboxW * scale) / 2)) / scale;
-        const origY = minY + (y - (cy - (bboxH * scale) / 2)) / scale;
-
-        if (origX >= minX && origX <= maxX && origY >= minY && origY <= maxY) {
-          const sx = Math.floor(origX);
-          const sy = Math.floor(origY);
-          if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
-            const srcIdx = (width * sy + sx) << 2;
-            const a = this.data[srcIdx + 3] / 255;
-            if (a > 0) {
-              const outIdx = (500 * y + x) << 2;
-              const r = this.data[srcIdx];
-              const g = this.data[srcIdx + 1];
-              const b = this.data[srcIdx + 2];
-
-              scaledBuf[outIdx] = Math.round(r * a);
-              scaledBuf[outIdx + 1] = Math.round(g * a);
-              scaledBuf[outIdx + 2] = Math.round(b * a);
-              scaledBuf[outIdx + 3] = Math.round(a * 255);
-            }
-          }
-        }
-      }
-    }
-
-    // Now compute Euclidean distance to nearest logo pixel for sleek 4px white halo
-    const outPNG = new PNG({ width: 500, height: 500 });
-    const haloRadius = 4; // Clean, sharp 4px white protective border without blocking internal gaps
-
-    // Create binary mask of logo pixels
-    const logoMask = new Uint8Array(500 * 500);
-    for (let i = 0; i < 500 * 500; i++) {
-      if (scaledBuf[i * 4 + 3] > 30) {
-        logoMask[i] = 1;
-      }
-    }
-
-    let nonZeroCount = 0;
-
-    // Distance transform for halo
+    // Initialize all pixels outside circle to transparent, inside circle to solid white
     for (let y = 0; y < 500; y++) {
       for (let x = 0; x < 500; x++) {
         const idx = (500 * y + x) << 2;
-        const a = scaledBuf[idx + 3];
-
-        if (a > 30) {
-          // This is a logo pixel - draw original color exactly
-          outPNG.data[idx] = scaledBuf[idx];
-          outPNG.data[idx + 1] = scaledBuf[idx + 1];
-          outPNG.data[idx + 2] = scaledBuf[idx + 2];
-          outPNG.data[idx + 3] = a;
-          nonZeroCount++;
+        const dist = Math.hypot(x - cx, y - cy);
+        if (dist <= circleRadius) {
+          outPNG.data[idx] = 255;
+          outPNG.data[idx + 1] = 255;
+          outPNG.data[idx + 2] = 255;
+          outPNG.data[idx + 3] = 255; // Solid white background removes all dots between lines
         } else {
-          // Check distance to nearest logo pixel within haloRadius
-          let minSqDist = haloRadius * haloRadius + 1;
-          for (let dy = -haloRadius; dy <= haloRadius; dy++) {
-            const ny = y + dy;
-            if (ny < 0 || ny >= 500) continue;
-            for (let dx = -haloRadius; dx <= haloRadius; dx++) {
-              const nx = x + dx;
-              if (nx < 0 || nx >= 500) continue;
-              if (logoMask[500 * ny + nx] === 1) {
-                const sqDist = dx * dx + dy * dy;
-                if (sqDist < minSqDist) {
-                  minSqDist = sqDist;
-                }
+          outPNG.data[idx] = 255;
+          outPNG.data[idx + 1] = 255;
+          outPNG.data[idx + 2] = 255;
+          outPNG.data[idx + 3] = 0;
+        }
+      }
+    }
+
+    // Bilinear/nearest sampling to draw scaled logo over the solid white circle
+    for (let y = 0; y < 500; y++) {
+      for (let x = 0; x < 500; x++) {
+        const dist = Math.hypot(x - cx, y - cy);
+        if (dist <= circleRadius) {
+          const origX = minX + (x - (cx - (bboxW * scale) / 2)) / scale;
+          const origY = minY + (y - (cy - (bboxH * scale) / 2)) / scale;
+
+          if (origX >= minX && origX <= maxX && origY >= minY && origY <= maxY) {
+            const sx = Math.floor(origX);
+            const sy = Math.floor(origY);
+            if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+              const srcIdx = (width * sy + sx) << 2;
+              const a = this.data[srcIdx + 3] / 255;
+              if (a > 0) {
+                const outIdx = (500 * y + x) << 2;
+                const r = this.data[srcIdx];
+                const g = this.data[srcIdx + 1];
+                const b = this.data[srcIdx + 2];
+
+                outPNG.data[outIdx] = Math.round(r * a + 255 * (1 - a));
+                outPNG.data[outIdx + 1] = Math.round(g * a + 255 * (1 - a));
+                outPNG.data[outIdx + 2] = Math.round(b * a + 255 * (1 - a));
+                outPNG.data[outIdx + 3] = 255;
               }
             }
-          }
-
-          if (minSqDist <= haloRadius * haloRadius) {
-            // Draw sleek solid white halo around the line
-            outPNG.data[idx] = 255;
-            outPNG.data[idx + 1] = 255;
-            outPNG.data[idx + 2] = 255;
-            outPNG.data[idx + 3] = 255;
-            nonZeroCount++;
-          } else {
-            // Farther than haloRadius -> 100% transparent gap for QR matrix dots!
-            outPNG.data[idx] = 255;
-            outPNG.data[idx + 1] = 255;
-            outPNG.data[idx + 2] = 255;
-            outPNG.data[idx + 3] = 0;
           }
         }
       }
     }
 
-    console.log(`Generated 4px halo logo. Total non-transparent area: ${nonZeroCount} / 250,000 (${Math.round(nonZeroCount/250000*100)}%)`);
-
     outPNG.pack().pipe(fs.createWriteStream('public/logo-qr-circle.png'))
       .on('finish', () => {
-        console.log('Successfully generated sleek 4px halo-outlined logo-qr-circle.png!');
+        console.log('Successfully generated logo-qr-circle.png with prominent ~40px circular white gap around logo!');
       });
   });
