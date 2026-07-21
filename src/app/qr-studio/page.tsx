@@ -407,7 +407,7 @@ export default function QRStudioPage() {
                       </div>
                     </div>
 
-                    <h3 className="text-sm font-bold text-slate-900 mt-3 group-hover:text-[#1F6F5F] transition-colors line-clamp-1">
+                    <h3 className="text-sm font-normal text-slate-900 mt-3 group-hover:text-[#1F6F5F] transition-colors line-clamp-1">
                       {qr.title}
                     </h3>
 
