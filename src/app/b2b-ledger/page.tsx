@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { SecurityGate } from "@/components/SecurityGate"
 import { getB2BParties, createB2BParty, deleteB2BParty, createB2BEntry, getLatestB2BEntries } from "@/lib/actions"
 import { PaginationControls } from "@/components/common/PaginationControls"
 import { numberToWordsIN } from "@/lib/utils"
@@ -25,6 +26,10 @@ export default function B2BLedgerPage() {
   const [historyEntries, setHistoryEntries] = useState<any[]>([])
   const [partySearchText, setPartySearchText] = useState("")
   const [isPartyDropdownOpen, setIsPartyDropdownOpen] = useState(false)
+
+  // Security Gate & Party Delete
+  const [isSecurityGateOpen, setIsSecurityGateOpen] = useState(false)
+  const [partyToDelete, setPartyToDelete] = useState<any>(null)
 
   // Forms
   const [partyName, setPartyName] = useState("")
@@ -50,10 +55,15 @@ export default function B2BLedgerPage() {
     setLoading(false)
   }
 
-  const handleDeleteParty = async (party: any) => {
-    if (!confirm(`Are you sure you want to delete "${party.name}"? This will permanently remove the partner and all associated ledger entries.`)) return
+  const initiateDeleteParty = (party: any) => {
+    setPartyToDelete(party)
+    setIsSecurityGateOpen(true)
+  }
+
+  const handleConfirmDeleteParty = async () => {
+    if (!partyToDelete) return
     try {
-      const res = await deleteB2BParty(party.id)
+      const res = await deleteB2BParty(partyToDelete.id)
       if (res && !res.success) {
         alert(res.error)
       } else {
@@ -61,6 +71,8 @@ export default function B2BLedgerPage() {
       }
     } catch (err: any) {
       alert("Error deleting party: " + (err.message || "Unknown error"))
+    } finally {
+      setPartyToDelete(null)
     }
   }
 
@@ -455,7 +467,7 @@ export default function B2BLedgerPage() {
                             Details <ChevronRight className="w-3.5 h-3.5" />
                           </Link>
                           <button
-                            onClick={() => handleDeleteParty(party)}
+                            onClick={() => initiateDeleteParty(party)}
                             className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer"
                             title="Delete Party"
                           >
@@ -521,7 +533,7 @@ export default function B2BLedgerPage() {
                         Details <ChevronRight className="w-3.5 h-3.5" />
                       </Link>
                       <button
-                        onClick={() => handleDeleteParty(party)}
+                        onClick={() => initiateDeleteParty(party)}
                         className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer"
                         title="Delete Party"
                       >
@@ -600,6 +612,16 @@ export default function B2BLedgerPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Admin Security Gate for Delete Confirmation */}
+      <SecurityGate
+        isOpen={isSecurityGateOpen}
+        onClose={() => {
+          setIsSecurityGateOpen(false)
+          setPartyToDelete(null)
+        }}
+        onSuccess={handleConfirmDeleteParty}
+      />
     </div>
   )
 }
