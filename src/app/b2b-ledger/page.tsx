@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { getB2BParties, createB2BParty, createB2BEntry, getLatestB2BEntries } from "@/lib/actions"
+import { getB2BParties, createB2BParty, deleteB2BParty, createB2BEntry, getLatestB2BEntries } from "@/lib/actions"
 import { PaginationControls } from "@/components/common/PaginationControls"
 import { numberToWordsIN } from "@/lib/utils"
-import { Search, Plus, Briefcase, ArrowUpRight, ArrowDownRight, FileText, ChevronRight, X, IndianRupee, History } from "lucide-react"
+import { Search, Plus, Briefcase, ArrowUpRight, ArrowDownRight, FileText, ChevronRight, X, IndianRupee, History, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function B2BLedgerPage() {
@@ -48,6 +48,20 @@ export default function B2BLedgerPage() {
       setPartySearchText(data[0].name)
     }
     setLoading(false)
+  }
+
+  const handleDeleteParty = async (party: any) => {
+    if (!confirm(`Are you sure you want to delete "${party.name}"? This will permanently remove the partner and all associated ledger entries.`)) return
+    try {
+      const res = await deleteB2BParty(party.id)
+      if (res && !res.success) {
+        alert(res.error)
+      } else {
+        await loadData()
+      }
+    } catch (err: any) {
+      alert("Error deleting party: " + (err.message || "Unknown error"))
+    }
   }
 
   const handleOpenHistory = async () => {
@@ -432,13 +446,22 @@ export default function B2BLedgerPage() {
                         </div>
                       </td>
                       <td className="py-4 px-6 text-left whitespace-nowrap">
-                        <Link
-                          href={`/b2b-ledger/${party.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#1F6F5F] bg-[#2FA084]/10 hover:bg-[#2FA084]/20 border border-[#2FA084]/30 transition-all"
-                          title="View Partner Ledger & Entries"
-                        >
-                          Details <ChevronRight className="w-3.5 h-3.5" />
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/b2b-ledger/${party.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#1F6F5F] bg-[#2FA084]/10 hover:bg-[#2FA084]/20 border border-[#2FA084]/30 transition-all"
+                            title="View Partner Ledger & Entries"
+                          >
+                            Details <ChevronRight className="w-3.5 h-3.5" />
+                          </Link>
+                          <button
+                            onClick={() => handleDeleteParty(party)}
+                            className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer"
+                            title="Delete Party"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -490,12 +513,21 @@ export default function B2BLedgerPage() {
                         {party.balanceType}
                       </span>
                     </div>
-                    <Link
-                      href={`/b2b-ledger/${party.id}`}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#1F6F5F] bg-[#2FA084]/10 hover:bg-[#2FA084]/20 border border-[#2FA084]/30 transition-all"
-                    >
-                      Details <ChevronRight className="w-3.5 h-3.5" />
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/b2b-ledger/${party.id}`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#1F6F5F] bg-[#2FA084]/10 hover:bg-[#2FA084]/20 border border-[#2FA084]/30 transition-all"
+                      >
+                        Details <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteParty(party)}
+                        className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer"
+                        title="Delete Party"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))

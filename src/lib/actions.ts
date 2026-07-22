@@ -813,6 +813,19 @@ export async function createPurchaseParty(name: string) {
   }
 }
 
+export async function deletePurchaseParty(id: string) {
+  try {
+    await prisma.purchaseParty.delete({
+      where: { id }
+    })
+    revalidatePath("/purchase-ledger")
+    return { success: true }
+  } catch (err: any) {
+    console.error("Error deleting purchase party:", err)
+    return { success: false, error: err.message || "Could not delete party. Please try again." }
+  }
+}
+
 export async function getPurchasePartyById(id: string) {
   const party = await prisma.purchaseParty.findUnique({
     where: { id },
@@ -978,6 +991,19 @@ export async function createB2BParty(name: string) {
   } catch (err: any) {
     console.error("Error creating B2B party:", err)
     return { success: false, error: err.message || "Could not add party. Please try again." }
+  }
+}
+
+export async function deleteB2BParty(id: string) {
+  try {
+    await prisma.b2BParty.delete({
+      where: { id }
+    })
+    revalidatePath("/b2b-ledger")
+    return { success: true }
+  } catch (err: any) {
+    console.error("Error deleting B2B party:", err)
+    return { success: false, error: err.message || "Could not delete party. Please try again." }
   }
 }
 
