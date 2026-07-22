@@ -41,7 +41,7 @@ export async function addInventoryItem(data: any) {
       data: {
         name: data.name,
         size: data.size || null,
-        type: data.type,
+        type: data.type || "",
         unit: data.unit,
         stockLevel: parseInt(data.stockLevel),
         lowStockThreshold: parseInt(data.lowStockThreshold),
@@ -74,7 +74,7 @@ export async function editInventoryItem(id: string, data: any) {
       data: {
         name: data.name,
         size: data.size || null,
-        type: data.type,
+        type: data.type || "",
         unit: data.unit,
         lowStockThreshold: parseInt(data.lowStockThreshold),
         category: data.category,

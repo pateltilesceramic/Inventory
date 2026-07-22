@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import { FadeIn } from "@/components/motion/FadeIn"
 import { SecurityGate } from "@/components/SecurityGate"
+import { PaginationControls } from "@/components/common/PaginationControls"
 import { getInventory, deleteInventoryItem, addInventoryItem, updateInventoryStock, getStockLogs, editInventoryItem } from "@/lib/actions"
 import { Plus, Trash2, Package, Check, Search, X, History, Edit, AlertCircle, ArrowUpRight, ArrowDownRight, Filter, ChevronDown, PackageCheck, Pencil, ImagePlus, Eye, Image as ImageIcon } from "lucide-react"
 
@@ -291,8 +292,8 @@ function UpdateModal({ item, onClose, onUpdate, onEdit, categories, types }: { i
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.category || !formData.type) {
-      setEditError("Category and Type are required.")
+    if (!formData.category) {
+      setEditError("Category is required.")
       return
     }
     setIsEditing(true)
@@ -460,6 +461,36 @@ function CustomDropdown({
   const [optionToDelete, setOptionToDelete] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  const storageKey = `inventory_deleted_${label.toLowerCase().replace(/[^a-z0-9]/g, '_')}`
+
+  const getDeletedOptions = (): string[] => {
+    if (typeof window === "undefined") return []
+    try {
+      const stored = localStorage.getItem(storageKey)
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  }
+
+  const saveDeletedOption = (opt: string) => {
+    try {
+      const current = getDeletedOptions()
+      if (!current.includes(opt)) {
+        const updated = [...current, opt]
+        localStorage.setItem(storageKey, JSON.stringify(updated))
+      }
+    } catch {}
+  }
+
+  const removeDeletedOption = (opt: string) => {
+    try {
+      const current = getDeletedOptions()
+      const updated = current.filter(o => o !== opt)
+      localStorage.setItem(storageKey, JSON.stringify(updated))
+    } catch {}
+  }
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -472,17 +503,22 @@ function CustomDropdown({
   }, [])
 
   useEffect(() => {
+    const deleted = getDeletedOptions()
     setOptions(prev => {
-      // Merge unique options from defaultOptions that aren't already in state
       const merged = Array.from(new Set([...prev, ...defaultOptions]))
-      return merged
+      return merged.filter(o => !deleted.includes(o))
     })
   }, [JSON.stringify(defaultOptions)])
 
   const handleAdd = () => {
-    if (newOption.trim() && !options.includes(newOption.trim())) {
-      setOptions([...options, newOption.trim()])
-      onChange(newOption.trim())
+    const trimmed = newOption.trim()
+    if (trimmed) {
+      removeDeletedOption(trimmed)
+      setOptions(prev => {
+        if (!prev.includes(trimmed)) return [...prev, trimmed]
+        return prev
+      })
+      onChange(trimmed)
     }
     setNewOption("")
     setIsAdding(false)
@@ -498,7 +534,8 @@ function CustomDropdown({
 
   const handleDeleteSuccess = () => {
     if (optionToDelete) {
-      setOptions(options.filter(o => o !== optionToDelete))
+      saveDeletedOption(optionToDelete)
+      setOptions(prev => prev.filter(o => o !== optionToDelete))
       if (value === optionToDelete) onChange("")
     }
   }
@@ -591,6 +628,11 @@ export default function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedSize, setSelectedSize] = useState("all")
+  const [currentPage, setCurrentPage] = useState(1)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedCategory, selectedSize])
   
   // Modals / Actions
   const [isSecurityGateOpen, setIsSecurityGateOpen] = useState(false)
@@ -664,10 +706,6 @@ export default function InventoryPage() {
       setAddError("Please select or add a Category.")
       return
     }
-    if (!formData.type) {
-      setAddError("Please select or add a Surface Finish / Type.")
-      return
-    }
 
     setIsSaving(true)
     setAddError("")
@@ -698,6 +736,9 @@ export default function InventoryPage() {
     
     return matchesSearch && matchesCategory && matchesSize
   })
+
+  const itemsPerPage = 10
+  const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   return (
     <div className="w-full pb-20 max-w-6xl mx-auto">
@@ -800,7 +841,7 @@ export default function InventoryPage() {
                   </div>
 
                   <CustomDropdown 
-                     label="Surface Finish / Type" 
+                     label="Surface Finish / Type (Optional)" 
                      value={formData.type} 
                      onChange={(val) => setFormData({...formData, type: val})} 
                      defaultOptions={["Matte", "Glossy", "High Depth", ...types]} 
@@ -853,8 +894,8 @@ export default function InventoryPage() {
 
       {/* Inventory Table */}
       <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', border: '1px solid rgba(255,255,255,0.65)', boxShadow: '0 1px 0 rgba(255,255,255,0.90) inset, 0 -1px 0 rgba(0,0,0,0.05) inset, 0 6px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05)' }}>
-        {/* Desktop Table Header */}
-        <div className="hidden md:grid grid-cols-12 gap-4 p-5 text-[11px] font-black text-[#111111] uppercase tracking-widest" style={{ borderBottom: '2px solid rgba(0,0,0,0.1)', background: 'linear-gradient(180deg, rgba(31,111,95,0.06) 0%, rgba(31,111,95,0.02) 100%)' }}>
+        {/* Desktop Table Header - Frozen Sticky Top */}
+        <div className="hidden md:grid grid-cols-12 gap-4 p-5 text-[11px] font-black text-[#111111] uppercase tracking-widest sticky top-0 z-20" style={{ borderBottom: '2px solid rgba(0,0,0,0.1)', background: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(245,248,247,0.98) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
           <div className="col-span-4">Item Details</div>
           <div className="col-span-2 text-center">Category</div>
           <div className="col-span-2 text-center">Stock Level</div>
@@ -870,7 +911,7 @@ export default function InventoryPage() {
               <Package className="w-12 h-12 mx-auto mb-3 opacity-20" />
               <p className="font-medium">No inventory items found matching your search.</p>
             </div>
-          ) : filteredItems.map((item, i) => (
+          ) : paginatedItems.map((item, i) => (
             <FadeIn key={item.id} delay={i * 0.05}>
               {/* Desktop Row */}
               <div className="hidden md:grid grid-cols-12 gap-4 p-5 items-center hover:bg-[#EEEEEE]/30 transition-colors group">
@@ -987,6 +1028,15 @@ export default function InventoryPage() {
             </FadeIn>
           ))}
         </div>
+
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={Math.ceil(filteredItems.length / 10)}
+          totalItems={filteredItems.length}
+          itemsPerPage={10}
+          onPageChange={setCurrentPage}
+          itemName="inventory items"
+        />
       </div>
 
       {/* Global Modals */}
