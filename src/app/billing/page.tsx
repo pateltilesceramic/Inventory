@@ -125,6 +125,8 @@ export default function BillingPage() {
     setBillItems(prev => prev.map(bi => bi.tempId === tempId ? { ...bi, itemId: item.id, name: item.name, unit: item.unit, adhocMode: null, showSuggestions: false } : bi))
   }
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const handleSaveBill = async () => {
     setValidationError("")
     if (!customerName) { setValidationError("Please enter a customer name."); return }
@@ -145,27 +147,35 @@ export default function BillingPage() {
       adhocMode: i.adhocMode || null
     }))
 
-    if (editingBill) {
-      await updateBill(editingBill.id, {
-        customerName,
-        customerPhone,
-        totalAmount,
-        finalNetAmount: finalAmountVal,
-        items: payloadItems
-      })
-    } else {
-      await createBill({
-        customerName,
-        customerPhone,
-        totalAmount,
-        finalNetAmount: finalAmountVal,
-        items: payloadItems
-      })
-    }
+    setIsSubmitting(true)
+    try {
+      if (editingBill) {
+        await updateBill(editingBill.id, {
+          customerName,
+          customerPhone,
+          totalAmount,
+          finalNetAmount: finalAmountVal,
+          items: payloadItems
+        })
+      } else {
+        await createBill({
+          customerName,
+          customerPhone,
+          totalAmount,
+          finalNetAmount: finalAmountVal,
+          items: payloadItems
+        })
+      }
 
-    setIsAddRouteOpen(false)
-    resetForm()
-    await loadData()
+      setIsAddRouteOpen(false)
+      resetForm()
+      await loadData()
+    } catch (err: any) {
+      console.error("Failed to save bill:", err)
+      setValidationError(err?.message || "Failed to finalize invoice and deduct stock. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // Delete invoice flow
@@ -441,8 +451,8 @@ export default function BillingPage() {
                    </div>
                    <div className="flex gap-4 items-center">
                       <button type="button" onClick={() => { setIsAddRouteOpen(false); resetForm(); }} className="px-5 py-2.5 rounded-lg text-[#111111]/60 hover:text-[#111111] font-medium transition-colors cursor-pointer">Cancel</button>
-                      <button onClick={handleSaveBill} disabled={!customerName || billItems.length === 0} className="text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer" style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', border: '1px solid rgba(0,0,0,0.12)' }}>
-                         {editingBill ? 'Update & Sync Stock' : 'Finalize & Deduct Stock'}
+                      <button onClick={handleSaveBill} disabled={!customerName || billItems.length === 0 || isSubmitting} className="text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer" style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', border: '1px solid rgba(0,0,0,0.12)' }}>
+                         {isSubmitting ? 'Saving Invoice...' : (editingBill ? 'Update & Sync Stock' : 'Finalize & Deduct Stock')}
                       </button>
                    </div>
                 </div>

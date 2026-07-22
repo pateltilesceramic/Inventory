@@ -143,20 +143,37 @@ export async function updateInventoryStock(id: string, adjustment: number) {
 }
 
 export async function createBill(data: { customerName: string; customerPhone?: string; totalAmount: number; finalNetAmount?: number; items: { itemId?: string; name: string; unit: string; quantity: number; price: number; adhocMode?: string | null }[] }) {
-  // Generate Invoice Number
-  const lastBill = await prisma.bill.findFirst({
-    where: { NOT: { invoiceNo: null } },
-    orderBy: { createdAt: 'desc' }
-  })
-
-  let nextNo = 1001
-  if (lastBill?.invoiceNo) {
-    const match = lastBill.invoiceNo.match(/INV-(\d+)/)
-    if (match) {
-      nextNo = parseInt(match[1]) + 1
+  // Find highest existing numeric invoice number to prevent duplicate key errors
+  const allBills = await prisma.bill.findMany({ select: { invoiceNo: true } })
+  let maxNo = 1000
+  allBills.forEach(b => {
+    if (b.invoiceNo) {
+      const match = b.invoiceNo.match(/INV-(\d+)/)
+      if (match) {
+        const num = parseInt(match[1])
+        if (!isNaN(num) && num > maxNo) maxNo = num
+      }
     }
-  }
-  const invoiceNo = `INV-${nextNo}`
+  })
+  const invoiceNo = `INV-${maxNo + 1}`
+
+  // Pre-process items: if itemId is missing, try to auto-match with an unarchived inventory item by name
+  const processedItems = await Promise.all(
+    data.items.map(async i => {
+      let resolvedItemId = i.itemId || null
+      if (!resolvedItemId && i.name) {
+        const match = await prisma.inventory.findFirst({
+          where: { name: { equals: i.name.trim() }, isArchived: false },
+          select: { id: true }
+        })
+        if (match) resolvedItemId = match.id
+      }
+      return {
+        ...i,
+        resolvedItemId
+      }
+    })
+  )
 
   const bill = await prisma.bill.create({
     data: {
@@ -166,8 +183,8 @@ export async function createBill(data: { customerName: string; customerPhone?: s
       totalAmount: data.totalAmount,
       finalNetAmount: data.finalNetAmount !== undefined ? data.finalNetAmount : data.totalAmount,
       items: {
-        create: data.items.map(i => ({
-          itemId: i.itemId || null,
+        create: processedItems.map(i => ({
+          itemId: i.resolvedItemId,
           name: i.name,
           unit: i.unit,
           quantity: i.quantity,
@@ -178,20 +195,20 @@ export async function createBill(data: { customerName: string; customerPhone?: s
     }
   })
 
-  for (const item of data.items) {
-    if (!item.itemId) continue // Skip stock deduction for ad-hoc items
+  for (const item of processedItems) {
+    if (!item.resolvedItemId) continue // Skip stock deduction for ad-hoc items with no inventory match
 
-    const inv = await prisma.inventory.findUnique({ where: { id: item.itemId }, select: { stockLevel: true } })
+    const inv = await prisma.inventory.findUnique({ where: { id: item.resolvedItemId }, select: { stockLevel: true } })
     
-    await prisma.inventory.update({
-      where: { id: item.itemId },
-      data: { stockLevel: { decrement: item.quantity } }
-    })
-
     if (inv) {
+      await prisma.inventory.update({
+        where: { id: item.resolvedItemId },
+        data: { stockLevel: { decrement: item.quantity } }
+      })
+
       await prisma.stockLog.create({
         data: {
-          inventoryId: item.itemId,
+          inventoryId: item.resolvedItemId,
           oldLevel: inv.stockLevel,
           newLevel: inv.stockLevel - item.quantity,
           change: -item.quantity,
@@ -202,6 +219,7 @@ export async function createBill(data: { customerName: string; customerPhone?: s
   }
   revalidatePath("/billing")
   revalidatePath("/inventory")
+  return bill
 }
 
 export async function updateBill(id: string, data: { customerName: string; customerPhone?: string; totalAmount: number; finalNetAmount?: number; items: { itemId?: string; name: string; unit: string; quantity: number; price: number; adhocMode?: string | null }[] }) {
@@ -211,15 +229,15 @@ export async function updateBill(id: string, data: { customerName: string; custo
   })
   if (oldBill) {
     for (const item of oldBill.items) {
-      if (!item.itemId) continue;
+      if (!item.itemId) continue
       const inv = await prisma.inventory.findUnique({ where: { id: item.itemId }, select: { stockLevel: true } })
       
-      await prisma.inventory.update({
-        where: { id: item.itemId },
-        data: { stockLevel: { increment: item.quantity } }
-      })
-
       if (inv) {
+        await prisma.inventory.update({
+          where: { id: item.itemId },
+          data: { stockLevel: { increment: item.quantity } }
+        })
+
         await prisma.stockLog.create({
           data: {
             inventoryId: item.itemId,
@@ -235,6 +253,23 @@ export async function updateBill(id: string, data: { customerName: string; custo
 
   await prisma.billItem.deleteMany({ where: { billId: id } })
 
+  const processedItems = await Promise.all(
+    data.items.map(async i => {
+      let resolvedItemId = i.itemId || null
+      if (!resolvedItemId && i.name) {
+        const match = await prisma.inventory.findFirst({
+          where: { name: { equals: i.name.trim() }, isArchived: false },
+          select: { id: true }
+        })
+        if (match) resolvedItemId = match.id
+      }
+      return {
+        ...i,
+        resolvedItemId
+      }
+    })
+  )
+
   const bill = await prisma.bill.update({
     where: { id },
     data: {
@@ -243,8 +278,8 @@ export async function updateBill(id: string, data: { customerName: string; custo
       totalAmount: data.totalAmount,
       finalNetAmount: data.finalNetAmount !== undefined ? data.finalNetAmount : data.totalAmount,
       items: {
-        create: data.items.map(i => ({
-          itemId: i.itemId || null,
+        create: processedItems.map(i => ({
+          itemId: i.resolvedItemId,
           name: i.name,
           unit: i.unit,
           quantity: i.quantity,
@@ -255,20 +290,20 @@ export async function updateBill(id: string, data: { customerName: string; custo
     }
   })
 
-  for (const item of data.items) {
-    if (!item.itemId) continue
+  for (const item of processedItems) {
+    if (!item.resolvedItemId) continue
 
-    const inv = await prisma.inventory.findUnique({ where: { id: item.itemId }, select: { stockLevel: true } })
+    const inv = await prisma.inventory.findUnique({ where: { id: item.resolvedItemId }, select: { stockLevel: true } })
     
-    await prisma.inventory.update({
-      where: { id: item.itemId },
-      data: { stockLevel: { decrement: item.quantity } }
-    })
-
     if (inv) {
+      await prisma.inventory.update({
+        where: { id: item.resolvedItemId },
+        data: { stockLevel: { decrement: item.quantity } }
+      })
+
       await prisma.stockLog.create({
         data: {
-          inventoryId: item.itemId,
+          inventoryId: item.resolvedItemId,
           oldLevel: inv.stockLevel,
           newLevel: inv.stockLevel - item.quantity,
           change: -item.quantity,
@@ -303,12 +338,12 @@ export async function deleteBill(id: string) {
       if (!item.itemId) continue; // Skip stock restoration for ad-hoc items
       const inv = await prisma.inventory.findUnique({ where: { id: item.itemId }, select: { stockLevel: true } })
       
-      await prisma.inventory.update({
-        where: { id: item.itemId },
-        data: { stockLevel: { increment: item.quantity } }
-      })
-
       if (inv) {
+        await prisma.inventory.update({
+          where: { id: item.itemId },
+          data: { stockLevel: { increment: item.quantity } }
+        })
+
         await prisma.stockLog.create({
           data: {
             inventoryId: item.itemId,
