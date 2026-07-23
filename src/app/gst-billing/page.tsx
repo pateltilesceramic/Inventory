@@ -806,26 +806,26 @@ export default function GSTBillingPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <div className="flex justify-between items-center mb-6">
-               <div className="relative w-64 md:w-96">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center mb-6">
+               <div className="relative w-full sm:w-64 md:w-96">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5" />
                   <input 
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold shadow-sm outline-none focus:border-[#2FA084] transition-all" 
+                    className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 text-sm font-bold shadow-sm outline-none focus:border-[#2FA084] transition-all" 
                     placeholder="Search by buyer name or GSTIN..." 
                   />
                </div>
                <button 
                  onClick={() => { setEditingBuyer(null); setIsBuyerModalOpen(true); }}
-                 className="bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-lg transition-all active:scale-95"
+                 className="bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-6 py-3.5 sm:py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg transition-all active:scale-95 shrink-0"
                >
                  <UserPlus className="w-5 h-5" /> Add Buyer
                </button>
             </div>
 
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
-               <table className="w-full text-left border-collapse">
+            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-x-auto custom-scrollbar">
+               <table className="w-full text-left border-collapse min-w-[500px]">
                   <thead>
                      <tr className="bg-gray-50 border-b border-gray-200">
                         <th className="px-6 py-4 text-[10px] font-black text-[#111111]/40 uppercase tracking-widest">Buyer Details</th>
@@ -867,26 +867,26 @@ export default function GSTBillingPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <div className="flex justify-between items-center mb-6">
-               <div className="relative w-64 md:w-96">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center mb-6">
+               <div className="relative w-full sm:w-64 md:w-96">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5" />
                   <input 
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold shadow-sm outline-none focus:border-[#2FA084] transition-all" 
+                    className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 text-sm font-bold shadow-sm outline-none focus:border-[#2FA084] transition-all" 
                     placeholder="Search items or HSN codes..." 
                   />
                </div>
                <button 
                  onClick={() => { setEditingItem(null); setIsItemModalOpen(true); }}
-                 className="bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-lg transition-all active:scale-95"
+                 className="bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-6 py-3.5 sm:py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg transition-all active:scale-95 shrink-0"
                >
                  <Plus className="w-5 h-5" /> Register Item
                </button>
             </div>
 
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
-               <table className="w-full text-left border-collapse">
+            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-x-auto custom-scrollbar">
+               <table className="w-full text-left border-collapse min-w-[400px]">
                   <thead>
                      <tr className="bg-gray-50 border-b border-gray-200">
                         <th className="px-6 py-4 text-[10px] font-black text-[#111111]/40 uppercase tracking-widest">Item Description</th>

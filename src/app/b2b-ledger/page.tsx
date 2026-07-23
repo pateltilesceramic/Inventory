@@ -160,8 +160,8 @@ export default function B2BLedgerPage() {
           <p className="typo-body text-[#111111]/60 mt-1">Track receivables, contractor accounts, and mutual business trade transactions.</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px] md:w-64">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#111111]/30" />
             <input 
               value={searchQuery}
@@ -171,38 +171,40 @@ export default function B2BLedgerPage() {
             />
           </div>
 
-          <button
-            onClick={handleOpenHistory}
-            className="flex items-center gap-2 bg-white text-[#111111] px-4 py-2.5 rounded-xl font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
-          >
-            <History className="w-4 h-4 text-[#1F6F5F]" /> History
-          </button>
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+            <button
+              onClick={handleOpenHistory}
+              className="flex items-center justify-center gap-2 bg-white text-[#111111] px-3.5 py-2.5 rounded-xl font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap"
+            >
+              <History className="w-4 h-4 text-[#1F6F5F]" /> History
+            </button>
 
-          <button
-            onClick={() => setIsAddPartyOpen(true)}
-            className="flex items-center gap-2 bg-white text-[#111111] px-4 py-2.5 rounded-xl font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
-          >
-            <Plus className="w-4 h-4 text-[#1F6F5F]" /> Add a Party
-          </button>
+            <button
+              onClick={() => setIsAddPartyOpen(true)}
+              className="flex items-center justify-center gap-2 bg-white text-[#111111] px-3.5 py-2.5 rounded-xl font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4 text-[#1F6F5F]" /> Add Party
+            </button>
 
-          <button
-            onClick={() => {
-              if (parties.length === 0) {
-                alert("Please add at least one party first.")
-                setIsAddPartyOpen(true)
-                return
-              }
-              setIsAddEntryOpen(true)
-            }}
-            className="flex items-center gap-2 text-white px-5 py-2.5 rounded-xl font-black text-sm transition-all shadow-md"
-            style={{ 
-              background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', 
-              boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', 
-              border: '1px solid rgba(0,0,0,0.12)' 
-            }}
-          >
-            <Plus className="w-4 h-4" /> Create an Entry
-          </button>
+            <button
+              onClick={() => {
+                if (parties.length === 0) {
+                  alert("Please add at least one party first.")
+                  setIsAddPartyOpen(true)
+                  return
+                }
+                setIsAddEntryOpen(true)
+              }}
+              className="flex items-center justify-center gap-2 text-white px-4 py-2.5 rounded-xl font-black text-sm transition-all shadow-md whitespace-nowrap flex-1 sm:flex-none"
+              style={{ 
+                background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', 
+                boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', 
+                border: '1px solid rgba(0,0,0,0.12)' 
+              }}
+            >
+              <Plus className="w-4 h-4" /> Create Entry
+            </button>
+          </div>
         </div>
       </div>
 
@@ -574,18 +576,18 @@ export default function B2BLedgerPage() {
                 <button onClick={() => setIsHistoryOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
               </div>
 
-              <div className="overflow-x-auto max-h-[60vh] pr-1">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto max-h-[60vh] custom-scrollbar">
+                <table className="w-full text-left text-xs min-w-[500px]">
                   <thead>
-                    <tr className="border-b border-gray-100 text-[#111111]/40 uppercase tracking-widest font-black">
-                      <th className="py-2.5">Date</th>
-                      <th className="py-2.5">Partner</th>
-                      <th className="py-2.5">Narration</th>
-                      <th className="py-2.5 text-right">Debit (Dr)</th>
-                      <th className="py-2.5 text-right">Credit (Cr)</th>
+                    <tr className="border-b border-gray-200 text-[#111111]/40 uppercase tracking-widest font-black bg-gray-50/50">
+                      <th className="py-2.5 px-3 whitespace-nowrap">Date</th>
+                      <th className="py-2.5 px-3">Partner</th>
+                      <th className="py-2.5 px-3">Narration</th>
+                      <th className="py-2.5 px-3 text-right whitespace-nowrap">Debit (Dr)</th>
+                      <th className="py-2.5 px-3 text-right whitespace-nowrap">Credit (Cr)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-gray-100">
                     {historyEntries.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="py-8 text-center text-gray-400 italic">No entries made yet.</td>
@@ -593,13 +595,13 @@ export default function B2BLedgerPage() {
                     ) : (
                       historyEntries.map((e: any) => (
                         <tr key={e.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-2.5 font-medium text-slate-500">{new Date(e.date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                          <td className="py-2.5 font-bold text-slate-700">{e.party?.name}</td>
-                          <td className="py-2.5 text-slate-600 max-w-[200px] truncate" title={e.narration}>{e.narration}</td>
-                          <td className="py-2.5 text-right font-black text-green-700">
+                          <td className="py-3 px-3 font-medium text-slate-500 whitespace-nowrap">{new Date(e.date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                          <td className="py-3 px-3 font-bold text-slate-700">{e.party?.name}</td>
+                          <td className="py-3 px-3 text-slate-600 max-w-[180px] truncate" title={e.narration}>{e.narration}</td>
+                          <td className="py-3 px-3 text-right font-black text-green-700 whitespace-nowrap">
                             {e.debit > 0 ? `₹${e.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
                           </td>
-                          <td className="py-2.5 text-right font-black text-red-700">
+                          <td className="py-3 px-3 text-right font-black text-red-700 whitespace-nowrap">
                             {e.credit > 0 ? `₹${e.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
                           </td>
                         </tr>

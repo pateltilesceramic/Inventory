@@ -749,8 +749,8 @@ export default function InventoryPage() {
           <p className="typo-body text-[#111111]/60 mt-1">Audit movements, track history, and manage stock.</p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px] md:w-64">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#111111]/30" />
             <input 
               value={searchQuery}
@@ -760,13 +760,13 @@ export default function InventoryPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
-             <div className="flex items-center gap-1.5 px-3 py-1.5 border-r border-gray-100">
+          <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl p-1 shadow-sm max-w-full overflow-x-auto custom-scrollbar">
+             <div className="flex items-center gap-1 px-2 py-1 border-r border-gray-100 shrink-0">
                 <Filter className="w-3.5 h-3.5 text-[#1F6F5F]" />
                 <span className="text-[10px] font-black uppercase text-[#111111]/40 tracking-widest">Filter:</span>
              </div>
              
-             <div className="flex gap-1 pr-1">
+             <div className="flex gap-1 shrink-0">
                 <select 
                   value={selectedCategory}
                   onChange={e => setSelectedCategory(e.target.value)}
@@ -793,19 +793,19 @@ export default function InventoryPage() {
                      setSelectedSize("all");
                      setSearchQuery("");
                   }}
-                  className="px-3 py-1.5 text-[10px] font-black uppercase text-red-500 hover:bg-red-50 rounded-lg transition-colors border-l border-gray-100 ml-1"
+                  className="px-2 py-1 text-[10px] font-black uppercase text-red-500 hover:bg-red-50 rounded-lg transition-colors border-l border-gray-100 shrink-0"
                 >
-                   Clear All
+                   Clear
                 </button>
              )}
           </div>
 
           <button 
             onClick={() => setIsAddRouteOpen(!isAddRouteOpen)}
-            className="flex items-center gap-2 bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-4 md:px-5 py-2.5 rounded-xl transition-all font-bold shadow-lg shadow-[#1F6F5F]/20 active:scale-[0.98] shrink-0"
+            className="flex items-center justify-center gap-2 bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-4 md:px-5 py-2.5 rounded-xl transition-all font-bold shadow-lg shadow-[#1F6F5F]/20 active:scale-[0.98] shrink-0"
           >
             <Plus className={`w-5 h-5 transition-transform duration-300 ${isAddRouteOpen ? 'rotate-45' : ''}`} />
-            <span className="hidden sm:inline">{isAddRouteOpen ? 'Close' : 'Add Item'}</span>
+            <span className="text-xs font-black">{isAddRouteOpen ? 'Close' : 'Add Item'}</span>
           </button>
         </div>
       </div>
@@ -1018,7 +1018,7 @@ export default function InventoryPage() {
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                      <button onClick={() => setUpdateItem(item)} className="p-2 rounded-xl text-[#111111]/40 hover:text-[#1F6F5F] transition-all skeu-btn-action"><Edit className="w-4 h-4" /></button>
                      <button onClick={() => setHistoryItem(item)} className="p-2 rounded-xl text-[#111111]/40 hover:text-[#2FA084] transition-all skeu-btn-action"><History className="w-4 h-4" /></button>
                      <button onClick={() => handleDeleteRequest(item.id)} className="p-2 rounded-xl text-[#111111]/40 hover:text-red-500 transition-all skeu-btn-action"><Trash2 className="w-4 h-4" /></button>

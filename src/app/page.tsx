@@ -278,8 +278,8 @@ export default function Dashboard() {
                 <p className="text-xs text-emerald-200/40 italic py-16 text-center">No category sales this month</p>
               ) : (
                 <div className="flex flex-col gap-4">
-                  <div className="w-full">
-                    <div className="relative h-56 w-full flex items-end justify-around pt-6 pb-2 px-3 border-b border-l border-emerald-900/40">
+                  <div className="w-full overflow-x-auto custom-scrollbar pb-2">
+                    <div className="relative h-56 min-w-[450px] w-full flex items-end justify-around pt-6 pb-2 px-3 border-b border-l border-emerald-900/40">
                       {/* Grid lines */}
                       <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 py-2">
                         <div className="border-t border-emerald-950/50 w-full" />
@@ -312,7 +312,7 @@ export default function Dashboard() {
                             </div>
 
                             {/* Label */}
-                            <span className="text-[11px] font-black text-emerald-100/90 leading-tight text-center mt-2.5 uppercase tracking-tight w-full break-words px-0.5 line-clamp-2 min-h-[28px]" title={item.category}>
+                            <span className="text-[10px] sm:text-[11px] font-black text-emerald-100/90 leading-tight text-center mt-2.5 uppercase tracking-tight w-full break-words px-0.5 line-clamp-2 min-h-[28px]" title={item.category}>
                               {item.category}
                             </span>
                           </div>

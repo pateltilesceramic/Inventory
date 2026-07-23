@@ -258,83 +258,194 @@ export default function BillingPage() {
                   </div>
                 </div>
 
-                {/* Items Table */}
-                <div className="border border-gray-200 rounded-xl overflow-visible mb-6">
-                   <div className="bg-gray-50 p-3 flex text-[10px] font-black text-[#111111]/40 uppercase tracking-widest border-b border-gray-200">
-                      <div className="flex-1">Item Description</div>
-                      <div className="w-24 text-center">Unit</div>
-                      <div className="w-24 text-center">Qty</div>
-                      <div className="w-32 text-center">Price (₹)</div>
-                      <div className="w-32 text-right pr-4">Subtotal</div>
-                      <div className="w-10"></div>
-                   </div>
-                   <div className="divide-y divide-gray-100 min-h-[50px]">
-                      {billItems.map((bi) => (
-                         <div key={bi.tempId} className="flex items-start p-3 hover:bg-gray-50/50 transition-colors gap-2">
-                            {/* Autocomplete Description Input */}
-                            <div className="flex-1 relative" ref={el => { dropdownRefs.current[bi.tempId] = el }}>
-                               <div className="flex items-center gap-1.5">
-                                 <input 
-                                   value={bi.name} 
-                                   onChange={e => {
-                                     updateBillItem(bi.tempId, 'name', e.target.value);
-                                     updateBillItem(bi.tempId, 'itemId', null);
-                                     updateBillItem(bi.tempId, 'showSuggestions', true);
-                                   }}
-                                   onFocus={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
-                                   placeholder="Type item name..." 
-                                   className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-2 text-[#111111] text-sm outline-none transition-all font-medium" 
-                                 />
-                                 
-                                 {/* 3-Position Tactile Slider Switch */}
-                                 {!bi.itemId && (
-                                   <div 
-                                     className="relative flex items-center bg-slate-100/90 border border-slate-200/80 rounded-full p-0.5 w-[96px] h-8 shrink-0 select-none overflow-hidden"
-                                   >
-                                     {/* Slide indicator background */}
-                                     <div 
-                                       className="absolute top-0.5 bottom-0.5 rounded-full transition-all duration-300 ease-out shadow-sm"
-                                       style={{
-                                         width: '28px',
-                                         left: bi.adhocMode === 'tile' ? '2px' : 
-                                               bi.adhocMode === 'sanitary' ? '62px' : '32px',
-                                         background: bi.adhocMode === 'tile' ? 'linear-gradient(135deg, #1F6F5F 0%, #2FA084 100%)' :
-                                                     bi.adhocMode === 'sanitary' ? 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)' : '#cbd5e1',
-                                       }}
-                                     />
+                {/* Items Container */}
+                <div className="border border-gray-200 rounded-xl overflow-hidden mb-6 bg-white">
+                   {/* Desktop Table View (sm:block) */}
+                   <div className="hidden sm:block overflow-x-auto custom-scrollbar">
+                      <div className="min-w-[620px]">
+                         <div className="bg-gray-50 p-3 flex text-[10px] font-black text-[#111111]/40 uppercase tracking-widest border-b border-gray-200">
+                            <div className="flex-1">Item Description</div>
+                            <div className="w-24 text-center">Unit</div>
+                            <div className="w-24 text-center">Qty</div>
+                            <div className="w-32 text-center">Price (₹)</div>
+                            <div className="w-32 text-right pr-4">Subtotal</div>
+                            <div className="w-10"></div>
+                         </div>
+                         <div className="divide-y divide-gray-100 min-h-[50px]">
+                            {billItems.map((bi) => (
+                               <div key={bi.tempId} className="flex items-start p-3 hover:bg-gray-50/50 transition-colors gap-2">
+                                  {/* Autocomplete Description Input */}
+                                  <div className="flex-1 relative" ref={el => { dropdownRefs.current[bi.tempId] = el }}>
+                                     <div className="flex items-center gap-1.5">
+                                       <input 
+                                         value={bi.name} 
+                                         onChange={e => {
+                                           updateBillItem(bi.tempId, 'name', e.target.value);
+                                           updateBillItem(bi.tempId, 'itemId', null);
+                                           updateBillItem(bi.tempId, 'showSuggestions', true);
+                                         }}
+                                         onFocus={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
+                                         placeholder="Type item name..." 
+                                         className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-2 text-[#111111] text-sm outline-none transition-all font-medium" 
+                                       />
+                                       
+                                       {/* 3-Position Tactile Slider Switch */}
+                                       {!bi.itemId && (
+                                         <div 
+                                           className="relative flex items-center bg-slate-100/90 border border-slate-200/80 rounded-full p-0.5 w-[96px] h-8 shrink-0 select-none overflow-hidden"
+                                         >
+                                           <div 
+                                             className="absolute top-0.5 bottom-0.5 rounded-full transition-all duration-300 ease-out shadow-sm"
+                                             style={{
+                                               width: '28px',
+                                               left: bi.adhocMode === 'tile' ? '2px' : 
+                                                     bi.adhocMode === 'sanitary' ? '62px' : '32px',
+                                               background: bi.adhocMode === 'tile' ? 'linear-gradient(135deg, #1F6F5F 0%, #2FA084 100%)' :
+                                                           bi.adhocMode === 'sanitary' ? 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)' : '#cbd5e1',
+                                             }}
+                                           />
 
-                                     {/* Label Buttons */}
-                                     <button
-                                       type="button"
-                                       title="Track as Tiles Category"
-                                       onClick={() => updateBillItem(bi.tempId, 'adhocMode', 'tile')}
-                                       className={`w-[30px] h-full text-center text-[9px] font-black z-10 transition-colors duration-200 ${bi.adhocMode === 'tile' ? 'text-white' : 'text-slate-500'}`}
+                                           <button
+                                             type="button"
+                                             title="Track as Tiles Category"
+                                             onClick={() => updateBillItem(bi.tempId, 'adhocMode', 'tile')}
+                                             className={`w-[30px] h-full text-center text-[9px] font-black z-10 transition-colors duration-200 ${bi.adhocMode === 'tile' ? 'text-white' : 'text-slate-500'}`}
+                                           >
+                                             Tile
+                                           </button>
+                                           <button
+                                             type="button"
+                                             title="Turn off tracking"
+                                             onClick={() => updateBillItem(bi.tempId, 'adhocMode', null)}
+                                             className={`w-[30px] h-full text-center text-[8px] font-black z-10 transition-colors duration-200 ${!bi.adhocMode ? 'text-white' : 'text-slate-400'}`}
+                                           >
+                                             off
+                                           </button>
+                                           <button
+                                             type="button"
+                                             title="Track as Sanitary Category"
+                                             onClick={() => updateBillItem(bi.tempId, 'adhocMode', 'sanitary')}
+                                             className={`w-[30px] h-full text-center text-[9px] font-black z-10 transition-colors duration-200 ${bi.adhocMode === 'sanitary' ? 'text-white' : 'text-slate-500'}`}
+                                           >
+                                             San
+                                           </button>
+                                         </div>
+                                       )}
+                                     </div>
+                                     
+                                     {/* Suggestions Dropdown */}
+                                     {bi.showSuggestions && bi.name.length > 0 && (
+                                       <div className="absolute z-[60] left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                                          {inventory
+                                            .filter(i => 
+                                              (i?.name || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase()) || 
+                                              (i?.category || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase())
+                                            )
+                                            .map(item => (
+                                              <button 
+                                                key={item.id} 
+                                                type="button" 
+                                                onClick={() => selectInventoryItem(bi.tempId, item)}
+                                                className="w-full text-left px-4 py-2 hover:bg-[#6FCF97]/10 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
+                                              >
+                                                <div className="flex justify-between items-center">
+                                                  <p className="text-sm font-bold text-[#111111]">{item.name}</p>
+                                                  <span className="text-[9px] font-black text-[#111111]/30 uppercase">{item.category}</span>
+                                                </div>
+                                                <p className="text-[10px] text-[#111111]/40 font-medium">Stock: {item.stockLevel} {item.unit}s</p>
+                                              </button>
+                                            ))
+                                          }
+                                          {inventory.filter(i => 
+                                            (i?.name || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase()) || 
+                                            (i?.category || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase())
+                                          ).length === 0 && (
+                                            <div className="px-4 py-3 text-xs italic text-[#111111]/40">Manual entry mode</div>
+                                          )}
+                                       </div>
+                                     )}
+                                  </div>
+
+                                  {/* Unit Selector */}
+                                  <div className="w-24 px-1">
+                                     <select 
+                                       value={bi.unit} 
+                                       onChange={e => updateBillItem(bi.tempId, 'unit', e.target.value)}
+                                       className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-2 py-2 text-[#111111] text-xs outline-none transition-all font-bold appearance-none text-center cursor-pointer"
                                      >
-                                       Tile
-                                     </button>
-                                     <button
-                                       type="button"
-                                       title="Turn off tracking"
-                                       onClick={() => updateBillItem(bi.tempId, 'adhocMode', null)}
-                                       className={`w-[30px] h-full text-center text-[8px] font-black z-10 transition-colors duration-200 ${!bi.adhocMode ? 'text-white' : 'text-slate-400'}`}
-                                     >
-                                       off
-                                     </button>
-                                     <button
-                                       type="button"
-                                       title="Track as Sanitary Category"
-                                       onClick={() => updateBillItem(bi.tempId, 'adhocMode', 'sanitary')}
-                                       className={`w-[30px] h-full text-center text-[9px] font-black z-10 transition-colors duration-200 ${bi.adhocMode === 'sanitary' ? 'text-white' : 'text-slate-500'}`}
-                                     >
-                                       San
-                                     </button>
-                                   </div>
-                                 )}
+                                        <option value="box">BOX</option>
+                                        <option value="pc">PCS</option>
+                                     </select>
+                                  </div>
+
+                                  {/* Qty Input */}
+                                  <div className="w-24">
+                                     <input 
+                                       type="number" 
+                                       min="1" 
+                                       value={bi.quantity} 
+                                       onChange={e => {
+                                         const val = e.target.value;
+                                         updateBillItem(bi.tempId, 'quantity', val === "" ? "" : (parseInt(val) || 0));
+                                       }} 
+                                       className="w-full text-center bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-2 py-2 text-[#111111] text-sm outline-none transition-colors hide-arrows font-bold" 
+                                     />
+                                  </div>
+
+                                  {/* Price Input */}
+                                  <div className="w-32 font-bold">
+                                     <div className="relative">
+                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-[#111111]/30">₹</span>
+                                        <input 
+                                          type="number" 
+                                          min="0" 
+                                          value={bi.price} 
+                                          onChange={e => {
+                                            const val = e.target.value;
+                                            updateBillItem(bi.tempId, 'price', val === "" ? "" : (parseFloat(val) || 0));
+                                          }} 
+                                          className="w-full pl-6 pr-3 bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-2 text-[#111111] text-sm outline-none transition-colors hide-arrows text-right" 
+                                        />
+                                     </div>
+                                  </div>
+
+                                  {/* Subtotal Display */}
+                                  <div className="w-32 text-right pt-2 font-black text-[#1F6F5F] pr-4">
+                                     ₹{(Number(bi.quantity) * Number(bi.price)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                  </div>
+
+                                  {/* Delete Row */}
+                                  <div className="w-10 pt-1 flex justify-end">
+                                     <button type="button" onClick={() => setBillItems(billItems.filter(i => i.tempId !== bi.tempId))} className="p-2 text-[#111111]/20 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                  </div>
                                </div>
-                               
-                               {/* Suggestions Dropdown */}
+                            ))}
+                         </div>
+                      </div>
+                   </div>
+
+                   {/* Mobile Stacked Card View (sm:hidden) */}
+                   <div className="sm:hidden divide-y divide-gray-100">
+                      {billItems.map((bi) => (
+                         <div key={bi.tempId} className="p-3.5 bg-white space-y-3 relative">
+                            {/* Row 1: Full-Width Item Description Input */}
+                            <div className="space-y-1" ref={el => { dropdownRefs.current[bi.tempId] = el }}>
+                               <label className="text-[10px] font-black text-[#111111]/40 uppercase tracking-widest">Item Description</label>
+                               <input 
+                                 value={bi.name} 
+                                 onChange={e => {
+                                   updateBillItem(bi.tempId, 'name', e.target.value);
+                                   updateBillItem(bi.tempId, 'itemId', null);
+                                   updateBillItem(bi.tempId, 'showSuggestions', true);
+                                 }}
+                                 onFocus={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
+                                 placeholder="Type item name..." 
+                                 className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-2 text-[#111111] text-sm outline-none transition-all font-medium" 
+                               />
+
+                               {/* Mobile Suggestions Dropdown */}
                                {bi.showSuggestions && bi.name.length > 0 && (
-                                 <div className="absolute z-[60] left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                                 <div className="absolute z-[60] left-3 right-3 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
                                     {inventory
                                       .filter(i => 
                                         (i?.name || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase()) || 
@@ -345,7 +456,7 @@ export default function BillingPage() {
                                           key={item.id} 
                                           type="button" 
                                           onClick={() => selectInventoryItem(bi.tempId, item)}
-                                          className="w-full text-left px-4 py-2 hover:bg-[#6FCF97]/10 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
+                                          className="w-full text-left px-4 py-2.5 hover:bg-[#6FCF97]/10 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
                                         >
                                           <div className="flex justify-between items-center">
                                             <p className="text-sm font-bold text-[#111111]">{item.name}</p>
@@ -355,46 +466,76 @@ export default function BillingPage() {
                                         </button>
                                       ))
                                     }
-                                    {inventory.filter(i => 
-                                      (i?.name || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase()) || 
-                                      (i?.category || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase())
-                                    ).length === 0 && (
-                                      <div className="px-4 py-3 text-xs italic text-[#111111]/40">Manual entry mode</div>
-                                    )}
                                  </div>
                                )}
                             </div>
 
-                            {/* Unit Selector */}
-                            <div className="w-24 px-1">
-                               <select 
-                                 value={bi.unit} 
-                                 onChange={e => updateBillItem(bi.tempId, 'unit', e.target.value)}
-                                 className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-2 py-2 text-[#111111] text-xs outline-none transition-all font-bold appearance-none text-center cursor-pointer"
-                               >
-                                  <option value="box">BOX</option>
-                                  <option value="pc">PCS</option>
-                               </select>
+                            {/* Row 2: Category Slider + Unit Selector Beside It */}
+                            <div className="flex items-end justify-between gap-3 pt-1">
+                               {!bi.itemId ? (
+                                 <div className="space-y-1">
+                                   <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">Category Track</label>
+                                   <div className="relative flex items-center bg-slate-100/90 border border-slate-200/80 rounded-full p-0.5 w-[110px] h-8 shrink-0 select-none overflow-hidden">
+                                     <div 
+                                       className="absolute top-0.5 bottom-0.5 rounded-full transition-all duration-300 ease-out shadow-sm"
+                                       style={{
+                                         width: '32px',
+                                         left: bi.adhocMode === 'tile' ? '2px' : 
+                                               bi.adhocMode === 'sanitary' ? '72px' : '37px',
+                                         background: bi.adhocMode === 'tile' ? 'linear-gradient(135deg, #1F6F5F 0%, #2FA084 100%)' :
+                                                     bi.adhocMode === 'sanitary' ? 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)' : '#cbd5e1',
+                                       }}
+                                     />
+                                     <button
+                                       type="button"
+                                       onClick={() => updateBillItem(bi.tempId, 'adhocMode', 'tile')}
+                                       className={`w-[35px] h-full text-center text-[9px] font-black z-10 transition-colors ${bi.adhocMode === 'tile' ? 'text-white' : 'text-slate-500'}`}
+                                     >Tile</button>
+                                     <button
+                                       type="button"
+                                       onClick={() => updateBillItem(bi.tempId, 'adhocMode', null)}
+                                       className={`w-[35px] h-full text-center text-[8px] font-black z-10 transition-colors ${!bi.adhocMode ? 'text-white' : 'text-slate-400'}`}
+                                     >off</button>
+                                     <button
+                                       type="button"
+                                       onClick={() => updateBillItem(bi.tempId, 'adhocMode', 'sanitary')}
+                                       className={`w-[35px] h-full text-center text-[9px] font-black z-10 transition-colors ${bi.adhocMode === 'sanitary' ? 'text-white' : 'text-slate-500'}`}
+                                     >San</button>
+                                   </div>
+                                 </div>
+                               ) : <div />}
+
+                               <div className="w-28 space-y-1">
+                                  <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">Unit</label>
+                                  <select 
+                                    value={bi.unit} 
+                                    onChange={e => updateBillItem(bi.tempId, 'unit', e.target.value)}
+                                    className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-1.5 text-[#111111] text-xs outline-none font-bold text-center cursor-pointer"
+                                  >
+                                     <option value="box">BOX</option>
+                                     <option value="pc">PCS</option>
+                                  </select>
+                               </div>
                             </div>
 
-                            {/* Qty Input */}
-                            <div className="w-24">
-                               <input 
-                                 type="number" 
-                                 min="1" 
-                                 value={bi.quantity} 
-                                 onChange={e => {
-                                   const val = e.target.value;
-                                   updateBillItem(bi.tempId, 'quantity', val === "" ? "" : (parseInt(val) || 0));
-                                 }} 
-                                 className="w-full text-center bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-2 py-2 text-[#111111] text-sm outline-none transition-colors hide-arrows font-bold" 
-                               />
-                            </div>
+                            {/* Row 3: Qty + Price (₹) + Delete button */}
+                            <div className="grid grid-cols-12 gap-3 items-end pt-1">
+                               <div className="col-span-5 space-y-1">
+                                  <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">QTY</label>
+                                  <input 
+                                    type="number" 
+                                    min="1" 
+                                    value={bi.quantity} 
+                                    onChange={e => {
+                                      const val = e.target.value;
+                                      updateBillItem(bi.tempId, 'quantity', val === "" ? "" : (parseInt(val) || 0));
+                                    }} 
+                                    className="w-full text-center bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-2 text-[#111111] text-sm outline-none font-bold hide-arrows" 
+                                  />
+                               </div>
 
-                            {/* Price Input */}
-                            <div className="w-32 font-bold">
-                               <div className="relative">
-                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-[#111111]/30">₹</span>
+                               <div className="col-span-5 space-y-1">
+                                  <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">PRICE (₹)</label>
                                   <input 
                                     type="number" 
                                     min="0" 
@@ -403,23 +544,24 @@ export default function BillingPage() {
                                       const val = e.target.value;
                                       updateBillItem(bi.tempId, 'price', val === "" ? "" : (parseFloat(val) || 0));
                                     }} 
-                                    className="w-full pl-6 pr-3 bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-2 text-[#111111] text-sm outline-none transition-colors hide-arrows text-right" 
+                                    className="w-full text-right bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-2 px-2 text-[#111111] text-sm outline-none font-bold hide-arrows" 
                                   />
+                               </div>
+
+                               <div className="col-span-2 flex justify-end">
+                                  <button type="button" onClick={() => setBillItems(billItems.filter(i => i.tempId !== bi.tempId))} className="p-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors cursor-pointer" title="Delete Row"><Trash2 className="w-4 h-4" /></button>
                                </div>
                             </div>
 
-                            {/* Subtotal Display */}
-                            <div className="w-32 text-right pt-2 font-black text-[#1F6F5F] pr-4">
-                               ₹{(Number(bi.quantity) * Number(bi.price)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </div>
-
-                            {/* Delete Row */}
-                            <div className="w-10 pt-1 flex justify-end">
-                               <button type="button" onClick={() => setBillItems(billItems.filter(i => i.tempId !== bi.tempId))} className="p-2 text-[#111111]/20 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                            {/* Row 4: Subtotal line */}
+                            <div className="flex justify-between items-center pt-2 border-t border-dashed border-gray-100 text-xs">
+                               <span className="font-bold text-[#111111]/40">Subtotal:</span>
+                               <span className="font-black text-sm text-[#1F6F5F]">₹{(Number(bi.quantity) * Number(bi.price)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                          </div>
                       ))}
                    </div>
+                </div>
                    
                    {/* Add Row Button */}
                    <div className="p-4 bg-gray-50/50 border-t border-gray-200 border-dashed">
@@ -432,7 +574,6 @@ export default function BillingPage() {
                          Add New Item Line
                       </button>
                    </div>
-                </div>
 
                 {validationError && (
                   <div className="flex items-center gap-2 p-3 mb-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-semibold">
@@ -441,11 +582,11 @@ export default function BillingPage() {
                   </div>
                 )}
 
-                <div className="-mx-6 -mb-6 p-6 rounded-b-2xl flex justify-between items-center" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.02)' }}>
-                   <div className="flex gap-8 items-center">
+                <div className="-mx-6 -mb-6 p-4 sm:p-6 rounded-b-2xl flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.02)' }}>
+                   <div className="flex flex-wrap gap-6 items-center justify-between sm:justify-start">
                       <div>
                          <p className="text-[10px] text-[#111111]/50 uppercase tracking-widest font-bold">Total Net Amount</p>
-                         <p className="text-2xl font-black text-[#1F6F5F]">₹{billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0).toFixed(2)}</p>
+                         <p className="text-xl sm:text-2xl font-black text-[#1F6F5F]">₹{billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0).toFixed(2)}</p>
                       </div>
                       <div className="space-y-1">
                          <label className="text-[10px] font-bold text-[#111111]/60 uppercase tracking-wider block">Final Net Amount (₹)</label>
@@ -455,14 +596,14 @@ export default function BillingPage() {
                            placeholder={billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0).toFixed(2)}
                            value={finalNetAmountInput}
                            onChange={e => setFinalNetAmountInput(e.target.value)}
-                           className="w-40 bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-1.5 text-sm font-bold outline-none text-right shadow-sm hide-arrows"
+                           className="w-36 sm:w-40 bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-1.5 text-sm font-bold outline-none text-right shadow-sm hide-arrows"
                          />
                       </div>
                    </div>
-                   <div className="flex gap-4 items-center">
-                      <button type="button" onClick={() => { setIsAddRouteOpen(false); resetForm(); }} className="px-5 py-2.5 rounded-lg text-[#111111]/60 hover:text-[#111111] font-medium transition-colors cursor-pointer">Cancel</button>
-                      <button onClick={handleSaveBill} disabled={!customerName || billItems.length === 0 || isSubmitting} className="text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer" style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', border: '1px solid rgba(0,0,0,0.12)' }}>
-                         {isSubmitting ? 'Saving Invoice...' : (editingBill ? 'Update & Sync Stock' : 'Finalize & Deduct Stock')}
+                   <div className="flex gap-3 items-center justify-end w-full sm:w-auto">
+                      <button type="button" onClick={() => { setIsAddRouteOpen(false); resetForm(); }} className="px-4 py-2.5 rounded-lg text-[#111111]/60 hover:text-[#111111] font-medium transition-colors cursor-pointer text-sm">Cancel</button>
+                      <button onClick={handleSaveBill} disabled={!customerName || billItems.length === 0 || isSubmitting} className="flex-1 sm:flex-none text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-sm text-center" style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', border: '1px solid rgba(0,0,0,0.12)' }}>
+                         {isSubmitting ? 'Saving...' : (editingBill ? 'Update & Sync Stock' : 'Finalize & Deduct Stock')}
                       </button>
                    </div>
                 </div>
@@ -512,7 +653,7 @@ export default function BillingPage() {
            </div>
         </div>
         
-        <div className="grid grid-cols-12 gap-4 p-5 text-[11px] font-black text-[#111111] uppercase tracking-widest" style={{ borderBottom: '2px solid rgba(0,0,0,0.1)', background: 'linear-gradient(180deg, rgba(31,111,95,0.06) 0%, rgba(31,111,95,0.02) 100%)' }}>
+        <div className="hidden md:grid grid-cols-12 gap-4 p-5 text-[11px] font-black text-[#111111] uppercase tracking-widest" style={{ borderBottom: '2px solid rgba(0,0,0,0.1)', background: 'linear-gradient(180deg, rgba(31,111,95,0.06) 0%, rgba(31,111,95,0.02) 100%)' }}>
           <div className="col-span-2">Invoice No</div>
           <div className="col-span-3">Customer Details</div>
           <div className="col-span-3 text-center">Total Amount</div>
@@ -552,8 +693,8 @@ export default function BillingPage() {
               <>
                 {paginatedBills.map((bill, i) => (
                   <FadeIn key={bill.id} delay={i * 0.03}>
-                    <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-[#EEEEEE]/40 transition-colors group">
-                      
+                    {/* Desktop Row */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 p-4 items-center hover:bg-[#EEEEEE]/40 transition-colors group">
                       <div className="col-span-2">
                         <p className="font-black text-[#1F6F5F] text-xs tracking-tighter">{bill.invoiceNo}</p>
                         <p className="text-[9px] uppercase tracking-wider font-bold text-[#111111]/30">#{bill.id.slice(0, 4)}</p>
@@ -603,7 +744,58 @@ export default function BillingPage() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
+                    </div>
 
+                    {/* Mobile Card */}
+                    <div className="md:hidden p-4 hover:bg-gray-50/50 transition-colors space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-[#1F6F5F] text-sm">{bill.invoiceNo}</span>
+                            <span className="text-[9px] uppercase tracking-wider font-bold text-[#111111]/30">#{bill.id.slice(0, 4)}</span>
+                          </div>
+                          <p className="font-bold text-[#111111] text-sm mt-0.5">{bill.customerName}</p>
+                          {bill.customerPhone && (
+                            <p className="text-xs text-[#111111]/60 font-semibold">{bill.customerPhone}</p>
+                          )}
+                          <p className="text-[10px] text-[#111111]/40 font-semibold mt-0.5">
+                            {formatDate(bill.createdAt)}
+                          </p>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <p className="font-black text-base text-[#1F6F5F]">
+                            ₹{(bill.finalNetAmount !== null && bill.finalNetAmount !== undefined ? bill.finalNetAmount : bill.totalAmount).toFixed(2)}
+                          </p>
+                          {bill.finalNetAmount !== null && bill.finalNetAmount !== undefined && Math.abs(bill.totalAmount - bill.finalNetAmount) > 0.01 && (
+                            <p className="text-[10px] text-red-500 font-semibold line-through">₹{bill.totalAmount.toFixed(2)}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                        <button 
+                          onClick={() => setSelectedBillForView(bill)} 
+                          className="px-3 py-1.5 bg-[#2FA084]/10 text-[#1F6F5F] text-xs font-bold rounded-lg transition-colors border border-[#2FA084]/20"
+                        >
+                          View Bill
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleEditBill(bill)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-[#1F6F5F] bg-gray-100 rounded-lg"
+                          >
+                            <Pencil className="w-3.5 h-3.5" /> Edit
+                          </button>
+                          <button 
+                            onClick={() => requestDeleteBill(bill.id)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-600 bg-red-50 rounded-lg"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Del
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </FadeIn>
                 ))}
