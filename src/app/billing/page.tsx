@@ -149,8 +149,9 @@ export default function BillingPage() {
 
     setIsSubmitting(true)
     try {
+      let res: any
       if (editingBill) {
-        await updateBill(editingBill.id, {
+        res = await updateBill(editingBill.id, {
           customerName,
           customerPhone,
           totalAmount,
@@ -158,13 +159,18 @@ export default function BillingPage() {
           items: payloadItems
         })
       } else {
-        await createBill({
+        res = await createBill({
           customerName,
           customerPhone,
           totalAmount,
           finalNetAmount: finalAmountVal,
           items: payloadItems
         })
+      }
+
+      if (res && res.success === false) {
+        setValidationError(res.error || "Failed to finalize invoice and deduct stock. Please try again.")
+        return
       }
 
       setIsAddRouteOpen(false)
@@ -186,9 +192,13 @@ export default function BillingPage() {
 
   const handleDeleteSuccess = async () => {
     if (pendingDeleteId) {
-      await deleteBill(pendingDeleteId)
-      setPendingDeleteId(null)
-      await loadData()
+      const res: any = await deleteBill(pendingDeleteId)
+      if (res && res.success === false) {
+        alert(res.error || "Failed to delete invoice.")
+      } else {
+        setPendingDeleteId(null)
+        await loadData()
+      }
     }
   }
 
