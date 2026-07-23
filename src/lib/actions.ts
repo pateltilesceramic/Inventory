@@ -142,7 +142,7 @@ export async function updateInventoryStock(id: string, adjustment: number) {
   revalidatePath("/inventory")
 }
 
-export async function createBill(data: { customerName: string; customerPhone?: string; totalAmount: number; finalNetAmount?: number; items: { itemId?: string; name: string; unit: string; quantity: number; price: number; adhocMode?: string | null }[] }) {
+export async function createBill(data: { customerName: string; customerPhone?: string; totalAmount: number; finalNetAmount?: number; amountPaid?: number; balanceDue?: number; items: { itemId?: string; name: string; unit: string; quantity: number; price: number; adhocMode?: string | null }[] }) {
   try {
     // Find highest existing numeric invoice number to prevent duplicate key errors
     const allBills = await prisma.bill.findMany({ select: { invoiceNo: true } })
@@ -194,6 +194,8 @@ export async function createBill(data: { customerName: string; customerPhone?: s
             customerPhone: data.customerPhone || null,
             totalAmount: data.totalAmount,
             finalNetAmount: data.finalNetAmount !== undefined ? data.finalNetAmount : data.totalAmount,
+            amountPaid: data.amountPaid !== undefined ? data.amountPaid : (data.finalNetAmount !== undefined ? data.finalNetAmount : data.totalAmount),
+            balanceDue: data.balanceDue !== undefined ? data.balanceDue : 0,
             items: {
               create: processedItems.map(i => ({
                 itemId: i.resolvedItemId,
@@ -251,7 +253,7 @@ export async function createBill(data: { customerName: string; customerPhone?: s
   }
 }
 
-export async function updateBill(id: string, data: { customerName: string; customerPhone?: string; totalAmount: number; finalNetAmount?: number; items: { itemId?: string; name: string; unit: string; quantity: number; price: number; adhocMode?: string | null }[] }) {
+export async function updateBill(id: string, data: { customerName: string; customerPhone?: string; totalAmount: number; finalNetAmount?: number; amountPaid?: number; balanceDue?: number; items: { itemId?: string; name: string; unit: string; quantity: number; price: number; adhocMode?: string | null }[] }) {
   try {
     const oldBill = await prisma.bill.findUnique({
       where: { id },
@@ -311,6 +313,8 @@ export async function updateBill(id: string, data: { customerName: string; custo
         customerPhone: data.customerPhone || null,
         totalAmount: data.totalAmount,
         finalNetAmount: data.finalNetAmount !== undefined ? data.finalNetAmount : data.totalAmount,
+        amountPaid: data.amountPaid !== undefined ? data.amountPaid : (data.finalNetAmount !== undefined ? data.finalNetAmount : data.totalAmount),
+        balanceDue: data.balanceDue !== undefined ? data.balanceDue : 0,
         items: {
           create: processedItems.map(i => ({
             itemId: i.resolvedItemId,

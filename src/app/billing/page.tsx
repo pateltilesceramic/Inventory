@@ -28,10 +28,12 @@ export default function BillingPage() {
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0])
   const [billItems, setBillItems] = useState<{ tempId: string, itemId: string | null, name: string, unit: string, quantity: number | "", price: number | "", adhocMode?: 'tile' | 'sanitary' | null, showSuggestions?: boolean }[]>([])
   const [finalNetAmountInput, setFinalNetAmountInput] = useState("")
+  const [amountPaidInput, setAmountPaidInput] = useState("")
   const [validationError, setValidationError] = useState("")
 
   const [billSearch, setBillSearch] = useState("")
   const [dateFilter, setDateFilter] = useState("") // Empty string means "Show All" by default
+  const [activeTab, setActiveTab] = useState<"All" | "Pending">("All")
   const [currentPage, setCurrentPage] = useState(1)
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -39,9 +41,12 @@ export default function BillingPage() {
     setCurrentPage(1)
   }, [billSearch, dateFilter])
 
-  // Security gate for invoice deletion
+  // Security gate for invoice deletion/editing
   const [isSecurityGateOpen, setIsSecurityGateOpen] = useState(false)
+  const [securityAction, setSecurityAction] = useState<"delete" | "edit" | "save_edit" | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const [pendingEditBill, setPendingEditBill] = useState<any | null>(null)
+  const [pendingEditPayload, setPendingEditPayload] = useState<any | null>(null)
 
   const loadData = async () => {
     setLoading(true)
@@ -89,6 +94,7 @@ export default function BillingPage() {
     setInvoiceDate(new Date().toISOString().split('T')[0])
     setBillItems([])
     setFinalNetAmountInput("")
+    setAmountPaidInput("")
     setValidationError("")
   }
 
@@ -108,6 +114,7 @@ export default function BillingPage() {
       showSuggestions: false
     })))
     setFinalNetAmountInput(bill.finalNetAmount !== null && bill.finalNetAmount !== undefined ? String(bill.finalNetAmount) : "")
+    setAmountPaidInput(bill.amountPaid !== null && bill.amountPaid !== undefined ? String(bill.amountPaid) : "")
     setValidationError("")
     setIsAddRouteOpen(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -138,6 +145,9 @@ export default function BillingPage() {
     }
 
     const finalAmountVal = finalNetAmountInput.trim() ? parseFloat(finalNetAmountInput) : totalAmount
+    const amountPaidVal = amountPaidInput.trim() ? parseFloat(amountPaidInput) : finalAmountVal
+    const balanceDueVal = Math.max(0, finalAmountVal - amountPaidVal)
+    
     const payloadItems = billItems.map(i => ({ 
       itemId: i.itemId || undefined, 
       name: i.name, 
@@ -147,25 +157,30 @@ export default function BillingPage() {
       adhocMode: i.adhocMode || null
     }))
 
+    const payload = {
+      customerName,
+      customerPhone,
+      totalAmount,
+      finalNetAmount: finalAmountVal,
+      amountPaid: amountPaidVal,
+      balanceDue: balanceDueVal,
+      items: payloadItems
+    }
+
+    if (editingBill && !pendingEditPayload && securityAction !== 'save_edit') {
+      setPendingEditPayload(payload)
+      setSecurityAction('save_edit')
+      setIsSecurityGateOpen(true)
+      return
+    }
+
     setIsSubmitting(true)
     try {
       let res: any
       if (editingBill) {
-        res = await updateBill(editingBill.id, {
-          customerName,
-          customerPhone,
-          totalAmount,
-          finalNetAmount: finalAmountVal,
-          items: payloadItems
-        })
+        res = await updateBill(editingBill.id, pendingEditPayload || payload)
       } else {
-        res = await createBill({
-          customerName,
-          customerPhone,
-          totalAmount,
-          finalNetAmount: finalAmountVal,
-          items: payloadItems
-        })
+        res = await createBill(payload)
       }
 
       if (res && res.success === false) {
@@ -175,6 +190,8 @@ export default function BillingPage() {
 
       setIsAddRouteOpen(false)
       resetForm()
+      setPendingEditPayload(null)
+      setSecurityAction(null)
       await loadData()
     } catch (err: any) {
       console.error("Failed to save bill:", err)
@@ -184,21 +201,26 @@ export default function BillingPage() {
     }
   }
 
-  // Delete invoice flow
+  // Security gate for actions
   const requestDeleteBill = (id: string) => {
     setPendingDeleteId(id)
+    setSecurityAction('delete')
     setIsSecurityGateOpen(true)
   }
 
-  const handleDeleteSuccess = async () => {
-    if (pendingDeleteId) {
+  const handleSecuritySuccess = async () => {
+    if (securityAction === 'delete' && pendingDeleteId) {
       const res: any = await deleteBill(pendingDeleteId)
       if (res && res.success === false) {
         alert(res.error || "Failed to delete invoice.")
       } else {
         setPendingDeleteId(null)
+        setSecurityAction(null)
         await loadData()
       }
+    } else if (securityAction === 'save_edit' && pendingEditPayload) {
+      // The user successfully authenticated to save the edit. Let's call handleSaveBill again to process it.
+      handleSaveBill()
     }
   }
 
@@ -599,6 +621,25 @@ export default function BillingPage() {
                            className="w-36 sm:w-40 bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-1.5 text-sm font-bold outline-none text-right shadow-sm hide-arrows"
                          />
                       </div>
+                      <div className="space-y-1">
+                         <label className="text-[10px] font-bold text-[#111111]/60 uppercase tracking-wider block">Advance Received (₹)</label>
+                         <input 
+                           type="number"
+                           step="0.01"
+                           placeholder={finalNetAmountInput || billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0).toFixed(2)}
+                           value={amountPaidInput}
+                           onChange={e => setAmountPaidInput(e.target.value)}
+                           className="w-36 sm:w-40 bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-1.5 text-sm font-bold outline-none text-right shadow-sm hide-arrows"
+                         />
+                      </div>
+                      {amountPaidInput && Number(amountPaidInput) < (Number(finalNetAmountInput) || billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0)) && (
+                         <div className="hidden sm:block">
+                            <p className="text-[10px] text-orange-500 uppercase tracking-widest font-bold">Balance Due</p>
+                            <p className="text-xl font-black text-orange-500">
+                              ₹{((Number(finalNetAmountInput) || billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0)) - Number(amountPaidInput)).toFixed(2)}
+                            </p>
+                         </div>
+                       )}
                    </div>
                    <div className="flex gap-3 items-center justify-end w-full sm:w-auto">
                       <button type="button" onClick={() => { setIsAddRouteOpen(false); resetForm(); }} className="px-4 py-2.5 rounded-lg text-[#111111]/60 hover:text-[#111111] font-medium transition-colors cursor-pointer text-sm">Cancel</button>
@@ -615,9 +656,37 @@ export default function BillingPage() {
       {/* Invoice Register */}
       <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', border: '1px solid rgba(255,255,255,0.65)', boxShadow: '0 1px 0 rgba(255,255,255,0.90) inset, 0 -1px 0 rgba(0,0,0,0.05) inset, 0 6px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05)' }}>
         <div className="p-4 px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', background: 'linear-gradient(180deg, rgba(31,111,95,0.04) 0%, rgba(31,111,95,0.02) 100%)' }}>
-           <div className="flex items-center gap-3">
-             <Receipt className="w-5 h-5 text-[#2FA084]" />
-             <h2 className="text-lg font-bold text-[#1F6F5F]">Invoices Register</h2>
+           <div className="flex flex-wrap items-center gap-4">
+             <div className="flex items-center gap-2 pr-4 sm:border-r border-[#1F6F5F]/10">
+               <Receipt className="w-5 h-5 text-[#2FA084]" />
+               <h2 className="text-lg font-bold text-[#1F6F5F]">Invoices</h2>
+             </div>
+             
+             {/* Slider Tab Filter */}
+             <div className="relative flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm w-max">
+                <div 
+                  className="absolute top-1 bottom-1 rounded-lg transition-all duration-300 ease-out"
+                  style={{
+                    width: activeTab === 'All' ? '100px' : '110px',
+                    left: activeTab === 'All' ? '4px' : '104px',
+                    background: '#1F6F5F',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("All")}
+                  className={`relative z-10 w-[100px] py-1.5 text-xs font-bold transition-colors cursor-pointer ${activeTab === 'All' ? 'text-white' : 'text-[#111111]/40 hover:text-[#111111]/60'}`}
+                >
+                  All Invoices
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("Pending")}
+                  className={`relative z-10 w-[110px] py-1.5 text-xs font-bold transition-colors cursor-pointer ${activeTab === 'Pending' ? 'text-white' : 'text-[#111111]/40 hover:text-[#111111]/60'}`}
+                >
+                  Pending Bills
+                </button>
+             </div>
            </div>
            
            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
@@ -655,8 +724,9 @@ export default function BillingPage() {
         
         <div className="hidden md:grid grid-cols-12 gap-4 p-5 text-[11px] font-black text-[#111111] uppercase tracking-widest" style={{ borderBottom: '2px solid rgba(0,0,0,0.1)', background: 'linear-gradient(180deg, rgba(31,111,95,0.06) 0%, rgba(31,111,95,0.02) 100%)' }}>
           <div className="col-span-2">Invoice No</div>
-          <div className="col-span-3">Customer Details</div>
-          <div className="col-span-3 text-center">Total Amount</div>
+          <div className={activeTab === 'Pending' ? "col-span-2" : "col-span-3"}>Customer Details</div>
+          <div className={activeTab === 'Pending' ? "col-span-2 text-center" : "col-span-3 text-center"}>Total Amount</div>
+          {activeTab === 'Pending' && <div className="col-span-2 text-center">Balance Due</div>}
           <div className="col-span-2 text-center">Receipt</div>
           <div className="col-span-2 text-center">Actions</div>
         </div>
@@ -666,7 +736,8 @@ export default function BillingPage() {
             const filteredBills = bills.filter(b => {
               const matchesSearch = b.customerName.toLowerCase().includes(billSearch.toLowerCase()) || (b.invoiceNo && b.invoiceNo.toLowerCase().includes(billSearch.toLowerCase()))
               const matchesDate = !dateFilter || new Date(b.createdAt).toISOString().substring(0, 10) === dateFilter
-              return matchesSearch && matchesDate
+              const matchesTab = activeTab === 'All' || (activeTab === 'Pending' && (b.balanceDue || 0) > 0)
+              return matchesSearch && matchesDate && matchesTab
             })
             const itemsPerPage = 50
             const totalPages = Math.ceil(filteredBills.length / itemsPerPage)
@@ -700,7 +771,7 @@ export default function BillingPage() {
                         <p className="text-[9px] uppercase tracking-wider font-bold text-[#111111]/30">#{bill.id.slice(0, 4)}</p>
                       </div>
 
-                      <div className="col-span-3">
+                      <div className={activeTab === 'Pending' ? "col-span-2" : "col-span-3"}>
                         <p className="font-bold text-[#111111] truncate">{bill.customerName}</p>
                         {bill.customerPhone && (
                           <p className="text-[10px] text-[#111111]/60 font-semibold">{bill.customerPhone}</p>
@@ -710,7 +781,7 @@ export default function BillingPage() {
                         </p>
                       </div>
 
-                      <div className="col-span-3 text-center">
+                      <div className={activeTab === 'Pending' ? "col-span-2 text-center" : "col-span-3 text-center"}>
                           <p className="font-black text-sm text-[#1F6F5F]">
                             ₹{(bill.finalNetAmount !== null && bill.finalNetAmount !== undefined ? bill.finalNetAmount : bill.totalAmount).toFixed(2)}
                           </p>
@@ -719,7 +790,24 @@ export default function BillingPage() {
                           )}
                       </div>
 
-                      <div className="col-span-2 text-center">
+                      {activeTab === 'Pending' && (
+                        <div className="col-span-2 text-center flex flex-col items-center justify-center">
+                          {bill.balanceDue > 0 ? (
+                            <>
+                              <p className="font-black text-sm text-orange-500">
+                                ₹{bill.balanceDue.toFixed(2)}
+                              </p>
+                              <p className="text-[10px] text-red-600 font-bold mt-0.5 px-2 py-0.5 bg-red-50 rounded-md">
+                                ⚠️ {Math.floor((new Date().getTime() - new Date(bill.createdAt).getTime()) / (1000 * 3600 * 24))} Days Pending
+                              </p>
+                            </>
+                          ) : (
+                            <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md">PAID</span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="col-span-2 text-center flex justify-center items-center">
                         <button 
                             onClick={() => setSelectedBillForView(bill)} 
                             className="px-3 py-1.5 bg-[#2FA084]/10 hover:bg-[#2FA084]/20 text-[#1F6F5F] text-xs font-bold rounded-lg transition-colors border border-[#2FA084]/20 whitespace-nowrap cursor-pointer shadow-sm"
@@ -769,6 +857,18 @@ export default function BillingPage() {
                           </p>
                           {bill.finalNetAmount !== null && bill.finalNetAmount !== undefined && Math.abs(bill.totalAmount - bill.finalNetAmount) > 0.01 && (
                             <p className="text-[10px] text-red-500 font-semibold line-through">₹{bill.totalAmount.toFixed(2)}</p>
+                          )}
+                          {activeTab === 'Pending' && (
+                            bill.balanceDue > 0 ? (
+                              <div className="mt-1 flex flex-col items-end">
+                                <p className="text-[11px] text-orange-500 uppercase tracking-widest font-bold">Balance: ₹{bill.balanceDue.toFixed(2)}</p>
+                                <p className="text-[9px] text-red-600 font-bold mt-0.5 px-1.5 py-0.5 bg-red-50 rounded">
+                                  ⚠️ {Math.floor((new Date().getTime() - new Date(bill.createdAt).getTime()) / (1000 * 3600 * 24))} Days
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="mt-1"><span className="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">PAID</span></p>
+                            )
                           )}
                         </div>
                       </div>
@@ -870,11 +970,11 @@ export default function BillingPage() {
         }
       `}</style>
 
-      {/* Admin gate for deleting invoices */}
+      {/* Admin gate for deleting/editing invoices */}
       <SecurityGate 
         isOpen={isSecurityGateOpen} 
-        onClose={() => { setIsSecurityGateOpen(false); setPendingDeleteId(null); }} 
-        onSuccess={handleDeleteSuccess} 
+        onClose={() => { setIsSecurityGateOpen(false); setPendingDeleteId(null); setPendingEditBill(null); setSecurityAction(null); }} 
+        onSuccess={handleSecuritySuccess} 
       />
 
       {/* View Bill Modal (Thermal Receipt) */}
@@ -987,6 +1087,19 @@ export default function BillingPage() {
                         <span className="font-black uppercase text-[#111111]/70 tracking-wider">Final Net Amount</span>
                         <span className="text-base font-black text-[#1F6F5F]">₹{finalAmt.toFixed(2)}</span>
                       </div>
+                      
+                      {selectedBillForView.balanceDue > 0 && (
+                        <>
+                          <div className="flex justify-between items-center text-[#111111]/60 font-semibold pt-1">
+                            <span className="uppercase tracking-wider">Advance Paid</span>
+                            <span>₹{selectedBillForView.amountPaid.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-orange-600 font-bold mt-1 bg-orange-50 px-2 py-1 rounded">
+                            <span className="uppercase tracking-wider">Balance Due</span>
+                            <span>₹{selectedBillForView.balanceDue.toFixed(2)}</span>
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })()}

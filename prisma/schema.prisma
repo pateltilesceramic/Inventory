@@ -45,6 +45,8 @@ model Bill {
   customerPhone   String?
   totalAmount     Float      @default(0.0)
   finalNetAmount  Float?
+  amountPaid      Float      @default(0.0)
+  balanceDue      Float      @default(0.0)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
   items           BillItem[]
