@@ -504,29 +504,6 @@ export async function getDashboardStats(month?: number, year?: number) {
     return catLower.includes("sanitary") || nameLower.includes("sanitary") || catLower.includes("basin") || catLower.includes("commode") || catLower.includes("sink") || catLower.includes("toilet") || catLower.includes("tap") || catLower.includes("faucet") || catLower.includes("bath")
   };
 
-  const getAdhocTileCategory = (name: string) => {
-    const nameLower = name.toLowerCase()
-    if (nameLower.includes("matte")) return "Matte Tiles"
-    if (nameLower.includes("glossy") || nameLower.includes("polish")) return "Glossy Tiles"
-    if (nameLower.includes("parking")) return "Parking Tiles"
-    if (nameLower.includes("elevation")) return "Elevation Tiles"
-    if (nameLower.includes("carving")) return "Carving Tiles"
-    if (nameLower.includes("poster")) return "Poster Tiles"
-    if (nameLower.includes("wall")) return "Wall Tiles"
-    if (nameLower.includes("floor")) return "Floor Tiles"
-    if (nameLower.includes("gvt") || nameLower.includes("pgvt")) return "GVT/PGVT Tiles"
-    return "Ad-hoc/Wholesale Tiles"
-  };
-
-  const getAdhocSanitaryCategory = (name: string) => {
-    const nameLower = name.toLowerCase()
-    if (nameLower.includes("basin")) return "Basins"
-    if (nameLower.includes("commode") || nameLower.includes("closet")) return "Commodes"
-    if (nameLower.includes("sink")) return "Sinks"
-    if (nameLower.includes("tap") || nameLower.includes("faucet")) return "Taps & Faucets"
-    return "Ad-hoc Sanitary"
-  };
-
   let monthlyRevenue = 0
   let monthlyTilesSold = 0
   let monthlySanitarySold = 0
@@ -553,12 +530,10 @@ export async function getDashboardStats(month?: number, year?: number) {
         // Ad-hoc wholesale or supplier item based on explicit manual toggle
         if (item.adhocMode === "sanitary") {
           monthlySanitarySold += qty
-          const adhocCat = getAdhocSanitaryCategory(name)
-          categoriesBreakdown[adhocCat] = (categoriesBreakdown[adhocCat] || 0) + qty
+          categoriesBreakdown["Ad-hoc Sanitary"] = (categoriesBreakdown["Ad-hoc Sanitary"] || 0) + qty
         } else if (item.adhocMode === "tile") {
           monthlyTilesSold += qty
-          const adhocCat = getAdhocTileCategory(name)
-          categoriesBreakdown[adhocCat] = (categoriesBreakdown[adhocCat] || 0) + qty
+          categoriesBreakdown["Ad-hoc Tiles"] = (categoriesBreakdown["Ad-hoc Tiles"] || 0) + qty
         }
       }
     })
