@@ -74,16 +74,7 @@ export default function BillingPage() {
 
   useEffect(() => { loadData() }, [])
   
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const isOutsideAll = Object.values(dropdownRefs.current).every(ref => !ref || !ref.contains(event.target as Node))
-      if (isOutsideAll) {
-        setBillItems(prev => prev.map(bi => ({ ...bi, showSuggestions: false })))
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  // Removed handleClickOutside in favor of onBlur on the input for better reliability
 
   const totalAmount = billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0)
 
@@ -124,8 +115,14 @@ export default function BillingPage() {
     setBillItems(prev => [...prev, { tempId: Math.random().toString(36).substr(2, 9), itemId: null, name: "", unit: "box", quantity: "", price: "", adhocMode: null, showSuggestions: false }])
   }
 
-  const updateBillItem = (tempId: string, field: string, value: any) => {
-    setBillItems(prev => prev.map(bi => bi.tempId === tempId ? { ...bi, [field]: value } : bi))
+  const updateBillItem = (tempId: string, fieldOrUpdates: string | any, value?: any) => {
+    setBillItems(prev => prev.map(bi => {
+      if (bi.tempId !== tempId) return bi;
+      if (typeof fieldOrUpdates === 'string') {
+        return { ...bi, [fieldOrUpdates]: value };
+      }
+      return { ...bi, ...fieldOrUpdates };
+    }))
   }
 
   const selectInventoryItem = (tempId: string, item: any) => {
@@ -256,7 +253,7 @@ export default function BillingPage() {
              initial={{ opacity: 0, height: 0 }}
              animate={{ opacity: 1, height: 'auto' }}
              exit={{ opacity: 0, height: 0 }}
-             className="mb-8 overflow-hidden"
+             className="mb-8"
           >
              <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', border: '1px solid rgba(255,255,255,0.68)', boxShadow: '0 1px 0 rgba(255,255,255,0.92) inset, 0 -1px 0 rgba(0,0,0,0.05) inset, 0 12px 40px rgba(0,0,0,0.10), 0 3px 10px rgba(0,0,0,0.07)' }}>
                 <h2 className="text-xl font-bold text-[#1F6F5F] mb-6">
@@ -281,9 +278,9 @@ export default function BillingPage() {
                 </div>
 
                 {/* Items Container */}
-                <div className="border border-gray-200 rounded-xl overflow-hidden mb-6 bg-white">
+                <div className="border border-gray-200 rounded-xl mb-6 bg-white">
                    {/* Desktop Table View (sm:block) */}
-                   <div className="hidden sm:block overflow-x-auto custom-scrollbar">
+                   <div className="hidden sm:block overflow-visible">
                       <div className="min-w-[620px]">
                          <div className="bg-gray-50 p-3 flex text-[10px] font-black text-[#111111]/40 uppercase tracking-widest border-b border-gray-200">
                             <div className="flex-1">Item Description</div>
@@ -302,11 +299,14 @@ export default function BillingPage() {
                                        <input 
                                          value={bi.name} 
                                          onChange={e => {
-                                           updateBillItem(bi.tempId, 'name', e.target.value);
-                                           updateBillItem(bi.tempId, 'itemId', null);
-                                           updateBillItem(bi.tempId, 'showSuggestions', true);
+                                           updateBillItem(bi.tempId, {
+                                             name: e.target.value,
+                                             itemId: null,
+                                             showSuggestions: true
+                                           });
                                          }}
                                          onFocus={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
+                                         onBlur={() => setTimeout(() => updateBillItem(bi.tempId, 'showSuggestions', false), 200)}
                                          placeholder="Type item name..." 
                                          className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-2 text-[#111111] text-sm outline-none transition-all font-medium" 
                                        />
@@ -356,13 +356,17 @@ export default function BillingPage() {
                                      </div>
                                      
                                      {/* Suggestions Dropdown */}
-                                     {bi.showSuggestions && bi.name.length > 0 && (
+                                     {bi.showSuggestions && (
                                        <div className="absolute z-[60] left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
                                           {inventory
-                                            .filter(i => 
-                                              (i?.name || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase()) || 
-                                              (i?.category || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase())
-                                            )
+                                            .filter(i => {
+                                              const term = (bi?.name || "").trim().toLowerCase();
+                                              if (!term) return true;
+                                              return (i?.name || "").trim().toLowerCase().includes(term) || 
+                                                     (i?.category || "").trim().toLowerCase().includes(term) ||
+                                                     (i?.type || "").trim().toLowerCase().includes(term) ||
+                                                     (i?.size || "").trim().toLowerCase().includes(term);
+                                            })
                                             .map(item => (
                                               <button 
                                                 key={item.id} 
@@ -374,14 +378,18 @@ export default function BillingPage() {
                                                   <p className="text-sm font-bold text-[#111111]">{item.name}</p>
                                                   <span className="text-[9px] font-black text-[#111111]/30 uppercase">{item.category}</span>
                                                 </div>
-                                                <p className="text-[10px] text-[#111111]/40 font-medium">Stock: {item.stockLevel} {item.unit}s</p>
+                                                <p className="text-[10px] text-[#111111]/40 font-medium">Stock: {item.stockLevel} {item.unit}s {item.size ? `• ${item.size}` : ''} {item.type ? `• ${item.type}` : ''}</p>
                                               </button>
                                             ))
                                           }
-                                          {inventory.filter(i => 
-                                            (i?.name || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase()) || 
-                                            (i?.category || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase())
-                                          ).length === 0 && (
+                                          {inventory.filter(i => {
+                                              const term = (bi?.name || "").trim().toLowerCase();
+                                              if (!term) return true;
+                                              return (i?.name || "").trim().toLowerCase().includes(term) || 
+                                                     (i?.category || "").trim().toLowerCase().includes(term) ||
+                                                     (i?.type || "").trim().toLowerCase().includes(term) ||
+                                                     (i?.size || "").trim().toLowerCase().includes(term);
+                                            }).length === 0 && (
                                             <div className="px-4 py-3 text-xs italic text-[#111111]/40">Manual entry mode</div>
                                           )}
                                        </div>
@@ -456,23 +464,30 @@ export default function BillingPage() {
                                <input 
                                  value={bi.name} 
                                  onChange={e => {
-                                   updateBillItem(bi.tempId, 'name', e.target.value);
-                                   updateBillItem(bi.tempId, 'itemId', null);
-                                   updateBillItem(bi.tempId, 'showSuggestions', true);
+                                   updateBillItem(bi.tempId, {
+                                     name: e.target.value,
+                                     itemId: null,
+                                     showSuggestions: true
+                                   });
                                  }}
                                  onFocus={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
+                                 onBlur={() => setTimeout(() => updateBillItem(bi.tempId, 'showSuggestions', false), 200)}
                                  placeholder="Type item name..." 
                                  className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-2 text-[#111111] text-sm outline-none transition-all font-medium" 
                                />
 
                                {/* Mobile Suggestions Dropdown */}
-                               {bi.showSuggestions && bi.name.length > 0 && (
+                               {bi.showSuggestions && (
                                  <div className="absolute z-[60] left-3 right-3 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
                                     {inventory
-                                      .filter(i => 
-                                        (i?.name || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase()) || 
-                                        (i?.category || "").trim().toLowerCase().includes((bi?.name || "").trim().toLowerCase())
-                                      )
+                                      .filter(i => {
+                                        const term = (bi?.name || "").trim().toLowerCase();
+                                        if (!term) return true;
+                                        return (i?.name || "").trim().toLowerCase().includes(term) || 
+                                               (i?.category || "").trim().toLowerCase().includes(term) ||
+                                               (i?.type || "").trim().toLowerCase().includes(term) ||
+                                               (i?.size || "").trim().toLowerCase().includes(term);
+                                      })
                                       .map(item => (
                                         <button 
                                           key={item.id} 
@@ -484,7 +499,7 @@ export default function BillingPage() {
                                             <p className="text-sm font-bold text-[#111111]">{item.name}</p>
                                             <span className="text-[9px] font-black text-[#111111]/30 uppercase">{item.category}</span>
                                           </div>
-                                          <p className="text-[10px] text-[#111111]/40 font-medium">Stock: {item.stockLevel} {item.unit}s</p>
+                                          <p className="text-[10px] text-[#111111]/40 font-medium">Stock: {item.stockLevel} {item.unit}s {item.size ? `• ${item.size}` : ''} {item.type ? `• ${item.type}` : ''}</p>
                                         </button>
                                       ))
                                     }
