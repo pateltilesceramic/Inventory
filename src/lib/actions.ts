@@ -222,6 +222,20 @@ export async function createBill(data: { customerName: string; customerPhone?: s
       return { success: false, error: "Could not generate a unique invoice number. Please try again." }
     }
 
+    if (bill && bill.amountPaid > 0) {
+      try {
+        await prisma.billPayment.create({
+          data: {
+            billId: bill.id,
+            amount: bill.amountPaid,
+            createdAt: bill.createdAt
+          }
+        })
+      } catch (pErr) {
+        console.error("Error creating initial bill payment:", pErr)
+      }
+    }
+
     for (const item of processedItems) {
       if (!item.resolvedItemId) continue // Skip stock deduction for ad-hoc items with no inventory match
 
@@ -250,6 +264,47 @@ export async function createBill(data: { customerName: string; customerPhone?: s
   } catch (error: any) {
     console.error("Create bill error:", error)
     return { success: false, error: error.message || "Failed to create invoice." }
+  }
+}
+
+export async function recordBillPayment(billId: string, amount: number) {
+  try {
+    if (!amount || amount <= 0) {
+      return { success: false, error: "Payment amount must be greater than 0." }
+    }
+
+    const bill = await prisma.bill.findUnique({
+      where: { id: billId }
+    })
+
+    if (!bill) {
+      return { success: false, error: "Bill not found." }
+    }
+
+    const finalAmt = bill.finalNetAmount !== null && bill.finalNetAmount !== undefined ? bill.finalNetAmount : bill.totalAmount
+    const newAmountPaid = (bill.amountPaid || 0) + amount
+    const newBalanceDue = Math.max(0, finalAmt - newAmountPaid)
+
+    const payment = await prisma.billPayment.create({
+      data: {
+        billId,
+        amount
+      }
+    })
+
+    await prisma.bill.update({
+      where: { id: billId },
+      data: {
+        amountPaid: newAmountPaid,
+        balanceDue: newBalanceDue
+      }
+    })
+
+    revalidatePath("/billing")
+    return { success: true, payment }
+  } catch (error: any) {
+    console.error("Record bill payment error:", error)
+    return { success: false, error: error.message || "Failed to record payment." }
   }
 }
 
@@ -364,7 +419,8 @@ export async function getBills() {
   return await prisma.bill.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      items: { include: { item: true } }
+      items: { include: { item: true } },
+      payments: { orderBy: { createdAt: 'asc' } }
     }
   })
 }

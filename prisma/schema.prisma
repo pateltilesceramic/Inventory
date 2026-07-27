@@ -47,9 +47,18 @@ model Bill {
   finalNetAmount  Float?
   amountPaid      Float      @default(0.0)
   balanceDue      Float      @default(0.0)
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
   items           BillItem[]
+  payments        BillPayment[]
+}
+
+model BillPayment {
+  id        String   @id @default(uuid())
+  billId    String
+  amount    Float
+  createdAt DateTime @default(now())
+  bill      Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
 }
 
 model BillItem {
