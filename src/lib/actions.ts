@@ -416,13 +416,28 @@ export async function updateBill(id: string, data: { customerName: string; custo
 }
 
 export async function getBills() {
-  return await prisma.bill.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: {
-      items: { include: { item: true } },
-      payments: { orderBy: { createdAt: 'asc' } }
+  try {
+    return await prisma.bill.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        items: { include: { item: true } },
+        payments: { orderBy: { createdAt: 'asc' } }
+      }
+    })
+  } catch (err: any) {
+    console.error("Error fetching bills with payments, running fallback:", err)
+    try {
+      return await prisma.bill.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          items: { include: { item: true } }
+        }
+      })
+    } catch (fallbackErr: any) {
+      console.error("Fallback getBills error:", fallbackErr)
+      return []
     }
-  })
+  }
 }
 
 export async function deleteBill(id: string) {
