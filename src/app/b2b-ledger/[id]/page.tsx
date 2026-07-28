@@ -89,6 +89,7 @@ export default function B2BPartyDetailsPage({ params }: { params: Promise<{ id: 
         credit: ""
       })
       setIsAddOpen(false)
+      setCurrentPage(1)
       await loadData()
     } catch (err: any) {
       alert("Error adding entry: " + (err.message || "Unknown error"))
@@ -344,7 +345,7 @@ export default function B2BPartyDetailsPage({ params }: { params: Promise<{ id: 
                       onChange={e => setEntryData({ ...entryData, debit: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-green-700 outline-none focus:border-green-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Sale bill / amount partner owes</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Sale Bill // Maal Vaicho // Apde Payment Kariye</p>
                   </div>
                   <div>
                     <div className="flex flex-col mb-1.5">
@@ -364,7 +365,7 @@ export default function B2BPartyDetailsPage({ params }: { params: Promise<{ id: 
                       onChange={e => setEntryData({ ...entryData, credit: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-red-700 outline-none focus:border-red-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Payment received / mutual material purchase</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Material Purchase Kairu Apde // Payment apde Recieve Kairu.</p>
                   </div>
                 </div>
 
@@ -412,8 +413,9 @@ export default function B2BPartyDetailsPage({ params }: { params: Promise<{ id: 
                 </tr>
               ) : (
                 (() => {
-                  const itemsPerPage = 50
-                  const paginatedEntries = party.entries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  const itemsPerPage = 15
+                  const reversedEntries = [...party.entries].reverse()
+                  const paginatedEntries = reversedEntries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                   return paginatedEntries.map((entry: any) => (
                     <tr key={entry.id} className="hover:bg-white/80 transition-all text-sm group">
                       <td className="py-4 px-6 text-left font-normal text-gray-500 text-sm">#{entry.serialNo}</td>
@@ -481,8 +483,9 @@ export default function B2BPartyDetailsPage({ params }: { params: Promise<{ id: 
             </div>
           ) : (
             (() => {
-              const itemsPerPage = 50
-              const paginatedEntries = party.entries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+              const itemsPerPage = 15
+              const reversedEntries = [...party.entries].reverse()
+              const paginatedEntries = reversedEntries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
               return paginatedEntries.map((entry: any) => (
                 <div key={entry.id} className="p-5 hover:bg-white/80 transition-all text-sm space-y-3">
                   <div className="flex items-center justify-between font-bold text-gray-700">
@@ -547,9 +550,9 @@ export default function B2BPartyDetailsPage({ params }: { params: Promise<{ id: 
 
         <PaginationControls
           currentPage={currentPage}
-          totalPages={Math.ceil(party.entries.length / 50)}
+          totalPages={Math.ceil(party.entries.length / 15)}
           totalItems={party.entries.length}
-          itemsPerPage={50}
+          itemsPerPage={15}
           onPageChange={setCurrentPage}
           itemName="entries"
         />
@@ -656,7 +659,7 @@ export default function B2BPartyDetailsPage({ params }: { params: Promise<{ id: 
                       onChange={e => setEditEntryData({ ...editEntryData, debit: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-green-700 outline-none focus:border-green-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Sale bill / amount partner owes</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Sale Bill // Maal Vaicho // Apde Payment Kariye</p>
                   </div>
                   <div>
                     <div className="flex flex-col mb-1.5">
@@ -676,7 +679,7 @@ export default function B2BPartyDetailsPage({ params }: { params: Promise<{ id: 
                       onChange={e => setEditEntryData({ ...editEntryData, credit: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-red-700 outline-none focus:border-red-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Payment received / mutual material purchase</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Material Purchase Kairu Apde // Payment apde Recieve Kairu.</p>
                   </div>
                 </div>
 

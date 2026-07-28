@@ -89,6 +89,7 @@ export default function PurchasePartyDetailsPage({ params }: { params: Promise<{
         credit: ""
       })
       setIsAddOpen(false)
+      setCurrentPage(1)
       await loadData()
     } catch (err: any) {
       alert("Error adding entry: " + (err.message || "Unknown error"))
@@ -344,7 +345,7 @@ export default function PurchasePartyDetailsPage({ params }: { params: Promise<{
                       onChange={e => setEntryData({ ...entryData, debit: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-green-700 outline-none focus:border-green-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Payment made / reduction in payable</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Payment Made // Bill nu Payment</p>
                   </div>
                   <div>
                     <div className="flex flex-col mb-1.5">
@@ -364,7 +365,7 @@ export default function PurchasePartyDetailsPage({ params }: { params: Promise<{
                       onChange={e => setEntryData({ ...entryData, credit: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-red-700 outline-none focus:border-red-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Stock received / bill added</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Stock received // Company Nu bill Amount.</p>
                   </div>
                 </div>
 
@@ -412,8 +413,9 @@ export default function PurchasePartyDetailsPage({ params }: { params: Promise<{
                 </tr>
               ) : (
                 (() => {
-                  const itemsPerPage = 50
-                  const paginatedEntries = party.entries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  const itemsPerPage = 15
+                  const reversedEntries = [...party.entries].reverse()
+                  const paginatedEntries = reversedEntries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                   return paginatedEntries.map((entry: any) => (
                     <tr key={entry.id} className="hover:bg-white/80 transition-all text-sm group">
                       <td className="py-4 px-6 text-left font-normal text-gray-500 text-sm">#{entry.serialNo}</td>
@@ -427,7 +429,7 @@ export default function PurchasePartyDetailsPage({ params }: { params: Promise<{
                       </td>
                       <td className="py-4 px-6 text-left whitespace-nowrap text-sm">
                         <div className="flex items-center justify-start gap-2">
-                          <span className="font-medium text-sm text-[#111111]">
+                          <span className="font-medium text-[#111111] text-sm">
                             ₹{entry.runningBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                           </span>
                           <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
@@ -481,8 +483,9 @@ export default function PurchasePartyDetailsPage({ params }: { params: Promise<{
             </div>
           ) : (
             (() => {
-              const itemsPerPage = 50
-              const paginatedEntries = party.entries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+              const itemsPerPage = 15
+              const reversedEntries = [...party.entries].reverse()
+              const paginatedEntries = reversedEntries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
               return paginatedEntries.map((entry: any) => (
                 <div key={entry.id} className="p-5 hover:bg-white/80 transition-all text-sm space-y-3">
                   <div className="flex items-center justify-between font-bold text-gray-700">
@@ -547,9 +550,9 @@ export default function PurchasePartyDetailsPage({ params }: { params: Promise<{
 
         <PaginationControls
           currentPage={currentPage}
-          totalPages={Math.ceil(party.entries.length / 50)}
+          totalPages={Math.ceil(party.entries.length / 15)}
           totalItems={party.entries.length}
-          itemsPerPage={50}
+          itemsPerPage={15}
           onPageChange={setCurrentPage}
           itemName="entries"
         />
@@ -656,7 +659,7 @@ export default function PurchasePartyDetailsPage({ params }: { params: Promise<{
                       onChange={e => setEditEntryData({ ...editEntryData, debit: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-green-700 outline-none focus:border-green-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Payment made / reduction in payable</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Payment Made // Bill nu Payment</p>
                   </div>
                   <div>
                     <div className="flex flex-col mb-1.5">
@@ -676,7 +679,7 @@ export default function PurchasePartyDetailsPage({ params }: { params: Promise<{
                       onChange={e => setEditEntryData({ ...editEntryData, credit: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-red-700 outline-none focus:border-red-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Stock received / bill added</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Stock received // Company Nu bill Amount.</p>
                   </div>
                 </div>
 

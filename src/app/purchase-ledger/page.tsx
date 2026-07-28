@@ -363,7 +363,7 @@ export default function PurchaseLedgerPage() {
                       onChange={e => setEntryData({ ...entryData, debit: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-green-700 outline-none focus:border-green-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Payment made / reduction in payable</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Payment Made // Bill nu Payment</p>
                   </div>
                   <div>
                     <div className="flex flex-col mb-1.5">
@@ -383,7 +383,7 @@ export default function PurchaseLedgerPage() {
                       onChange={e => setEntryData({ ...entryData, credit: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-red-700 outline-none focus:border-red-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Stock received / bill added</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Stock received // Company Nu bill Amount.</p>
                   </div>
                 </div>
 
@@ -433,53 +433,49 @@ export default function PurchaseLedgerPage() {
                   </td>
                 </tr>
               ) : (
-                (() => {
-                  const itemsPerPage = 50
-                  const paginatedParties = filteredParties.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                  return paginatedParties.map((party, index) => (
-                    <tr key={party.id} className="hover:bg-white/80 transition-all text-sm group">
-                      <td className="py-4 px-6 font-normal text-gray-500 text-sm">#{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                      <td className="py-4 px-6 font-medium text-[#111111] text-sm break-words text-wrap max-w-xs">{party.name}</td>
-                      <td className="py-4 px-6 font-medium text-green-700 text-sm text-left whitespace-nowrap">
-                        {party.totalDebit > 0 ? `₹${party.totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
-                      </td>
-                      <td className="py-4 px-6 font-medium text-red-700 text-sm text-left whitespace-nowrap">
-                        {party.totalCredit > 0 ? `₹${party.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
-                      </td>
-                      <td className="py-4 px-6 text-left whitespace-nowrap text-sm">
-                        <div className="flex items-center justify-start gap-2">
-                          <span className="font-medium text-sm text-[#111111]">
-                            ₹{party.latestBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                          </span>
-                          <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
-                            party.balanceType === 'Dr' ? 'bg-green-100 text-green-800' :
-                            party.balanceType === 'Cr' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {party.balanceType}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-left whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={`/purchase-ledger/${party.id}`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#1F6F5F] bg-[#2FA084]/10 hover:bg-[#2FA084]/20 border border-[#2FA084]/30 transition-all"
-                            title="View Party Ledger & Entries"
-                          >
-                            Details <ChevronRight className="w-3.5 h-3.5" />
-                          </Link>
-                          <button
-                            onClick={() => initiateDeleteParty(party)}
-                            className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer"
-                            title="Delete Party"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                })()
+                filteredParties.map((party, index) => (
+                  <tr key={party.id} className="hover:bg-white/80 transition-all text-sm group">
+                    <td className="py-4 px-6 font-normal text-gray-500 text-sm">#{index + 1}</td>
+                    <td className="py-4 px-6 font-medium text-[#111111] text-sm break-words text-wrap max-w-xs">{party.name}</td>
+                    <td className="py-4 px-6 font-medium text-green-700 text-sm text-left whitespace-nowrap">
+                      {party.totalDebit > 0 ? `₹${party.totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
+                    </td>
+                    <td className="py-4 px-6 font-medium text-red-700 text-sm text-left whitespace-nowrap">
+                      {party.totalCredit > 0 ? `₹${party.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
+                    </td>
+                    <td className="py-4 px-6 text-left whitespace-nowrap text-sm">
+                      <div className="flex items-center justify-start gap-2">
+                        <span className="font-medium text-sm text-[#111111]">
+                          ₹{party.latestBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </span>
+                        <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
+                          party.balanceType === 'Dr' ? 'bg-green-100 text-green-800' :
+                          party.balanceType === 'Cr' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {party.balanceType}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 text-left whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/purchase-ledger/${party.id}`}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#1F6F5F] bg-[#2FA084]/10 hover:bg-[#2FA084]/20 border border-[#2FA084]/30 transition-all"
+                          title="View Party Ledger & Entries"
+                        >
+                          Details <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => initiateDeleteParty(party)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer"
+                          title="Delete Party"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -495,68 +491,55 @@ export default function PurchaseLedgerPage() {
               <p className="font-bold text-base text-[#111111]/70">No purchase parties found</p>
             </div>
           ) : (
-            (() => {
-              const itemsPerPage = 50
-              const paginatedParties = filteredParties.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-              return paginatedParties.map((party, index) => (
-                <div key={party.id} className="p-5 hover:bg-white/80 transition-all text-sm space-y-3">
-                  <div className="flex items-center justify-between font-black text-[#333333] text-base">
-                    <span>{party.name}</span>
-                    <span className="text-xs text-gray-400 font-bold">#{(currentPage - 1) * itemsPerPage + index + 1}</span>
+            filteredParties.map((party, index) => (
+              <div key={party.id} className="p-5 hover:bg-white/80 transition-all text-sm space-y-3">
+                <div className="flex items-center justify-between font-black text-[#333333] text-base">
+                  <span>{party.name}</span>
+                  <span className="text-xs text-gray-400 font-bold">#{index + 1}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-gray-100">
+                  <div className="font-bold text-green-700">
+                    <span className="text-gray-400 font-normal block">Total Dr:</span>
+                    ₹{party.totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-gray-100">
-                    <div className="font-bold text-green-700">
-                      <span className="text-gray-400 font-normal block">Total Dr:</span>
-                      ₹{party.totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </div>
-                    <div className="font-bold text-red-700 text-right">
-                      <span className="text-gray-400 font-normal block">Total Cr:</span>
-                      ₹{party.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-gray-400 font-normal">Balance:</span>
-                      <span className="font-black text-sm text-[#111111]">
-                        ₹{party.latestBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                      </span>
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                        party.balanceType === 'Dr' ? 'bg-green-100 text-green-800' :
-                        party.balanceType === 'Cr' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {party.balanceType}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/purchase-ledger/${party.id}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#1F6F5F] bg-[#2FA084]/10 hover:bg-[#2FA084]/20 border border-[#2FA084]/30 transition-all"
-                      >
-                        Details <ChevronRight className="w-3.5 h-3.5" />
-                      </Link>
-                      <button
-                        onClick={() => initiateDeleteParty(party)}
-                        className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer"
-                        title="Delete Party"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                  <div className="font-bold text-red-700 text-right">
+                    <span className="text-gray-400 font-normal block">Total Cr:</span>
+                    ₹{party.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
-              ))
-            })()
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-400 font-normal">Balance:</span>
+                    <span className="font-black text-sm text-[#111111]">
+                      ₹{party.latestBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </span>
+                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                      party.balanceType === 'Dr' ? 'bg-green-100 text-green-800' :
+                      party.balanceType === 'Cr' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {party.balanceType}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/purchase-ledger/${party.id}`}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[#1F6F5F] bg-[#2FA084]/10 hover:bg-[#2FA084]/20 border border-[#2FA084]/30 transition-all font-bold text-xs"
+                    >
+                      Details <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                    <button
+                      onClick={() => initiateDeleteParty(party)}
+                      className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer"
+                      title="Delete Party"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
           )}
         </div>
-
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={Math.ceil(filteredParties.length / 50)}
-          totalItems={filteredParties.length}
-          itemsPerPage={50}
-          onPageChange={setCurrentPage}
-          itemName="supplier parties"
-        />
       </div>
 
       {/* History Modal */}
