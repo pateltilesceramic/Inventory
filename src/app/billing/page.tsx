@@ -57,25 +57,15 @@ export default function BillingPage() {
   const loadData = async () => {
     setLoading(true)
     try {
-      await backfillInvoiceNumbers().catch(e => console.error("Error backfilling invoice numbers:", e))
-    } catch (e) {}
-
-    try {
-      const invData = await getInventory()
-      setInventory(invData?.items || [])
-    } catch (e) {
-      console.error("Error fetching inventory for billing:", e)
-      setInventory([])
+      const [invData, billsData] = await Promise.all([
+        getInventory().catch(e => { console.error("Error fetching inventory:", e); return null }),
+        getBills().catch(e => { console.error("Error fetching bills:", e); return null })
+      ])
+      if (invData) setInventory(invData.items || [])
+      if (billsData) setBills(billsData || [])
+    } finally {
+      setLoading(false)
     }
-
-    try {
-      const billsData = await getBills()
-      setBills(billsData || [])
-    } catch (e) {
-      console.error("Error fetching bills for billing:", e)
-      setBills([])
-    }
-    setLoading(false)
   }
 
   useEffect(() => { loadData() }, [])
@@ -241,14 +231,17 @@ export default function BillingPage() {
         setPaymentError(res.error || "Failed to record payment.")
         return
       }
+      const targetBillId = paymentModalBill.id
       setPaymentModalBill(null)
       setPaymentAmountInput("")
       await loadData()
-      // Refresh selected bill view if open
-      if (selectedBillForView && selectedBillForView.id === paymentModalBill.id) {
-        const updatedBills = await getBills()
-        const match = updatedBills.find((b: any) => b.id === paymentModalBill.id)
-        if (match) setSelectedBillForView(match)
+      // Refresh selected bill view if open using updated state
+      if (selectedBillForView && selectedBillForView.id === targetBillId) {
+        setBills(currentBills => {
+          const match = currentBills.find((b: any) => b.id === targetBillId)
+          if (match) setSelectedBillForView(match)
+          return currentBills
+        })
       }
     } catch (err: any) {
       setPaymentError(err?.message || "Failed to record payment.")

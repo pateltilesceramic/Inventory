@@ -3,29 +3,27 @@ import { revalidatePath } from "next/cache"
 import prisma from "./prisma"
 
 export async function getInventory() {
-  const items = await prisma.inventory.findMany({
-    where: { isArchived: false },
-    orderBy: { createdAt: 'desc' }
-  })
-
-  // Get distinct categories and types for the dropdowns
-  const distinctCategories = await prisma.inventory.findMany({
-    where: { isArchived: false },
-    select: { category: true },
-    distinct: ['category']
-  })
-
-  const distinctTypes = await prisma.inventory.findMany({
-    where: { isArchived: false },
-    select: { type: true },
-    distinct: ['type']
-  })
-
-  const distinctSizes = await prisma.inventory.findMany({
-    where: { isArchived: false, NOT: { size: null } },
-    select: { size: true },
-    distinct: ['size']
-  })
+  const [items, distinctCategories, distinctTypes, distinctSizes] = await Promise.all([
+    prisma.inventory.findMany({
+      where: { isArchived: false },
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.inventory.findMany({
+      where: { isArchived: false },
+      select: { category: true },
+      distinct: ['category']
+    }),
+    prisma.inventory.findMany({
+      where: { isArchived: false },
+      select: { type: true },
+      distinct: ['type']
+    }),
+    prisma.inventory.findMany({
+      where: { isArchived: false, NOT: { size: null } },
+      select: { size: true },
+      distinct: ['size']
+    })
+  ])
 
   return {
     items,
@@ -236,28 +234,30 @@ export async function createBill(data: { customerName: string; customerPhone?: s
       }
     }
 
-    for (const item of processedItems) {
-      if (!item.resolvedItemId) continue // Skip stock deduction for ad-hoc items with no inventory match
+    await Promise.all(
+      processedItems.map(async (item) => {
+        if (!item.resolvedItemId) return
 
-      const inv = await prisma.inventory.findUnique({ where: { id: item.resolvedItemId }, select: { stockLevel: true } })
-      
-      if (inv) {
-        await prisma.inventory.update({
-          where: { id: item.resolvedItemId },
-          data: { stockLevel: { decrement: item.quantity } }
-        })
+        const inv = await prisma.inventory.findUnique({ where: { id: item.resolvedItemId }, select: { stockLevel: true } })
+        
+        if (inv) {
+          await prisma.inventory.update({
+            where: { id: item.resolvedItemId },
+            data: { stockLevel: { decrement: item.quantity } }
+          })
 
-        await prisma.stockLog.create({
-          data: {
-            inventoryId: item.resolvedItemId,
-            oldLevel: inv.stockLevel,
-            newLevel: inv.stockLevel - item.quantity,
-            change: -item.quantity,
-            type: "Sale"
-          }
-        })
-      }
-    }
+          await prisma.stockLog.create({
+            data: {
+              inventoryId: item.resolvedItemId,
+              oldLevel: inv.stockLevel,
+              newLevel: inv.stockLevel - item.quantity,
+              change: -item.quantity,
+              type: "Sale"
+            }
+          })
+        }
+      })
+    )
     revalidatePath("/billing")
     revalidatePath("/inventory")
     return { success: true, billId: bill.id }
@@ -383,28 +383,30 @@ export async function updateBill(id: string, data: { customerName: string; custo
       }
     })
 
-    for (const item of processedItems) {
-      if (!item.resolvedItemId) continue
+    await Promise.all(
+      processedItems.map(async (item) => {
+        if (!item.resolvedItemId) return
 
-      const inv = await prisma.inventory.findUnique({ where: { id: item.resolvedItemId }, select: { stockLevel: true } })
-      
-      if (inv) {
-        await prisma.inventory.update({
-          where: { id: item.resolvedItemId },
-          data: { stockLevel: { decrement: item.quantity } }
-        })
+        const inv = await prisma.inventory.findUnique({ where: { id: item.resolvedItemId }, select: { stockLevel: true } })
+        
+        if (inv) {
+          await prisma.inventory.update({
+            where: { id: item.resolvedItemId },
+            data: { stockLevel: { decrement: item.quantity } }
+          })
 
-        await prisma.stockLog.create({
-          data: {
-            inventoryId: item.resolvedItemId,
-            oldLevel: inv.stockLevel,
-            newLevel: inv.stockLevel - item.quantity,
-            change: -item.quantity,
-            type: "Sale Edit"
-          }
-        })
-      }
-    }
+          await prisma.stockLog.create({
+            data: {
+              inventoryId: item.resolvedItemId,
+              oldLevel: inv.stockLevel,
+              newLevel: inv.stockLevel - item.quantity,
+              change: -item.quantity,
+              type: "Sale Edit"
+            }
+          })
+        }
+      })
+    )
 
     revalidatePath("/billing")
     revalidatePath("/inventory")
@@ -447,28 +449,30 @@ export async function deleteBill(id: string) {
       where: { id },
       include: { items: true }
     })
-    if (bill) {
-      for (const item of bill.items) {
-        if (!item.itemId) continue; // Skip stock restoration for ad-hoc items
-        const inv = await prisma.inventory.findUnique({ where: { id: item.itemId }, select: { stockLevel: true } })
-        
-        if (inv) {
-          await prisma.inventory.update({
-            where: { id: item.itemId },
-            data: { stockLevel: { increment: item.quantity } }
-          })
+    if (bill && bill.items) {
+      await Promise.all(
+        bill.items.map(async (item: any) => {
+          if (!item.itemId) return
+          const inv = await prisma.inventory.findUnique({ where: { id: item.itemId }, select: { stockLevel: true } })
+          
+          if (inv) {
+            await prisma.inventory.update({
+              where: { id: item.itemId },
+              data: { stockLevel: { increment: item.quantity } }
+            })
 
-          await prisma.stockLog.create({
-            data: {
-              inventoryId: item.itemId,
-              oldLevel: inv.stockLevel,
-              newLevel: inv.stockLevel + item.quantity,
-              change: item.quantity,
-              type: "Restoration"
-            }
-          })
-        }
-      }
+            await prisma.stockLog.create({
+              data: {
+                inventoryId: item.itemId,
+                oldLevel: inv.stockLevel,
+                newLevel: inv.stockLevel + item.quantity,
+                change: item.quantity,
+                type: "Restoration"
+              }
+            })
+          }
+        })
+      )
     }
     // Delete bill items first, then the bill
     await prisma.billItem.deleteMany({ where: { billId: id } })
@@ -483,10 +487,34 @@ export async function deleteBill(id: string) {
 }
 
 export async function getDashboardStats(month?: number, year?: number) {
-  const inventory = await prisma.inventory.findMany({
-    where: { isArchived: false }
-  })
-  
+  const now = new Date()
+  const selectedMonth = month !== undefined ? month : now.getMonth()
+  const selectedYear = year !== undefined ? year : now.getFullYear()
+
+  const startDate = new Date(selectedYear, selectedMonth, 1, 0, 0, 0, 0)
+  const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59, 999)
+
+  const [inventory, monthlyBills] = await Promise.all([
+    prisma.inventory.findMany({
+      where: { isArchived: false }
+    }),
+    prisma.bill.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      include: {
+        items: {
+          include: {
+            item: true
+          }
+        }
+      }
+    })
+  ])
+
   // Total Boxes Across All Items
   const totalBoxes = inventory.reduce((sum, item) => sum + item.stockLevel, 0)
 
@@ -536,31 +564,6 @@ export async function getDashboardStats(month?: number, year?: number) {
   const stockBySize = Object.entries(sizeMap)
     .map(([size, data]) => ({ size, boxes: data.boxes, unit: data.unit }))
     .sort((a, b) => b.boxes - a.boxes)
-
-  // Selected Month helper
-  const now = new Date()
-  const selectedMonth = month !== undefined ? month : now.getMonth()
-  const selectedYear = year !== undefined ? year : now.getFullYear()
-
-  const startDate = new Date(selectedYear, selectedMonth, 1, 0, 0, 0, 0)
-  const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59, 999)
-
-  // Fetch all bills created in this selected month with their items
-  const monthlyBills = await prisma.bill.findMany({
-    where: {
-      createdAt: {
-        gte: startDate,
-        lte: endDate
-      }
-    },
-    include: {
-      items: {
-        include: {
-          item: true
-        }
-      }
-    }
-  })
 
   // Helpers to categorize tiles vs sanitary
   const isTile = (name: string, category?: string | null) => {
@@ -898,8 +901,16 @@ export async function deleteTaxProduct(id: string) {
 export async function getPurchaseParties() {
   const parties = await prisma.purchaseParty.findMany({
     orderBy: { name: 'asc' },
-    include: {
-      entries: true
+    select: {
+      id: true,
+      name: true,
+      createdAt: true,
+      entries: {
+        select: {
+          debit: true,
+          credit: true
+        }
+      }
     }
   })
 
@@ -1079,8 +1090,16 @@ export async function updatePurchaseEntry(
 export async function getB2BParties() {
   const parties = await prisma.b2BParty.findMany({
     orderBy: { name: 'asc' },
-    include: {
-      entries: true
+    select: {
+      id: true,
+      name: true,
+      createdAt: true,
+      entries: {
+        select: {
+          debit: true,
+          credit: true
+        }
+      }
     }
   })
 
