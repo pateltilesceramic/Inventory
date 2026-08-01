@@ -5,7 +5,7 @@ import { FadeIn } from "@/components/motion/FadeIn"
 import { SecurityGate } from "@/components/SecurityGate"
 import { PaginationControls } from "@/components/common/PaginationControls"
 import { getInventory, deleteInventoryItem, addInventoryItem, updateInventoryStock, getStockLogs, editInventoryItem } from "@/lib/actions"
-import { Plus, Trash2, Package, Check, Search, X, History, Edit, AlertCircle, ArrowUpRight, ArrowDownRight, Filter, ChevronDown, PackageCheck, Pencil, ImagePlus, Eye, Image as ImageIcon } from "lucide-react"
+import { Plus, Trash2, Package, Check, Search, X, History, Edit, AlertCircle, ArrowUpRight, ArrowDownRight, Filter, ChevronDown, PackageCheck, Pencil, ImagePlus, Eye, Image as ImageIcon, Printer, Download } from "lucide-react"
 
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -618,6 +618,120 @@ function CustomDropdown({
   )
 }
 
+// --- Component: Print Stock Modal ---
+function PrintStockModal({
+  isOpen,
+  onClose,
+  categories,
+  items,
+  selectedCategory,
+  setSelectedCategory,
+  onDownloadPDF
+}: {
+  isOpen: boolean
+  onClose: () => void
+  categories: string[]
+  items: any[]
+  selectedCategory: string
+  setSelectedCategory: (cat: string) => void
+  onDownloadPDF: () => void
+}) {
+  if (!isOpen) return null
+
+  const filtered = selectedCategory === "all"
+    ? items
+    : items.filter(item => item.category === selectedCategory)
+
+  const totalQty = filtered.reduce((sum, item) => sum + (item.stockLevel || 0), 0)
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" style={{ background: 'rgba(10,30,25,0.65)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl"
+        style={{
+          background: 'rgba(250,252,251,0.96)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255,255,255,0.70)',
+          boxShadow: '0 32px 80px rgba(0,0,0,0.26)'
+        }}
+      >
+        {/* Header */}
+        <div className="p-5 flex justify-between items-center" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', background: 'linear-gradient(180deg, rgba(31,111,95,0.06) 0%, transparent 100%)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#2FA084]/15 flex items-center justify-center text-[#1F6F5F] border border-[#2FA084]/30">
+              <Download className="w-5 h-5 text-[#2FA084]" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-[#1F6F5F]">Download PDF Stock Report</h2>
+              <p className="text-xs text-[#111111]/50 font-medium">Select category to export latest stock details</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg transition-all hover:bg-gray-100" style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f0f2f1 100%)', border: '1px solid rgba(0,0,0,0.09)' }}>
+            <X className="w-4 h-4 text-[#111111]/50" />
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <div className="p-6 space-y-5">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Select Category</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full rounded-xl px-4 py-3 text-sm text-[#111111] outline-none font-bold border border-gray-200 bg-white shadow-sm focus:border-[#2FA084] focus:ring-2 focus:ring-[#2FA084]/20"
+            >
+              <option value="all">All Categories ({items.length} total items)</option>
+              {categories.map((cat) => {
+                const count = items.filter(i => i.category === cat).length
+                return (
+                  <option key={cat} value={cat}>
+                    {cat} ({count} items)
+                  </option>
+                )
+              })}
+            </select>
+          </div>
+
+          {/* Stats Preview Card */}
+          <div className="p-4 rounded-xl bg-[#2FA084]/10 border border-[#2FA084]/25 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black text-[#1F6F5F] uppercase tracking-wider">Selected Category</p>
+              <p className="text-xs text-[#111111] font-bold mt-0.5">
+                {selectedCategory === "all" ? "All Categories" : selectedCategory}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-lg font-black text-[#1F6F5F] leading-none">{filtered.length} <span className="text-[10px] font-bold text-[#111111]/50">Items</span></p>
+              <p className="text-[10px] font-bold text-[#111111]/60 mt-1">{totalQty} Total Units</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="p-5 bg-gray-50/90 border-t border-gray-100 flex justify-end gap-2.5">
+          <button
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-100 text-[#111111] text-xs font-bold transition-all shadow-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onDownloadPDF}
+            className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white text-xs font-black transition-all shadow-md active:scale-95"
+            style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)' }}
+          >
+            <Download className="w-4 h-4" /> Download PDF
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
 // --- Main: Inventory Page ---
 export default function InventoryPage() {
   const [items, setItems] = useState<any[]>([])
@@ -644,6 +758,17 @@ export default function InventoryPage() {
 
   const [isAddRouteOpen, setIsAddRouteOpen] = useState(false)
   const [formData, setFormData] = useState({ name: "", type: "", size: "", unit: "box", stockLevel: "0", lowStockThreshold: "40", category: "", designUrl: "" })
+
+  // Print / Export PDF Stock State & Handlers
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
+  const [printCategory, setPrintCategory] = useState("all")
+
+  const handleDownloadPDF = () => {
+    setIsPrintModalOpen(false)
+    setTimeout(() => {
+      window.print()
+    }, 150)
+  }
 
   const loadData = async () => {
     setLoading(true)
@@ -743,45 +868,47 @@ export default function InventoryPage() {
   return (
     <div className="w-full pb-20 max-w-6xl mx-auto">
       {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="typo-h1">Inventory Management</h1>
           <p className="typo-body text-[#111111]/60 mt-1">Audit movements, track history, and manage stock.</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#111111]/30" />
+        {/* Single Line Control Toolbar */}
+        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0 py-1">
+          {/* Search Box (Compact) */}
+          <div className="relative w-36 sm:w-44 shrink-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#111111]/30" />
             <input 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search tiles..."
-              className="w-full bg-white border border-gray-200 focus:border-[#2FA084] focus:ring-4 focus:ring-[#6FCF97]/20 rounded-xl pl-11 pr-4 py-2.5 text-sm font-medium outline-none transition-all shadow-sm skeu-input"
+              placeholder="Search..."
+              className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-xl pl-8 pr-2.5 py-1.5 text-xs font-medium outline-none transition-all shadow-sm skeu-input h-9"
             />
           </div>
 
-          <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl p-1 shadow-sm max-w-full overflow-x-auto custom-scrollbar">
-             <div className="flex items-center gap-1 px-2 py-1 border-r border-gray-100 shrink-0">
-                <Filter className="w-3.5 h-3.5 text-[#1F6F5F]" />
-                <span className="text-[10px] font-black uppercase text-[#111111]/40 tracking-widest">Filter:</span>
-             </div>
+          {/* Compact Category & Size Filters */}
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl px-2 py-1 shadow-sm h-9 shrink-0">
+             <Filter className="w-3 h-3 text-[#1F6F5F] shrink-0" />
              
-             <div className="flex gap-1 shrink-0">
+             <div className="flex items-center gap-1 shrink-0">
                 <select 
                   value={selectedCategory}
                   onChange={e => setSelectedCategory(e.target.value)}
-                  className="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-[#1F6F5F] focus:ring-0 cursor-pointer py-1 px-2 hover:bg-gray-50 rounded-lg transition-colors"
+                  className="bg-transparent border-none text-[10px] font-black uppercase tracking-wider text-[#1F6F5F] focus:ring-0 cursor-pointer py-0.5 px-1 hover:bg-gray-50 rounded transition-colors max-w-[110px] truncate"
                 >
-                   <option value="all">All Categories</option>
+                   <option value="all">Category</option>
                    {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
+
+                <span className="text-gray-300">|</span>
 
                 <select 
                   value={selectedSize}
                   onChange={e => setSelectedSize(e.target.value)}
-                  className="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-[#1F6F5F] focus:ring-0 cursor-pointer py-1 px-2 hover:bg-gray-50 rounded-lg transition-colors"
+                  className="bg-transparent border-none text-[10px] font-black uppercase tracking-wider text-[#1F6F5F] focus:ring-0 cursor-pointer py-0.5 px-1 hover:bg-gray-50 rounded transition-colors max-w-[90px] truncate"
                 >
-                   <option value="all">All Sizes</option>
+                   <option value="all">Size</option>
                    {sizes.map(size => <option key={size} value={size}>{size}</option>)}
                 </select>
              </div>
@@ -793,18 +920,29 @@ export default function InventoryPage() {
                      setSelectedSize("all");
                      setSearchQuery("");
                   }}
-                  className="px-2 py-1 text-[10px] font-black uppercase text-red-500 hover:bg-red-50 rounded-lg transition-colors border-l border-gray-100 shrink-0"
+                  className="ml-1 px-1.5 py-0.5 text-[9px] font-black uppercase text-red-500 hover:bg-red-50 rounded transition-colors border-l border-gray-100 shrink-0"
                 >
                    Clear
                 </button>
              )}
           </div>
 
+          {/* PDF Button */}
+          <button 
+            onClick={() => setIsPrintModalOpen(true)}
+            className="flex items-center justify-center gap-1.5 bg-white hover:bg-[#2FA084]/5 text-[#1F6F5F] border border-[#2FA084]/30 px-3 py-1.5 h-9 rounded-xl transition-all font-bold shadow-sm active:scale-[0.98] shrink-0"
+            title="Download PDF Stock Report by Category"
+          >
+            <Download className="w-3.5 h-3.5 text-[#2FA084]" />
+            <span className="text-xs font-black">PDF</span>
+          </button>
+
+          {/* Add Item Button */}
           <button 
             onClick={() => setIsAddRouteOpen(!isAddRouteOpen)}
-            className="flex items-center justify-center gap-2 bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-4 md:px-5 py-2.5 rounded-xl transition-all font-bold shadow-lg shadow-[#1F6F5F]/20 active:scale-[0.98] shrink-0"
+            className="flex items-center justify-center gap-1.5 bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-3.5 py-1.5 h-9 rounded-xl transition-all font-bold shadow-lg shadow-[#1F6F5F]/20 active:scale-[0.98] shrink-0"
           >
-            <Plus className={`w-5 h-5 transition-transform duration-300 ${isAddRouteOpen ? 'rotate-45' : ''}`} />
+            <Plus className={`w-3.5 h-3.5 transition-transform duration-300 ${isAddRouteOpen ? 'rotate-45' : ''}`} />
             <span className="text-xs font-black">{isAddRouteOpen ? 'Close' : 'Add Item'}</span>
           </button>
         </div>
@@ -1063,6 +1201,17 @@ export default function InventoryPage() {
             onClose={() => setDesignViewerItem(null)}
           />
         )}
+        {isPrintModalOpen && (
+          <PrintStockModal
+            isOpen={isPrintModalOpen}
+            onClose={() => setIsPrintModalOpen(false)}
+            categories={categories}
+            items={items}
+            selectedCategory={printCategory}
+            setSelectedCategory={setPrintCategory}
+            onDownloadPDF={handleDownloadPDF}
+          />
+        )}
       </AnimatePresence>
 
       <SecurityGate 
@@ -1070,6 +1219,93 @@ export default function InventoryPage() {
         onClose={() => { setIsSecurityGateOpen(false); setPendingDeleteId(null); }} 
         onSuccess={handleSecuritySuccess} 
       />
+
+      {/* Printable Area for Stock List */}
+      <div id="print-stock-area" className="hidden print:block text-black bg-white p-0 m-0">
+        <style>{`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #print-stock-area, #print-stock-area * {
+              visibility: visible;
+            }
+            #print-stock-area {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              margin: 0;
+              padding: 20px;
+              background: #ffffff;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 15px;
+            }
+            th, td {
+              border: 1px solid #111111;
+              padding: 6px 10px;
+              font-size: 11px;
+              text-align: left;
+            }
+            th {
+              background-color: #f0f2f1 !important;
+              font-weight: bold;
+              text-transform: uppercase;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            tr {
+              page-break-inside: avoid;
+            }
+          }
+        `}</style>
+        
+        <div className="flex justify-between items-end border-b-2 border-black pb-3 mb-4">
+          <div>
+            <h1 className="text-xl font-bold uppercase tracking-wider text-black">Patel Tiles Ceramic</h1>
+            <p className="text-sm font-semibold text-gray-700">Latest Inventory Stock Report</p>
+          </div>
+          <div className="text-right text-xs text-gray-600">
+            <p><span className="font-bold">Printed On:</span> {formatDate(new Date())}</p>
+            <p><span className="font-bold">Category:</span> {printCategory === "all" ? "All Categories" : printCategory}</p>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style={{ width: '40px' }}>#</th>
+              <th>Item Name</th>
+              {printCategory === "all" && <th style={{ width: '120px' }}>Category</th>}
+              <th style={{ width: '110px' }}>Size</th>
+              <th style={{ width: '130px' }}>Finish / Type</th>
+              <th style={{ width: '110px', textAlign: 'right' }}>Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(printCategory === "all" ? items : items.filter(i => i.category === printCategory)).map((item, idx) => (
+              <tr key={item.id}>
+                <td>{idx + 1}</td>
+                <td className="font-bold">{item.name}</td>
+                {printCategory === "all" && <td className="font-semibold">{item.category}</td>}
+                <td>{item.size || "-"}</td>
+                <td className="capitalize">{item.type || "-"}</td>
+                <td style={{ textAlign: 'right' }} className="font-bold">
+                  {item.stockLevel} {item.unit}s
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="mt-4 flex justify-between items-center text-xs text-gray-500 pt-2 border-t border-gray-200">
+          <p>Total Listed Items: {(printCategory === "all" ? items : items.filter(i => i.category === printCategory)).length}</p>
+          <p>Generated via Inventory Management System</p>
+        </div>
+      </div>
 
       <style>{`
         .hide-arrows::-webkit-outer-spin-button,
