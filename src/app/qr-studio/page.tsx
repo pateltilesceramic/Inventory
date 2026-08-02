@@ -157,7 +157,7 @@ export default function QRStudioPage() {
     const fullUrl = `${qrOrigin}/qr/${qr.code}`
 
     const engine = new QRCodeStyling({
-      type: "svg",
+      type: "canvas",
       width: 280,
       height: 280,
       data: fullUrl,
@@ -171,9 +171,9 @@ export default function QRStudioPage() {
       },
       imageOptions: {
         crossOrigin: "anonymous",
-        margin: 0,
-        imageSize: 0.615,
-        hideBackgroundDots: false
+        margin: 2,
+        imageSize: 0.35,
+        hideBackgroundDots: true
       },
       cornersSquareOptions: {
         type: "extra-rounded",
@@ -198,15 +198,58 @@ export default function QRStudioPage() {
     }
   }, [isStudioModalOpen, qrEngine])
 
-  const downloadQR = (format: "png" | "svg") => {
-    if (!qrEngine || !selectedQR) return
-    qrEngine.update({ width: format === "png" ? 2000 : 500, height: format === "png" ? 2000 : 500 })
-    qrEngine.download({
-      name: `PatelTiles-QR-${selectedQR.code}`,
-      extension: format
-    })
-    // Reset back to preview size
-    qrEngine.update({ width: 280, height: 280 })
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  const downloadQR = async (format: "png" | "svg") => {
+    if (!selectedQR) return
+    setIsDownloading(true)
+    try {
+      const QRCodeStyling = (await import("qr-code-styling")).default
+      const fullUrl = `${qrOrigin}/qr/${selectedQR.code}`
+      const size = format === "png" ? 2000 : 800
+
+      const exportEngine = new QRCodeStyling({
+        type: format === "svg" ? "svg" : "canvas",
+        width: size,
+        height: size,
+        data: fullUrl,
+        image: "/logo-qr-circle.png",
+        dotsOptions: {
+          type: "rounded",
+          color: "#000000"
+        },
+        backgroundOptions: {
+          color: "#FFFFFF"
+        },
+        imageOptions: {
+          crossOrigin: "anonymous",
+          margin: 4,
+          imageSize: 0.35,
+          hideBackgroundDots: true
+        },
+        cornersSquareOptions: {
+          type: "extra-rounded",
+          color: "#000000"
+        },
+        cornersDotOptions: {
+          type: "dot",
+          color: "#000000"
+        },
+        qrOptions: {
+          errorCorrectionLevel: "H"
+        }
+      })
+
+      await exportEngine.download({
+        name: `PatelTiles-QR-${selectedQR.code}`,
+        extension: format
+      })
+    } catch (err) {
+      console.error("QR Download Error:", err)
+      alert("Failed to download QR code. Please try again.")
+    } finally {
+      setIsDownloading(false)
+    }
   }
 
   // Analytics computation
@@ -646,19 +689,21 @@ export default function QRStudioPage() {
               {/* Download Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
                 <button
+                  disabled={isDownloading}
                   onClick={() => downloadQR("png")}
-                  className="flex items-center justify-center gap-2.5 bg-[#1F6F5F] hover:bg-[#18584B] text-white px-5 py-3 rounded-xl font-bold text-sm shadow-md transition-all"
+                  className="flex items-center justify-center gap-2.5 bg-[#1F6F5F] hover:bg-[#18584B] disabled:opacity-50 text-white px-5 py-3 rounded-xl font-bold text-sm shadow-md transition-all cursor-pointer"
                 >
                   <Download className="w-4 h-4 stroke-[2.5]" />
-                  <span>Download High-Res PNG</span>
+                  <span>{isDownloading ? "Generating PNG..." : "Download High-Res PNG"}</span>
                 </button>
 
                 <button
+                  disabled={isDownloading}
                   onClick={() => downloadQR("svg")}
-                  className="flex items-center justify-center gap-2.5 bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl font-bold text-sm shadow-md transition-all"
+                  className="flex items-center justify-center gap-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white px-5 py-3 rounded-xl font-bold text-sm shadow-md transition-all cursor-pointer"
                 >
                   <Download className="w-4 h-4 stroke-[2.5]" />
-                  <span>Download Vector SVG</span>
+                  <span>{isDownloading ? "Generating SVG..." : "Download Vector SVG"}</span>
                 </button>
               </div>
 

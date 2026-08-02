@@ -7,6 +7,8 @@ import { PaginationControls } from "@/components/common/PaginationControls"
 import { getInventory, deleteInventoryItem, addInventoryItem, updateInventoryStock, getStockLogs, editInventoryItem } from "@/lib/actions"
 import { Plus, Trash2, Package, Check, Search, X, History, Edit, AlertCircle, ArrowUpRight, ArrowDownRight, Filter, ChevronDown, PackageCheck, Pencil, ImagePlus, Eye, Image as ImageIcon, Printer, Download } from "lucide-react"
 
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
 import { motion, AnimatePresence } from "framer-motion"
 
 // --- Helper: Format Date ---
@@ -765,9 +767,113 @@ export default function InventoryPage() {
 
   const handleDownloadPDF = () => {
     setIsPrintModalOpen(false)
-    setTimeout(() => {
-      window.print()
-    }, 150)
+
+    try {
+      const doc = new jsPDF()
+      const reportCategory = printCategory === "all" ? "All Categories" : printCategory
+      const dateStr = formatDate(new Date())
+
+      // Company Header
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(16)
+      doc.setTextColor(31, 111, 95) // #1F6F5F
+      doc.text("PATEL TILES CERAMIC", 14, 18)
+
+      doc.setFontSize(10)
+      doc.setFont("helvetica", "bold")
+      doc.setTextColor(80, 80, 80)
+      doc.text("Latest Inventory Stock Details Report", 14, 24)
+
+      // Meta Details (Right Aligned)
+      doc.setFontSize(9)
+      doc.setFont("helvetica", "normal")
+      doc.text(`Date: ${dateStr}`, 196, 18, { align: "right" })
+      doc.text(`Category: ${reportCategory}`, 196, 24, { align: "right" })
+
+      // Divider Line
+      doc.setDrawColor(200, 200, 200)
+      doc.setLineWidth(0.5)
+      doc.line(14, 28, 196, 28)
+
+      // Items to include
+      const reportItems = printCategory === "all" 
+        ? items 
+        : items.filter(item => item.category === printCategory)
+
+      // Header columns & row data
+      const isAll = printCategory === "all"
+      const head = isAll
+        ? [["#", "Item Name", "Category", "Size", "Finish / Type", "Qty"]]
+        : [["#", "Item Name", "Size", "Finish / Type", "Qty"]]
+
+      const body = reportItems.map((item, index) => {
+        if (isAll) {
+          return [
+            index + 1,
+            item.name || "-",
+            item.category || "-",
+            item.size || "-",
+            item.type || "-",
+            `${item.stockLevel} ${item.unit}s`
+          ]
+        }
+        return [
+          index + 1,
+          item.name || "-",
+          item.size || "-",
+          item.type || "-",
+          `${item.stockLevel} ${item.unit}s`
+        ]
+      })
+
+      autoTable(doc, {
+        startY: 32,
+        head: head,
+        body: body,
+        theme: "grid",
+        headStyles: {
+          fillColor: [31, 111, 95],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          fontSize: 9
+        },
+        bodyStyles: {
+          fontSize: 8.5,
+          textColor: [30, 30, 30]
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 249]
+        },
+        columnStyles: isAll 
+          ? {
+              0: { cellWidth: 12 },
+              1: { cellWidth: "auto" },
+              2: { cellWidth: 35 },
+              3: { cellWidth: 28 },
+              4: { cellWidth: 32 },
+              5: { cellWidth: 25, halign: "right" }
+            }
+          : {
+              0: { cellWidth: 14 },
+              1: { cellWidth: "auto" },
+              2: { cellWidth: 35 },
+              3: { cellWidth: 40 },
+              4: { cellWidth: 30, halign: "right" }
+            }
+      })
+
+      const finalY = (doc as any).lastAutoTable?.finalY || 100
+      doc.setFontSize(8)
+      doc.setTextColor(130, 130, 130)
+      doc.text(`Total Listed Items: ${reportItems.length}`, 14, finalY + 8)
+      doc.text("Generated via Patel Tiles Inventory System", 196, finalY + 8, { align: "right" })
+
+      const filename = `Stock_Report_${reportCategory.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`
+      doc.save(filename)
+    } catch (err) {
+      console.error("PDF generation failed:", err)
+      alert("Failed to generate PDF. Please try again.")
+    }
   }
 
   const loadData = async () => {
