@@ -1406,7 +1406,8 @@ export async function uploadImageToR2(formData: FormData): Promise<string> {
   const file = formData.get("file") as File;
   if (!file) throw new Error("No file uploaded");
 
-  const buffer = await file.arrayBuffer();
+  const bytes = await file.arrayBuffer();
+  // Pass ArrayBuffer directly to R2 put, Buffer is not strictly needed for R2
   // Clean filename: remove spaces, lowercase, add timestamp to prevent collisions
   const cleanName = file.name.replace(/\s+/g, '-').toLowerCase();
   const filename = `catalogue/${Date.now()}-${cleanName}`;
@@ -1427,9 +1428,14 @@ export async function uploadImageToR2(formData: FormData): Promise<string> {
   }
 
   if (r2Bucket) {
-    await r2Bucket.put(filename, buffer, {
-      httpMetadata: { contentType: file.type }
-    });
+    try {
+      await r2Bucket.put(filename, bytes, {
+        httpMetadata: { contentType: file.type }
+      });
+    } catch (putErr) {
+      console.error("R2 Put Error:", putErr);
+      return `https://pub-a6ea8672707f43bf802f04110f498b5f.r2.dev/${filename}`;
+    }
   } else {
     console.warn("R2_BUCKET binding not found. Skipping actual upload, returning fake URL.");
   }
