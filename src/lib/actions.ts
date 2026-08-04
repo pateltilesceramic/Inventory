@@ -1475,27 +1475,53 @@ export async function updateCatalogueDesign(id: string, data: any) {
   if (data.qrUrl !== undefined) updateData.qrUrl = data.qrUrl;
   if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
 
-  const design = await prisma.catalogueDesign.update({
-    where: { id },
-    data: updateData
-  });
-  revalidatePath("/catalogue");
-  return design;
+  try {
+    const design = await prisma.catalogueDesign.update({
+      where: { id },
+      data: updateData
+    });
+    revalidatePath("/catalogue");
+    return design;
+  } catch (error) {
+    // If it fails (e.g. updating a mock default item that isn't in DB), create it
+    const design = await prisma.catalogueDesign.create({
+      data: {
+        id,
+        category: updateData.category || "flooring",
+        name: updateData.name || "Unknown",
+        code: updateData.code || "UNKNOWN",
+        size: updateData.size || "600x1200 mm",
+        finish: updateData.finish || "GLOSSY",
+        facesCount: updateData.facesCount || 4,
+        faces: updateData.faces || JSON.stringify([]),
+        qrImage: updateData.qrImage || null,
+        qrUrl: updateData.qrUrl || null,
+        sortOrder: updateData.sortOrder || 0,
+      }
+    });
+    revalidatePath("/catalogue");
+    return design;
+  }
 }
 
 export async function deleteCatalogueDesign(id: string) {
-  await prisma.catalogueDesign.delete({ where: { id } });
+  // Use deleteMany so it doesn't throw an error if the record (e.g. a mock item) doesn't exist
+  await prisma.catalogueDesign.deleteMany({ where: { id } });
   revalidatePath("/catalogue");
 }
 
 export async function reorderCatalogueDesigns(orderedIds: string[]) {
-  const updates = orderedIds.map((id, index) => 
-    prisma.catalogueDesign.update({
-      where: { id },
-      data: { sortOrder: index }
-    })
-  );
-  await prisma.$transaction(updates);
-  revalidatePath("/catalogue");
+  try {
+    const updates = orderedIds.map((id, index) => 
+      prisma.catalogueDesign.update({
+        where: { id },
+        data: { sortOrder: index }
+      })
+    );
+    await prisma.$transaction(updates);
+    revalidatePath("/catalogue");
+  } catch (e) {
+    console.warn("Reorder failed, likely due to mock items being reordered.");
+  }
 }
 
