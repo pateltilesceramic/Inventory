@@ -1,7 +1,7 @@
 "use client"
 import Link from 'next/link'
 import { ReactNode, useState, useEffect } from 'react'
-import { LayoutDashboard, PackageSearch, Receipt, FileText, Building2, Briefcase, QrCode, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, PackageSearch, Receipt, FileText, Building2, Briefcase, QrCode, LogOut, Menu, X, BookOpen } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { AuthProvider, useAuth } from '@/components/AuthProvider'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -14,6 +14,7 @@ const navItems = [
   { name: 'Purchase Ledger', href: '/purchase-ledger', icon: Building2 },
   { name: 'B2B Ledger', href: '/b2b-ledger', icon: Briefcase },
   { name: 'QR Code Studio', href: '/qr-studio', icon: QrCode },
+  { name: 'Catalogue Studio', href: '/catalogue', icon: BookOpen },
 ]
 
 
@@ -148,7 +149,7 @@ function SidebarLayout({ children }: { children: ReactNode }) {
 
       {/* ── Desktop Sidebar ── */}
       <aside
-        className="hidden md:flex w-64 flex-col z-20 shrink-0 relative overflow-hidden"
+        className="hidden md:flex w-64 flex-col z-20 shrink-0 relative overflow-hidden print:hidden"
         style={{
           background: 'linear-gradient(160deg, #1a5e50 0%, #1F6F5F 40%, #174f43 100%)',
           boxShadow: '2px 0 20px rgba(0,0,0,0.25), 1px 0 0 rgba(255,255,255,0.05)',
@@ -209,7 +210,7 @@ function SidebarLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Top Bar */}
         <header
-          className="md:hidden flex items-center gap-4 px-4 py-3 text-white shrink-0 relative"
+          className="md:hidden flex items-center gap-4 px-4 py-3 text-white shrink-0 relative print:hidden"
           style={{
             background: 'rgba(20, 70, 60, 0.85)',
             backdropFilter: 'blur(20px)',

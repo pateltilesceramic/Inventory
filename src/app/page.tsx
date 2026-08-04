@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import { FadeIn } from "@/components/motion/FadeIn"
 import { getDashboardStats } from "@/lib/actions"
-import { TrendingUp, Package, AlertTriangle, PieChart, Layers, ListChecks, Calendar } from "lucide-react"
+import { TrendingUp, Package, AlertTriangle, PieChart, Layers, ListChecks, Calendar, BookOpen } from "lucide-react"
 import Link from "next/link"
 
 export default function Dashboard() {
@@ -72,6 +72,14 @@ export default function Dashboard() {
         
         {/* Status Row */}
         <div className="flex items-center gap-3">
+          <Link
+            href="/catalogue"
+            className="flex items-center gap-2 bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-4 py-2 rounded-full text-xs font-black shadow-md transition-all active:scale-95"
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Catalogue Studio</span>
+          </Link>
+
           {/* Glass "System Live" badge */}
           <div
             className="flex items-center gap-2 rounded-full px-4 py-2"
