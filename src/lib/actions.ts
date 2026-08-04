@@ -1,5 +1,6 @@
 "use server"
 import { revalidatePath } from "next/cache"
+import { getCloudflareContext } from "@opennextjs/cloudflare"
 import prisma from "./prisma"
 
 export async function getInventory() {
@@ -1413,10 +1414,9 @@ export async function uploadImageToR2(formData: FormData): Promise<string> {
   let r2Bucket: any = null;
 
   try {
-    const { getCloudflareContext } = require("@opennextjs/cloudflare");
     const ctx = getCloudflareContext();
-    if (ctx && ctx.env && ctx.env.R2_BUCKET) {
-      r2Bucket = ctx.env.R2_BUCKET;
+    if (ctx && ctx.env && (ctx.env as any).R2_BUCKET) {
+      r2Bucket = (ctx.env as any).R2_BUCKET;
     }
   } catch (e) {
     // Ignore error if not running in open-next context
