@@ -190,3 +190,19 @@ model DynamicQR {
   updatedAt   DateTime @updatedAt
 }
 
+model CatalogueDesign {
+  id         String   @id @default(uuid())
+  category   String
+  name       String
+  code       String
+  size       String
+  finish     String
+  facesCount Int      @default(4)
+  faces      String   // JSON array of R2 image URLs
+  qrImage    String?  // Optional uploaded QR image (R2 URL)
+  qrUrl      String?  // Optional redirect URL
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+

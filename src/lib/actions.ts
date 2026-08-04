@@ -1399,3 +1399,103 @@ export async function getLatestB2BEntries() {
   return entries
 }
 
+// --- Catalogue Studio Actions ---
+
+export async function uploadImageToR2(formData: FormData): Promise<string> {
+  const file = formData.get("file") as File;
+  if (!file) throw new Error("No file uploaded");
+
+  const buffer = await file.arrayBuffer();
+  // Clean filename: remove spaces, lowercase, add timestamp to prevent collisions
+  const cleanName = file.name.replace(/\s+/g, '-').toLowerCase();
+  const filename = `catalogue/${Date.now()}-${cleanName}`;
+  
+  let r2Bucket: any = null;
+
+  try {
+    const { getCloudflareContext } = require("@opennextjs/cloudflare");
+    const ctx = getCloudflareContext();
+    if (ctx && ctx.env && ctx.env.R2_BUCKET) {
+      r2Bucket = ctx.env.R2_BUCKET;
+    }
+  } catch (e) {
+    // Ignore error if not running in open-next context
+  }
+
+  if (!r2Bucket && (process.env as any).R2_BUCKET) {
+    r2Bucket = (process.env as any).R2_BUCKET;
+  }
+
+  if (r2Bucket) {
+    await r2Bucket.put(filename, buffer, {
+      httpMetadata: { contentType: file.type }
+    });
+  } else {
+    console.warn("R2_BUCKET binding not found. Skipping actual upload, returning fake URL.");
+  }
+
+  return `https://pub-a6ea8672707f43bf802f04110f498b5f.r2.dev/${filename}`;
+}
+
+export async function getCatalogueDesigns() {
+  return await prisma.catalogueDesign.findMany({
+    orderBy: { sortOrder: 'asc' }
+  });
+}
+
+export async function addCatalogueDesign(data: any) {
+  const design = await prisma.catalogueDesign.create({
+    data: {
+      category: data.category,
+      name: data.name,
+      code: data.code,
+      size: data.size,
+      finish: data.finish,
+      facesCount: data.facesCount,
+      faces: JSON.stringify(data.faces),
+      qrImage: data.qrImage || null,
+      qrUrl: data.qrUrl || null,
+      sortOrder: data.sortOrder || 0,
+    }
+  });
+  revalidatePath("/catalogue");
+  return design;
+}
+
+export async function updateCatalogueDesign(id: string, data: any) {
+  const updateData: any = {};
+  if (data.category !== undefined) updateData.category = data.category;
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.code !== undefined) updateData.code = data.code;
+  if (data.size !== undefined) updateData.size = data.size;
+  if (data.finish !== undefined) updateData.finish = data.finish;
+  if (data.facesCount !== undefined) updateData.facesCount = data.facesCount;
+  if (data.faces !== undefined) updateData.faces = JSON.stringify(data.faces);
+  if (data.qrImage !== undefined) updateData.qrImage = data.qrImage;
+  if (data.qrUrl !== undefined) updateData.qrUrl = data.qrUrl;
+  if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
+
+  const design = await prisma.catalogueDesign.update({
+    where: { id },
+    data: updateData
+  });
+  revalidatePath("/catalogue");
+  return design;
+}
+
+export async function deleteCatalogueDesign(id: string) {
+  await prisma.catalogueDesign.delete({ where: { id } });
+  revalidatePath("/catalogue");
+}
+
+export async function reorderCatalogueDesigns(orderedIds: string[]) {
+  const updates = orderedIds.map((id, index) => 
+    prisma.catalogueDesign.update({
+      where: { id },
+      data: { sortOrder: index }
+    })
+  );
+  await prisma.$transaction(updates);
+  revalidatePath("/catalogue");
+}
+

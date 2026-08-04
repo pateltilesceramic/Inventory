@@ -44,3 +44,6 @@ binding = "DB"
 database_name = "stock-inventory-db"
 database_id = "871539a8-dfad-4d74-b621-9f9ded65eae5"
 
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "tiles"

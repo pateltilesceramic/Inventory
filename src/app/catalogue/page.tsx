@@ -139,25 +139,35 @@ const DEFAULT_CATALOGUE_ITEMS: CatalogueItem[] = [
 ]
 
 export default function CatalogueStudioPage() {
-  const [items, setItems] = useState<CatalogueItem[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("catalogue_studio_items_v1")
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved)
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed
-        } catch (e) {}
+  const [items, setItems] = useState<CatalogueItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Load items from D1 Database
+    const loadItems = async () => {
+      try {
+        const { getCatalogueDesigns } = await import("@/lib/actions")
+        const designs = await getCatalogueDesigns()
+        if (designs && designs.length > 0) {
+          // Parse the JSON faces string back to array
+          const parsedDesigns = designs.map((d: any) => ({
+            ...d,
+            faces: JSON.parse(d.faces as string) as string[]
+          }))
+          setItems(parsedDesigns)
+        } else {
+          setItems(DEFAULT_CATALOGUE_ITEMS)
+        }
+      } catch (err) {
+        console.error("Failed to load catalogue designs from DB", err)
+        setItems(DEFAULT_CATALOGUE_ITEMS)
+      } finally {
+        setIsLoading(false)
       }
     }
-    return DEFAULT_CATALOGUE_ITEMS
-  })
+    loadItems()
+  }, [])
 
-  // Save items to localStorage whenever catalogue items are added, edited, removed, or re-ordered
-  useEffect(() => {
-    if (typeof window !== "undefined" && items.length > 0) {
-      localStorage.setItem("catalogue_studio_items_v1", JSON.stringify(items))
-    }
-  }, [items])
 
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [activeTheme, setActiveTheme] = useState<"dark" | "light">("dark")
@@ -176,31 +186,35 @@ export default function CatalogueStudioPage() {
   const [draggedTileId, setDraggedTileId] = useState<string | null>(null)
 
   // Move tile up in order
-  const handleMoveTileUp = (e: React.MouseEvent, tileId: string) => {
+  const handleMoveTileUp = async (e: React.MouseEvent, tileId: string) => {
     e.stopPropagation()
-    setItems(prev => {
-      const idx = prev.findIndex(item => item.id === tileId)
-      if (idx <= 0) return prev
-      const updated = [...prev]
-      const temp = updated[idx]
-      updated[idx] = updated[idx - 1]
-      updated[idx - 1] = temp
-      return updated
-    })
+    const idx = items.findIndex(item => item.id === tileId)
+    if (idx <= 0) return
+    
+    const updated = [...items]
+    const temp = updated[idx]
+    updated[idx] = updated[idx - 1]
+    updated[idx - 1] = temp
+    
+    setItems(updated)
+    const { reorderCatalogueDesigns } = await import("@/lib/actions")
+    await reorderCatalogueDesigns(updated.map(i => i.id))
   }
 
   // Move tile down in order
-  const handleMoveTileDown = (e: React.MouseEvent, tileId: string) => {
+  const handleMoveTileDown = async (e: React.MouseEvent, tileId: string) => {
     e.stopPropagation()
-    setItems(prev => {
-      const idx = prev.findIndex(item => item.id === tileId)
-      if (idx < 0 || idx >= prev.length - 1) return prev
-      const updated = [...prev]
-      const temp = updated[idx]
-      updated[idx] = updated[idx + 1]
-      updated[idx + 1] = temp
-      return updated
-    })
+    const idx = items.findIndex(item => item.id === tileId)
+    if (idx < 0 || idx >= items.length - 1) return
+    
+    const updated = [...items]
+    const temp = updated[idx]
+    updated[idx] = updated[idx + 1]
+    updated[idx + 1] = temp
+    
+    setItems(updated)
+    const { reorderCatalogueDesigns } = await import("@/lib/actions")
+    await reorderCatalogueDesigns(updated.map(i => i.id))
   }
 
   // Handle Drag and Drop swapping
@@ -213,22 +227,22 @@ export default function CatalogueStudioPage() {
     e.preventDefault()
   }
 
-  const handleDrop = (e: React.DragEvent, targetTileId: string) => {
+  const handleDrop = async (e: React.DragEvent, targetTileId: string) => {
     e.preventDefault()
     const sourceId = draggedTileId || e.dataTransfer.getData("text/plain")
     if (!sourceId || sourceId === targetTileId) return
 
-    setItems(prev => {
-      const sourceIdx = prev.findIndex(item => item.id === sourceId)
-      const targetIdx = prev.findIndex(item => item.id === targetTileId)
-      if (sourceIdx < 0 || targetIdx < 0) return prev
-
-      const updated = [...prev]
-      const [movedItem] = updated.splice(sourceIdx, 1)
-      updated.splice(targetIdx, 0, movedItem)
-      return updated
-    })
-
+    const sourceIdx = items.findIndex(item => item.id === sourceId)
+    const targetIdx = items.findIndex(item => item.id === targetTileId)
+    if (sourceIdx < 0 || targetIdx < 0) return
+    
+    const updated = [...items]
+    const [movedItem] = updated.splice(sourceIdx, 1)
+    updated.splice(targetIdx, 0, movedItem)
+    
+    setItems(updated)
+    const { reorderCatalogueDesigns } = await import("@/lib/actions")
+    await reorderCatalogueDesigns(updated.map(i => i.id))
     setDraggedTileId(null)
   }
 
@@ -344,10 +358,10 @@ export default function CatalogueStudioPage() {
       try {
         const formData = new FormData()
         formData.append("file", file)
-        const res = await fetch("/api/upload-design", { method: "POST", body: formData })
-        const data = await res.json()
-        if (data.success && data.url) {
-          uploadedUrls.push(data.url)
+        const { uploadImageToR2 } = await import("@/lib/actions")
+        const url = await uploadImageToR2(formData)
+        if (url) {
+          uploadedUrls.push(url)
         }
       } catch (err) {
         console.error("Upload error:", err)
@@ -372,10 +386,10 @@ export default function CatalogueStudioPage() {
     try {
       const formData = new FormData()
       formData.append("file", file)
-      const res = await fetch("/api/upload-design", { method: "POST", body: formData })
-      const data = await res.json()
-      if (data.success && data.url) {
-        setNewTile(prev => ({ ...prev, qrImage: data.url }))
+      const { uploadImageToR2 } = await import("@/lib/actions")
+      const url = await uploadImageToR2(formData)
+      if (url) {
+        setNewTile(prev => ({ ...prev, qrImage: url }))
       }
     } catch (err) {
       console.error("QR Upload Error:", err)
@@ -385,32 +399,39 @@ export default function CatalogueStudioPage() {
   }
 
   // Save New or Edit Tile to Catalogue State
-  const handleSaveNewTile = (e: React.FormEvent) => {
+  const handleSaveNewTile = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTile.name.trim()) return
 
+    const { addCatalogueDesign, updateCatalogueDesign } = await import("@/lib/actions")
+
     if (editingTileId) {
-      // Update existing tile in place
+      // Update existing tile in DB
+      const updatedData = {
+        name: newTile.name.toUpperCase(),
+        category: newTile.category,
+        size: newTile.size,
+        finish: newTile.finish.toUpperCase(),
+        facesCount: parseInt(newTile.facesCount) || (newTile.faces.length || 4),
+        faces: newTile.faces.length > 0 ? newTile.faces : undefined,
+        qrImage: newTile.qrImage,
+        qrUrl: newTile.qrUrl
+      }
+      const updatedTile = await updateCatalogueDesign(editingTileId, updatedData)
+      
       setItems(prev => prev.map(item => {
         if (item.id === editingTileId) {
           return {
             ...item,
-            name: newTile.name.toUpperCase(),
-            category: newTile.category,
-            size: newTile.size,
-            finish: newTile.finish.toUpperCase(),
-            facesCount: parseInt(newTile.facesCount) || (newTile.faces.length || 4),
-            faces: newTile.faces.length > 0 ? newTile.faces : item.faces,
-            qrImage: newTile.qrImage,
-            qrUrl: newTile.qrUrl
+            ...updatedData,
+            faces: updatedData.faces || item.faces
           }
         }
         return item
       }))
     } else {
-      // Add new tile
-      const createdTile = {
-        id: Date.now().toString(),
+      // Add new tile to DB
+      const newTileData = {
         category: newTile.category,
         name: newTile.name.toUpperCase(),
         code: newTile.code || `ST-${items.length + 101}`,
@@ -424,9 +445,12 @@ export default function CatalogueStudioPage() {
           "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=600&q=80"
         ],
         qrImage: newTile.qrImage,
-        qrUrl: newTile.qrUrl
+        qrUrl: newTile.qrUrl,
+        sortOrder: items.length
       }
-      setItems(prev => [...prev, createdTile])
+      
+      const createdTile = await addCatalogueDesign(newTileData)
+      setItems(prev => [...prev, { ...createdTile, faces: newTileData.faces }])
     }
 
     setIsAddModalOpen(false)
@@ -435,7 +459,9 @@ export default function CatalogueStudioPage() {
   }
 
   // Remove tile item from catalogue
-  const handleRemoveTile = (id: string) => {
+  const handleRemoveTile = async (id: string) => {
+    const { deleteCatalogueDesign } = await import("@/lib/actions")
+    await deleteCatalogueDesign(id)
     setItems(prev => prev.filter(item => item.id !== id))
   }
 
