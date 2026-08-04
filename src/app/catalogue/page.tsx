@@ -11,7 +11,15 @@ import {
 } from "lucide-react"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
-import { getInventory } from "@/lib/actions"
+import { 
+  getInventory, 
+  getCatalogueDesigns, 
+  reorderCatalogueDesigns, 
+  uploadImageToR2, 
+  addCatalogueDesign, 
+  updateCatalogueDesign, 
+  deleteCatalogueDesign 
+} from "@/lib/actions"
 
 // --- Catalogue Category Presets ---
 const CATALOGUE_CATEGORIES = [
@@ -146,7 +154,7 @@ export default function CatalogueStudioPage() {
     // Load items from D1 Database
     const loadItems = async () => {
       try {
-        const { getCatalogueDesigns } = await import("@/lib/actions")
+
         const designs = await getCatalogueDesigns()
         if (designs && designs.length > 0) {
           // Parse the JSON faces string back to array
@@ -197,7 +205,7 @@ export default function CatalogueStudioPage() {
     updated[idx - 1] = temp
     
     setItems(updated)
-    const { reorderCatalogueDesigns } = await import("@/lib/actions")
+
     await reorderCatalogueDesigns(updated.map(i => i.id))
   }
 
@@ -213,7 +221,7 @@ export default function CatalogueStudioPage() {
     updated[idx + 1] = temp
     
     setItems(updated)
-    const { reorderCatalogueDesigns } = await import("@/lib/actions")
+
     await reorderCatalogueDesigns(updated.map(i => i.id))
   }
 
@@ -241,7 +249,7 @@ export default function CatalogueStudioPage() {
     updated.splice(targetIdx, 0, movedItem)
     
     setItems(updated)
-    const { reorderCatalogueDesigns } = await import("@/lib/actions")
+
     await reorderCatalogueDesigns(updated.map(i => i.id))
     setDraggedTileId(null)
   }
@@ -358,7 +366,7 @@ export default function CatalogueStudioPage() {
       try {
         const formData = new FormData()
         formData.append("file", file)
-        const { uploadImageToR2 } = await import("@/lib/actions")
+
         const url = await uploadImageToR2(formData)
         if (url) {
           uploadedUrls.push(url)
@@ -386,7 +394,7 @@ export default function CatalogueStudioPage() {
     try {
       const formData = new FormData()
       formData.append("file", file)
-      const { uploadImageToR2 } = await import("@/lib/actions")
+
       const url = await uploadImageToR2(formData)
       if (url) {
         setNewTile(prev => ({ ...prev, qrImage: url }))
@@ -403,7 +411,7 @@ export default function CatalogueStudioPage() {
     e.preventDefault()
     if (!newTile.name.trim()) return
 
-    const { addCatalogueDesign, updateCatalogueDesign } = await import("@/lib/actions")
+
 
     if (editingTileId) {
       // Update existing tile in DB
@@ -460,7 +468,7 @@ export default function CatalogueStudioPage() {
 
   // Remove tile item from catalogue
   const handleRemoveTile = async (id: string) => {
-    const { deleteCatalogueDesign } = await import("@/lib/actions")
+
     await deleteCatalogueDesign(id)
     setItems(prev => prev.filter(item => item.id !== id))
   }
