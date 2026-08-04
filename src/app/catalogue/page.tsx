@@ -33,8 +33,8 @@ interface CatalogueItem {
   finish: string
   facesCount: number
   faces: string[]
-  qrImage: string
-  qrUrl?: string
+  qrImage: string | null
+  qrUrl?: string | null
 }
 
 // --- Helper: Default Initial Collection ---
