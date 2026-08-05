@@ -315,21 +315,62 @@ export default function CatalogueStudioPage() {
     ? items 
     : items.filter(item => item.category === selectedCategory || selectedCategory === "all")
 
-  // Multi-Page Index Pagination Calculation (14 items per Index Page)
-  const INDEX_ITEMS_PER_PAGE = 14
-  const numIndexPages = Math.max(1, Math.ceil(filteredItems.length / INDEX_ITEMS_PER_PAGE))
+  // Dynamic row-based chunking (Max 2 rows per index page to avoid cutoff)
+  const MAX_ROWS_PER_PAGE = 2
+  const rawIndexPagesChunks: any[][] = []
+  let currentPageItems: any[] = []
+  let currentRowCount = 0
+  let currentFinish = ""
+  let itemsInCurrentFinishRow = 0
+
+  filteredItems.forEach((item) => {
+    const itemFinish = (item.finish || "GLOSSY").toUpperCase()
+    
+    if (itemFinish !== currentFinish) {
+      if (currentRowCount >= MAX_ROWS_PER_PAGE) {
+        rawIndexPagesChunks.push(currentPageItems)
+        currentPageItems = []
+        currentRowCount = 0
+      }
+      currentFinish = itemFinish
+      itemsInCurrentFinishRow = 0
+      currentRowCount += 1
+    } else {
+      if (itemsInCurrentFinishRow === 7) {
+        if (currentRowCount >= MAX_ROWS_PER_PAGE) {
+          rawIndexPagesChunks.push(currentPageItems)
+          currentPageItems = []
+          currentRowCount = 1 
+          itemsInCurrentFinishRow = 0
+        } else {
+          currentRowCount += 1
+          itemsInCurrentFinishRow = 0
+        }
+      }
+    }
+
+    currentPageItems.push(item)
+    itemsInCurrentFinishRow += 1
+  })
+
+  if (currentPageItems.length > 0) {
+    rawIndexPagesChunks.push(currentPageItems)
+  }
+
+  const numIndexPages = Math.max(1, rawIndexPagesChunks.length)
 
   // Map each item to its exact Detail Page Number (starts after cover page + index pages)
-  const itemsWithPageNum = filteredItems.map((tile, idx) => ({
-    ...tile,
-    pageNum: numIndexPages + 2 + idx
-  }))
+  let globalItemIndex = 0
+  const indexPagesChunks = rawIndexPagesChunks.map(chunk => 
+    chunk.map(tile => {
+      const pNum = numIndexPages + 2 + globalItemIndex
+      globalItemIndex++
+      return { ...tile, pageNum: pNum }
+    })
+  )
 
-  // Chunk items into separate Index Pages
-  const indexPagesChunks: any[][] = []
-  for (let i = 0; i < itemsWithPageNum.length; i += INDEX_ITEMS_PER_PAGE) {
-    indexPagesChunks.push(itemsWithPageNum.slice(i, i + INDEX_ITEMS_PER_PAGE))
-  }
+  // Flattened for the detail pages loop later
+  const itemsWithPageNum = indexPagesChunks.flat()
 
   // Filter inventory suggestions based on typed input
   const suggestions = newTile.name.trim()
