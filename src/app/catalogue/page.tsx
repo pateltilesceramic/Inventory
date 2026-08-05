@@ -361,7 +361,11 @@ export default function CatalogueStudioPage() {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
-      if (!file.type.startsWith("image/")) continue
+      const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp|heic)$/i.test(file.name)
+      if (!isImage) {
+        alert(`File ${file.name} is not recognized as a valid image.`)
+        continue
+      }
 
       try {
         const formData = new FormData()
@@ -388,7 +392,12 @@ export default function CatalogueStudioPage() {
   // Handle uploading custom QR Code Image file
   const handleQRFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !file.type.startsWith("image/")) return
+    if (!file) return
+    const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp|heic)$/i.test(file.name)
+    if (!isImage) {
+      alert(`File ${file.name} is not recognized as a valid image.`)
+      return
+    }
 
     setIsUploadingQR(true)
     try {
