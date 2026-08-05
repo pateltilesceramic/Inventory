@@ -15,7 +15,6 @@ import {
   getInventory, 
   getCatalogueDesigns, 
   reorderCatalogueDesigns, 
-  uploadImageToR2, 
   addCatalogueDesign, 
   updateCatalogueDesign, 
   deleteCatalogueDesign 
@@ -367,15 +366,22 @@ export default function CatalogueStudioPage() {
         continue
       }
 
-      try {
-        const formData = new FormData()
-        formData.append("file", file)
-
-        const url = await uploadImageToR2(formData)
-        if (url) {
-          uploadedUrls.push(url)
-        }
-      } catch (err) {
+        try {
+          const formData = new FormData()
+          formData.append("file", file)
+  
+          const res = await fetch("/api/upload-r2", {
+            method: "POST",
+            body: formData,
+          })
+          const data = await res.json()
+          
+          if (!res.ok) throw new Error(data.error || "Upload failed")
+          
+          if (data.url) {
+            uploadedUrls.push(data.url)
+          }
+        } catch (err: any) {
         console.error("Upload error:", err)
       }
     }
@@ -401,15 +407,22 @@ export default function CatalogueStudioPage() {
     }
 
     setIsUploadingQR(true)
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const url = await uploadImageToR2(formData)
-      if (url) {
-        setNewTile(prev => ({ ...prev, qrImage: url }))
-      }
-    } catch (err) {
+      try {
+        const formData = new FormData()
+        formData.append("file", file)
+  
+        const res = await fetch("/api/upload-r2", {
+          method: "POST",
+          body: formData,
+        })
+        const data = await res.json()
+        
+        if (!res.ok) throw new Error(data.error || "Upload failed")
+        
+        if (data.url) {
+          setNewTile(prev => ({ ...prev, qrImage: data.url }))
+        }
+      } catch (err) {
       console.error("QR Upload Error:", err)
     } finally {
       setIsUploadingQR(false)
