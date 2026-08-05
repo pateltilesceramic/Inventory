@@ -22,7 +22,7 @@ import {
 
 // --- Catalogue Category Presets ---
 const CATALOGUE_CATEGORIES = [
-  { id: "all", name: "Master Collection", subtitle: "PREMIUM TILES COLLECTION 2026", sizeText: "FLOOR TILES" },
+  { id: "all", name: "Master Collection", subtitle: "PREMIUM COLLECTION 2026", sizeText: "ALL TILES & SANITARY" },
   { id: "flooring", name: "Flooring Tiles", subtitle: "PREMIUM TILES COLLECTION 2026", sizeText: "FLOOR TILES" },
   { id: "bathroom", name: "Bathroom Tiles", subtitle: "LUXURY BATHROOM TILES 2026", sizeText: "BATHROOM TILES" },
   { id: "parking", name: "Parking Tiles", subtitle: "HEAVY DUTY PARKING TILES 2026", sizeText: "PARKING TILES" },
@@ -853,7 +853,11 @@ export default function CatalogueStudioPage() {
 
           {/* Cover Footer */}
           <div className="flex justify-between items-end text-xs font-medium text-slate-300 z-10 pt-6 border-t border-[#D4AF37]/20">
-            <p className="tracking-wide">Glossy, High Glossy, Matt, Carving, Inky</p>
+            <div>
+              {selectedCategory !== 'all' && (
+                <p className="tracking-wide">Glossy, High Glossy, Matt, Carving, Inky</p>
+              )}
+            </div>
             <p className="font-mono text-[#D4AF37]">Page 1</p>
           </div>
         </section>
@@ -1105,7 +1109,7 @@ export default function CatalogueStudioPage() {
                 {/* Tile Name + Size */}
                 <div className="min-w-0 flex-1">
                   <span className="text-[11px] font-black uppercase tracking-widest text-[#D4AF37]">
-                    2 x 4 ft ({tile.size})
+                    {tile.size}
                   </span>
                   <h2 className="text-3xl font-black uppercase tracking-wider text-white truncate">
                     {tile.name}
