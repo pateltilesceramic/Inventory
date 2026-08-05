@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: ["@prisma/client", ".prisma/client"],
+  serverActions: {
+    bodySizeLimit: '25mb',
+  },
   async headers() {
     return [
       {
