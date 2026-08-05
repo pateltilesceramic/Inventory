@@ -1427,7 +1427,7 @@ export default function CatalogueStudioPage() {
                       Feature Icons (Select applicable)
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {["5D FLUSHING", "SYPHONIC FLUSHING", "WASH DOWN", "DUAL FLUSH", "SOFT CLOSE SEAT", "RIMLESS", "S-TRAP", "P-TRAP"].map(icon => {
+                      {["SYPHONIC FLUSHING", "WASHDOWN FLUSHING", "6D FLUSHING", "5D FLUSHING", "4D FLUSHING", "RIMLESS", "2D FLUSHING"].map(icon => {
                         const isSelected = newTile.featureIcons.includes(icon)
                         return (
                           <label key={icon} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${isSelected ? "bg-[#D4AF37]/10 border-[#D4AF37]" : "bg-slate-900 border-slate-700 hover:border-slate-500"}`}>
