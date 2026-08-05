@@ -315,8 +315,8 @@ export default function CatalogueStudioPage() {
     ? items 
     : items.filter(item => item.category === selectedCategory || selectedCategory === "all")
 
-  // Multi-Page Index Pagination Calculation (12 items per Index Page)
-  const INDEX_ITEMS_PER_PAGE = 12
+  // Multi-Page Index Pagination Calculation (14 items per Index Page)
+  const INDEX_ITEMS_PER_PAGE = 14
   const numIndexPages = Math.max(1, Math.ceil(filteredItems.length / INDEX_ITEMS_PER_PAGE))
 
   // Map each item to its exact Detail Page Number (starts after cover page + index pages)
@@ -737,7 +737,7 @@ export default function CatalogueStudioPage() {
         {/* ============================================================ */}
         <section
           id="page-1"
-          className={`w-full min-h-[720px] rounded-3xl p-8 sm:p-16 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
+          className={`w-full h-[760px] rounded-3xl p-8 sm:p-16 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
             activeTheme === "dark"
               ? "bg-[#0A192F] text-white border-2 border-[#D4AF37]/30"
               : "bg-slate-50 text-slate-900 border-2 border-[#D4AF37]/40"
@@ -812,7 +812,7 @@ export default function CatalogueStudioPage() {
             <section
               key={`index-page-${pageIdx}`}
               id={`page-${indexPageNum}`}
-              className={`w-full min-h-[720px] rounded-3xl p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
+              className={`w-full h-[760px] rounded-3xl p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
                 activeTheme === "dark"
                   ? "bg-[#091527] text-white border border-[#D4AF37]/20"
                   : "bg-white text-slate-900 border border-slate-200"
@@ -961,7 +961,7 @@ export default function CatalogueStudioPage() {
               </div>
 
             <section
-              className={`w-full min-h-[750px] rounded-3xl p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
+              className={`w-full h-[760px] rounded-3xl p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
                 activeTheme === "dark"
                   ? "bg-[#0A192F] text-white border border-[#D4AF37]/20"
                   : "bg-white text-slate-900 border border-slate-200"
@@ -1027,28 +1027,21 @@ export default function CatalogueStudioPage() {
 
               {/* Main Tile Faces Rendering Area (smaller, tighter grid) */}
               <div className="my-4">
-                {tile.facesCount === 1 || tile.faces.length === 1 ? (
-                  /* Single Rectangular Slab Layout */
-                  <div className="w-full max-w-sm mx-auto aspect-[1/2] rounded-none overflow-hidden border-2 border-[#D4AF37]/60 shadow-2xl">
-                    <img src={tile.faces[0]} alt={tile.name} className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  /* 4 / 6 Random Faces Grid (compact) */
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
-                    {tile.faces.map((faceUrl, fIdx) => (
-                      <div
-                        key={fIdx}
-                        className="aspect-[1/2] w-full rounded-none overflow-hidden border-2 border-slate-700/90 hover:border-[#D4AF37] shadow-xl bg-slate-900 relative group"
-                      >
-                        <img
-                          src={faceUrl}
-                          alt={`${tile.name} Face ${fIdx + 1}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Faces Flex Container (centers 1, 2, 3, or wraps 4+ faces) */}
+                <div className="flex flex-wrap justify-center items-center gap-4 max-w-4xl mx-auto">
+                  {tile.faces.map((faceUrl: any, fIdx: any) => (
+                    <div
+                      key={fIdx}
+                      className="aspect-[1/2] w-36 sm:w-44 rounded-none overflow-hidden border-2 border-slate-700/90 hover:border-[#D4AF37] shadow-xl bg-slate-900 relative group shrink-0"
+                    >
+                      <img
+                        src={faceUrl}
+                        alt={`${tile.name} Face ${fIdx + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Bottom Interactive Navigation */}
@@ -1080,7 +1073,7 @@ export default function CatalogueStudioPage() {
         {/* ============================================================ */}
         <section
           id={`page-${numIndexPages + 2 + filteredItems.length}`}
-          className={`w-full min-h-[720px] rounded-3xl p-8 sm:p-16 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
+          className={`w-full h-[760px] rounded-3xl p-8 sm:p-16 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
             activeTheme === "dark"
               ? "bg-[#0A192F] text-white border-2 border-[#D4AF37]/30"
               : "bg-white text-slate-900 border-2 border-slate-200"
