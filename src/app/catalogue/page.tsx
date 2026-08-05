@@ -951,11 +951,11 @@ export default function CatalogueStudioPage() {
                                     </div>
 
                                     {/* Medium-Compact Swatch Thumbnail */}
-                                    <div className="relative w-16 sm:w-20 aspect-[1/2] rounded-lg overflow-hidden bg-slate-900 border border-slate-700/50">
+                                    <div className={`relative w-16 sm:w-20 ${tile.category === 'one-piece' ? 'aspect-square bg-slate-100 p-2' : 'aspect-[1/2] bg-slate-900'} rounded-lg overflow-hidden border border-slate-700/50 flex items-center justify-center`}>
                                       <img
                                         src={tile.faces[0]}
                                         alt={tile.name}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        className={`w-full h-full group-hover:scale-105 transition-transform duration-300 ${tile.category === 'one-piece' ? 'object-contain mix-blend-multiply' : 'object-cover'}`}
                                       />
                                     </div>
 
@@ -964,9 +964,11 @@ export default function CatalogueStudioPage() {
                                       <h3 className="text-[10px] font-bold text-white group-hover:text-[#D4AF37] transition-colors truncate leading-tight">
                                         {tile.name}
                                       </h3>
-                                      <p className="text-[8px] text-[#D4AF37]/80 font-bold uppercase tracking-wider mt-0.5">
-                                        {tile.finish}
-                                      </p>
+                                      {tile.category !== 'one-piece' && (
+                                        <p className="text-[8px] text-[#D4AF37]/80 font-bold uppercase tracking-wider mt-0.5">
+                                          {tile.finish}
+                                        </p>
+                                      )}
                                     </div>
                                   </div>
                                 )
@@ -1025,18 +1027,8 @@ export default function CatalogueStudioPage() {
                     : "bg-white text-slate-900 border border-slate-200"
                 }`}
               >
-                {/* ONE PIECE LAYOUT (Left: Image, Right: Details) */}
-                <div className="w-[45%] h-full flex flex-col justify-center items-center pr-10 border-r border-[#D4AF37]/20">
-                  <div className="w-full aspect-square bg-slate-100 rounded-3xl overflow-hidden shadow-2xl p-6 flex items-center justify-center border-4 border-[#D4AF37]/10">
-                    <img 
-                      src={tile.faces?.[0] || ""} 
-                      alt={tile.name} 
-                      className="w-full h-full object-contain mix-blend-multiply drop-shadow-2xl" 
-                    />
-                  </div>
-                </div>
-
-                <div className="w-[55%] h-full flex flex-col justify-between pl-12 py-4">
+                {/* ONE PIECE LAYOUT (Left: Details, Right: Image) */}
+                <div className="w-[55%] h-full flex flex-col justify-between pr-12 py-4 border-r border-[#D4AF37]/20">
                   <div>
                     <h2 className="text-5xl font-black uppercase tracking-wider text-white mb-3">
                       {tile.name}
@@ -1080,6 +1072,16 @@ export default function CatalogueStudioPage() {
                     >
                       <span>👈 BACK TO INDEX</span>
                     </button>
+                  </div>
+                </div>
+
+                <div className="w-[45%] h-full flex flex-col justify-center items-center pl-10">
+                  <div className="w-full aspect-square bg-slate-100 rounded-3xl overflow-hidden shadow-2xl p-6 flex items-center justify-center border-4 border-[#D4AF37]/10">
+                    <img 
+                      src={tile.faces?.[0] || ""} 
+                      alt={tile.name} 
+                      className="w-full h-full object-contain mix-blend-multiply drop-shadow-2xl" 
+                    />
                   </div>
                 </div>
               </section>
