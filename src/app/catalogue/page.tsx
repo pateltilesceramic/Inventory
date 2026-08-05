@@ -387,6 +387,7 @@ export default function CatalogueStudioPage() {
       }))
     }
     setIsUploading(false)
+    e.target.value = '' // Reset input so the same file can be selected again
   }
 
   // Handle uploading custom QR Code Image file
@@ -412,6 +413,7 @@ export default function CatalogueStudioPage() {
       console.error("QR Upload Error:", err)
     } finally {
       setIsUploadingQR(false)
+      e.target.value = '' // Reset input so the same file can be selected again
     }
   }
 
