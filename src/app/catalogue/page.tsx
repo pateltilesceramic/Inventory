@@ -525,8 +525,6 @@ export default function CatalogueStudioPage() {
     e.preventDefault()
     if (!newTile.name.trim()) return
 
-
-
     if (editingTileId) {
       const sizeStr = newTile.thickness.trim() ? `${newTile.size} | ${newTile.thickness.trim()}` : newTile.size;
       // Update existing tile in DB
@@ -1203,10 +1201,10 @@ export default function CatalogueStudioPage() {
                   if (isSquareTile) {
                     return (
                       <div className="flex justify-center my-2">
-                        <div className="grid grid-cols-2 gap-[2px] bg-slate-400 p-[2px] shadow-2xl border border-[#D4AF37]/30 rounded-sm">
+                        <div className="grid grid-cols-2 gap-[8px] bg-slate-900 dark:bg-slate-800 p-[8px] shadow-2xl border border-slate-600/50 rounded-xl">
                           {[1, 2].map(idx => (
-                            <div key={idx} className="w-44 h-44 md:w-80 md:h-80 lg:w-[400px] lg:h-[400px] bg-slate-900 overflow-hidden relative">
-                              <img src={tile.normalFaces[0]} alt="" className="w-full h-full object-cover" />
+                            <div key={idx} className="w-44 h-44 md:w-80 md:h-80 lg:w-[400px] lg:h-[400px] bg-black overflow-hidden relative border border-slate-700/50">
+                              <img src={tile.normalFaces[0]} alt="" className="w-full h-full object-cover shadow-inner" />
                             </div>
                           ))}
                         </div>
@@ -1526,6 +1524,13 @@ export default function CatalogueStudioPage() {
                             <option value="CARVING">CARVING</option>
                             <option value="INKY">INKY</option>
                             <option value="SPECIAL COLORS">SPECIAL COLORS</option>
+                            {Array.from(new Set(
+                              items
+                                .filter(item => item.category !== 'one-piece' && item.finish)
+                                .map(item => item.finish.toUpperCase())
+                            )).filter(f => !["HIGH GLOSSY", "GLOSSY", "MATT", "CARVING", "INKY", "SPECIAL COLORS"].includes(f)).map(cf => (
+                              <option key={cf} value={cf}>{cf}</option>
+                            ))}
                             <option value="ADD_CUSTOM">+ Add Custom Finish</option>
                           </select>
                         )}
