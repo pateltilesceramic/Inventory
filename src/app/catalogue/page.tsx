@@ -186,8 +186,8 @@ export default function CatalogueStudioPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [activeTheme, setActiveTheme] = useState<"dark" | "light">("dark")
   const [catalogTitle, setCatalogTitle] = useState("PATEL TILES & CERAMIC")
-  const [catalogSubtitle, setCatalogSubtitle] = useState("PREMIUM TILES COLLECTION 2026")
-  const [tileSizeText, setTileSizeText] = useState("FLOOR TILES")
+  const [catalogSubtitle, setCatalogSubtitle] = useState("PREMIUM COLLECTION 2026")
+  const [tileSizeText, setTileSizeText] = useState("ALL TILES & SANITARY")
 
   // Modal & Inventory Auto-suggestions State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -644,7 +644,7 @@ export default function CatalogueStudioPage() {
         adminBtns.forEach((btn: any) => { btn.style.visibility = "hidden" })
 
         const canvas = await html2canvas(pageEl, {
-          scale: 2,
+          scale: 4, // Upscaled for crisp zooming in the PDF
           useCORS: true,
           allowTaint: true,
           backgroundColor: "#0A192F",
