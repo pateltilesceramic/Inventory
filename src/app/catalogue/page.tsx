@@ -260,6 +260,7 @@ export default function CatalogueStudioPage() {
     category: "flooring",
     code: "",
     size: "600x1200 mm",
+    thickness: "",
     finish: "HIGH GLOSSY",
     facesCount: "4",
     faces: [] as string[],
@@ -267,6 +268,7 @@ export default function CatalogueStudioPage() {
     qrUrl: "",
     featureIcons: [] as string[]
   })
+  const [isCustomFinish, setIsCustomFinish] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const qrFileInputRef = useRef<HTMLInputElement>(null)
@@ -294,11 +296,25 @@ export default function CatalogueStudioPage() {
       actualFinish = "" // Not used for one-piece
     }
 
+    let actualSize = tile.size || "600x1200 mm"
+    let actualThickness = ""
+    if (actualSize.includes(" | ")) {
+      const parts = actualSize.split(" | ")
+      actualSize = parts[0]
+      actualThickness = parts[1] || ""
+    }
+
+    setIsCustomFinish(false)
+    if (actualFinish && !["HIGH GLOSSY", "GLOSSY", "MATT", "CARVING", "INKY", "SPECIAL COLORS"].includes(actualFinish.toUpperCase())) {
+      setIsCustomFinish(true)
+    }
+
     setNewTile({
       name: tile.name || "",
       category: tile.category || "flooring",
       code: tile.code || "",
-      size: tile.size || "600x1200 mm",
+      size: actualSize,
+      thickness: actualThickness,
       finish: actualFinish,
       facesCount: (tile.facesCount || 4).toString(),
       faces: tile.faces || [],
@@ -312,7 +328,8 @@ export default function CatalogueStudioPage() {
   // Open Add Modal
   const handleOpenAddModal = () => {
     setEditingTileId(null)
-    setNewTile({ name: "", category: selectedCategory === "all" ? "flooring" : selectedCategory, code: "", size: "600x1200 mm", finish: "HIGH GLOSSY", facesCount: "4", faces: [], qrImage: "", qrUrl: "", featureIcons: [] })
+    setIsCustomFinish(false)
+    setNewTile({ name: "", category: selectedCategory === "all" ? "flooring" : selectedCategory, code: "", size: "600x1200 mm", thickness: "", finish: "HIGH GLOSSY", facesCount: "4", faces: [], qrImage: "", qrUrl: "", featureIcons: [] })
     setIsAddModalOpen(true)
   }
 
@@ -382,8 +399,21 @@ export default function CatalogueStudioPage() {
   const indexPagesChunks = rawIndexPagesChunks.map(chunk => 
     chunk.map(tile => {
       const pNum = numIndexPages + 2 + globalItemIndex
-      globalItemIndex++
-      return { ...tile, pageNum: pNum }
+      
+      const normalFaces = (tile.faces || []).filter((f: string) => !f.toLowerCase().includes('scene'))
+      const sceneFaces = (tile.faces || []).filter((f: string) => f.toLowerCase().includes('scene'))
+      const hasScene = sceneFaces.length > 0
+      
+      const res = { 
+        ...tile, 
+        pageNum: pNum, 
+        hasScene, 
+        scenePageNum: hasScene ? pNum + 1 : undefined,
+        normalFaces,
+        sceneFaces 
+      }
+      globalItemIndex += hasScene ? 2 : 1
+      return res
     })
   )
 
@@ -401,6 +431,7 @@ export default function CatalogueStudioPage() {
       ...prev,
       name: invItem.name.toUpperCase(),
       size: invItem.size || "600x1200 mm",
+      thickness: "",
       finish: (invItem.type || "HIGH GLOSSY").toUpperCase(),
       faces: invItem.designUrl && !prev.faces.includes(invItem.designUrl)
         ? [...prev.faces, invItem.designUrl]
@@ -497,11 +528,12 @@ export default function CatalogueStudioPage() {
 
 
     if (editingTileId) {
+      const sizeStr = newTile.thickness.trim() ? `${newTile.size} | ${newTile.thickness.trim()}` : newTile.size;
       // Update existing tile in DB
       const updatedData = {
         name: newTile.name.toUpperCase(),
         category: newTile.category,
-        size: newTile.size,
+        size: sizeStr,
         finish: newTile.category === "one-piece" ? JSON.stringify(newTile.featureIcons) : newTile.finish.toUpperCase(),
         facesCount: parseInt(newTile.facesCount) || (newTile.faces.length || 4),
         faces: newTile.faces.length > 0 ? newTile.faces : undefined,
@@ -521,12 +553,13 @@ export default function CatalogueStudioPage() {
         return item
       }))
     } else {
+      const sizeStr = newTile.thickness.trim() ? `${newTile.size} | ${newTile.thickness.trim()}` : newTile.size;
       // Add new tile to DB
       const newTileData = {
         category: newTile.category,
         name: newTile.name.toUpperCase(),
         code: newTile.code || `ST-${items.length + 101}`,
-        size: newTile.size,
+        size: sizeStr,
         finish: newTile.category === "one-piece" ? JSON.stringify(newTile.featureIcons) : newTile.finish.toUpperCase(),
         facesCount: parseInt(newTile.facesCount) || (newTile.faces.length || 4),
         faces: newTile.faces.length > 0 ? newTile.faces : [
@@ -543,7 +576,8 @@ export default function CatalogueStudioPage() {
 
     setIsAddModalOpen(false)
     setEditingTileId(null)
-    setNewTile({ name: "", category: selectedCategory === "all" ? "flooring" : selectedCategory, code: "", size: "600x1200 mm", finish: "HIGH GLOSSY", facesCount: "4", faces: [], qrImage: "", qrUrl: "", featureIcons: [] })
+    setIsCustomFinish(false)
+    setNewTile({ name: "", category: selectedCategory === "all" ? "flooring" : selectedCategory, code: "", size: "600x1200 mm", thickness: "", finish: "HIGH GLOSSY", facesCount: "4", faces: [], qrImage: "", qrUrl: "", featureIcons: [] })
   }
 
   // Remove tile item from catalogue
@@ -572,7 +606,7 @@ export default function CatalogueStudioPage() {
       }
 
       let doc: jsPDF | null = null
-      const totalPages = numIndexPages + 2 + filteredItems.length
+      const totalPages = numIndexPages + 2 + (filteredItems.length * 2)
 
       for (let i = 1; i <= totalPages; i++) {
         const pageEl = document.getElementById(`page-${i}`)
@@ -955,13 +989,24 @@ export default function CatalogueStudioPage() {
                                     </div>
 
                                     {/* Medium-Compact Swatch Thumbnail */}
-                                    <div className={`relative w-16 sm:w-20 ${tile.category === 'one-piece' ? 'aspect-square bg-slate-100 p-2' : 'aspect-[1/2] bg-slate-900'} rounded-lg overflow-hidden border border-slate-700/50 flex items-center justify-center`}>
-                                      <img
-                                        src={tile.faces[0]}
-                                        alt={tile.name}
-                                        className={`w-full h-full group-hover:scale-105 transition-transform duration-300 ${tile.category === 'one-piece' ? 'object-contain mix-blend-multiply' : 'object-cover'}`}
-                                      />
-                                    </div>
+                                    {(() => {
+                                      const s = (tile.size || "").toLowerCase().replace(/\s/g, '')
+                                      const isSquareTile = (s.includes('600x600') || s.includes('2x2'))
+                                      
+                                      const aspectClass = tile.category === 'one-piece' || isSquareTile ? 'aspect-square' : 'aspect-[1/2]'
+                                      const bgClass = tile.category === 'one-piece' ? 'bg-slate-100 p-2' : 'bg-slate-900'
+                                      const imgClass = `w-full h-full group-hover:scale-105 transition-transform duration-300 ${tile.category === 'one-piece' ? 'object-contain mix-blend-multiply' : 'object-cover'}`
+
+                                      return (
+                                        <div className={`relative w-16 sm:w-20 ${aspectClass} ${bgClass} rounded-lg overflow-hidden border border-slate-700/50 flex items-center justify-center`}>
+                                          <img
+                                            src={tile.normalFaces?.[0] || tile.faces[0]}
+                                            alt={tile.name}
+                                            className={imgClass}
+                                          />
+                                        </div>
+                                      )
+                                    })()}
 
                                     {/* Swatch Label */}
                                     <div className="mt-1.5 text-center w-full">
@@ -1069,7 +1114,7 @@ export default function CatalogueStudioPage() {
                   <div className="w-[45%] flex flex-col justify-center items-center pl-10">
                     <div className="w-full aspect-square bg-slate-100 rounded-3xl overflow-hidden shadow-2xl p-6 flex items-center justify-center border-4 border-[#D4AF37]/10">
                       <img 
-                        src={tile.faces?.[0] || ""} 
+                        src={tile.normalFaces?.[0] || ""} 
                         alt={tile.name} 
                         className="w-full h-full object-contain mix-blend-multiply drop-shadow-2xl" 
                       />
@@ -1096,7 +1141,7 @@ export default function CatalogueStudioPage() {
               </section>
             ) : (
               <section
-                className={`w-full h-[760px] rounded-3xl p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
+                className={`w-full h-[760px] rounded-3xl p-4 sm:p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
                   activeTheme === "dark"
                     ? "bg-[#0A192F] text-white border border-[#D4AF37]/20"
                     : "bg-white text-slate-900 border border-slate-200"
@@ -1104,7 +1149,7 @@ export default function CatalogueStudioPage() {
               >
 
               {/* ── HEADER: Tile Name | SURFACE badge | RANDOM badge | QR Code ── */}
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-[#D4AF37]/30 mb-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#D4AF37]/30 mb-2">
 
                 {/* Tile Name + Size */}
                 <div className="min-w-0 flex-1">
@@ -1127,15 +1172,15 @@ export default function CatalogueStudioPage() {
                 </span>
 
                 {/* QR Code (enlarged) — only renders if user uploaded a QR or provided a URL */}
-                {(tile.qrUrl || tile.qrImage) ? (
+                {(tile.qrUrl || tile.qrImage) && (
                   <a
                     href={tile.qrUrl || "#"}
                     target="_blank"
                     rel="noreferrer"
                     data-qr-url={tile.qrUrl || ""}
-                    className="flex flex-col items-center group cursor-pointer shrink-0"
+                    className="flex flex-col items-center group cursor-pointer shrink-0 ml-auto"
                   >
-                    <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-2xl overflow-hidden border-2 border-[#D4AF37] bg-white p-2 shadow-xl group-hover:scale-105 transition-transform">
+                    <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-2 border-[#D4AF37] bg-white p-2 shadow-xl group-hover:scale-105 transition-transform">
                       <img
                         src={tile.qrImage || `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(tile.qrUrl!)}`}
                         alt="Tile QR Code"
@@ -1146,41 +1191,50 @@ export default function CatalogueStudioPage() {
                       SCAN 3D VIEW
                     </span>
                   </a>
-                ) : (
-                  /* Blank placeholder when no QR has been uploaded */
-                  <div className="flex flex-col items-center shrink-0">
-                    <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-2xl border-2 border-dashed border-[#D4AF37]/40 bg-slate-900/60 flex flex-col items-center justify-center gap-1.5 shadow-inner">
-                      <span className="text-[#D4AF37]/30 text-3xl">⬜</span>
-                      <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider text-center px-2">No QR Added</span>
-                    </div>
-                    <span className="text-[9px] font-mono font-bold text-slate-600 mt-1.5 tracking-wider uppercase">
-                      QR CODE
-                    </span>
-                  </div>
                 )}
               </div>
 
               {/* Main Tile Faces Rendering Area (smaller, tighter grid) */}
-              <div className="my-4">
-                {/* Faces Flex Container (centers 1, 2, 3, or wraps 4+ faces) */}
-                <div className="flex flex-wrap justify-center items-center gap-4 max-w-4xl mx-auto">
-                  {tile.faces.map((faceUrl: any, fIdx: any) => (
-                    <div
-                      key={fIdx}
-                      className="aspect-[1/2] w-36 sm:w-44 rounded-none overflow-hidden border-2 border-slate-700/90 hover:border-[#D4AF37] shadow-xl bg-slate-900 relative group shrink-0"
-                    >
-                      <img
-                        src={faceUrl}
-                        alt={`${tile.name} Face ${fIdx + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+              <div className="my-1">
+                {(() => {
+                  const s = (tile.size || "").toLowerCase().replace(/\s/g, '')
+                  const isSquareTile = (s.includes('600x600') || s.includes('2x2')) && tile.normalFaces?.length === 1
+                  
+                  if (isSquareTile) {
+                    return (
+                      <div className="flex justify-center my-2">
+                        <div className="grid grid-cols-2 gap-[2px] bg-slate-400 p-[2px] shadow-2xl border border-[#D4AF37]/30 rounded-sm">
+                          {[1, 2].map(idx => (
+                            <div key={idx} className="w-44 h-44 md:w-80 md:h-80 lg:w-[400px] lg:h-[400px] bg-slate-900 overflow-hidden relative">
+                              <img src={tile.normalFaces[0]} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="flex flex-wrap justify-center items-center gap-4 max-w-4xl mx-auto">
+                      {tile.normalFaces.map((faceUrl: any, fIdx: any) => (
+                        <div
+                          key={fIdx}
+                          className="aspect-[1/2] w-36 sm:w-44 rounded-none overflow-hidden border-2 border-slate-700/90 hover:border-[#D4AF37] shadow-xl bg-slate-900 relative group shrink-0"
+                        >
+                          <img
+                            src={faceUrl}
+                            alt={`${tile.name} Face ${fIdx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )
+                })()}
               </div>
 
               {/* Bottom Interactive Navigation */}
-              <div className="flex justify-between items-center pt-6 border-t border-white/10 mt-6">
+              <div className="flex justify-between items-center pt-3 border-t border-white/10 mt-2">
                 {/* Left: Page Pill */}
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-[#D4AF37] text-[#0A192F] font-mono font-black flex items-center justify-center text-sm shadow-md">
@@ -1200,6 +1254,47 @@ export default function CatalogueStudioPage() {
               </div>
             </section>
             )}
+            
+            {/* ── SCENE IMAGE FULL PAGE (Optional) ── */}
+            {tile.hasScene && (
+              <section
+                id={`page-${tile.scenePageNum}`}
+                className={`w-full h-[760px] rounded-3xl relative overflow-hidden shadow-2xl transition-colors mt-8 print:mt-0 print:break-before-page ${
+                  activeTheme === "dark"
+                    ? "bg-[#0A192F] border border-[#D4AF37]/20"
+                    : "bg-white border border-slate-200"
+                }`}
+              >
+                <img
+                  src={tile.sceneFaces[0]}
+                  alt={`${tile.name} Scene`}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Scene Bottom Navigation Overlay */}
+                <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex justify-between items-end">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#D4AF37] text-[#0A192F] font-mono font-black flex items-center justify-center text-sm shadow-md">
+                      {tile.scenePageNum}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-white font-bold tracking-wider uppercase">{tile.name}</span>
+                      <span className="text-xs font-mono text-slate-300">Patel Tiles & Ceramic</span>
+                    </div>
+                  </div>
+                  
+                  {/* Right: Back to Index Button */}
+                  <button
+                    data-page-link="2"
+                    onClick={() => scrollToPage("page-2")}
+                    className="flex items-center gap-2 bg-[#0F4C3A] hover:bg-[#D4AF37] hover:text-[#0A192F] text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer border border-[#D4AF37]/40"
+                  >
+                    <span>👈 BACK TO INDEX</span>
+                  </button>
+                </div>
+              </section>
+            )}
+
             </div>
           )
         })}
@@ -1315,295 +1410,362 @@ export default function CatalogueStudioPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleSaveNewTile} className="mt-6 space-y-4">
-                {/* Catalogue Category Tag Selection */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-1">
-                    Catalogue Category
-                  </label>
-                  <select
-                    value={newTile.category}
-                    onChange={(e) => setNewTile({ ...newTile, category: e.target.value })}
-                    className="w-full px-4 py-2.5 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-bold"
-                  >
-                    <option value="flooring">Flooring Tiles</option>
-                    <option value="bathroom">Bathroom Tiles</option>
-                    <option value="parking">Parking Tiles</option>
-                    <option value="pooja">Pooja Room Tiles</option>
-                    <option value="elevation">Elevation Tiles</option>
-                    <option value="one-piece">One Piece</option>
-                  </select>
+              <form onSubmit={handleSaveNewTile} className="mt-6 space-y-6">
+                
+                {/* SECTION 1: Basic Details */}
+                <div className="p-4 bg-slate-800/40 rounded-2xl border border-slate-700/50 space-y-4">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></span>
+                    Basic Details
+                  </h3>
+                  
+                  {/* Catalogue Category Tag Selection */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                      Catalogue Category
+                    </label>
+                    <select
+                      value={newTile.category}
+                      onChange={(e) => setNewTile({ ...newTile, category: e.target.value })}
+                      className="w-full px-4 py-2 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-bold transition-colors"
+                    >
+                      <option value="flooring">Flooring Tiles</option>
+                      <option value="bathroom">Bathroom Tiles</option>
+                      <option value="parking">Parking Tiles</option>
+                      <option value="pooja">Pooja Room Tiles</option>
+                      <option value="elevation">Elevation Tiles</option>
+                      <option value="one-piece">One Piece</option>
+                    </select>
+                  </div>
+
+                  {/* Tile Name with Autocomplete Inventory Suggestions */}
+                  <div className="relative">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                      Tile Design Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Type name (e.g. ASTEROID WHITE, ARMANI GREY)..."
+                      value={newTile.name}
+                      onChange={(e) => {
+                        setNewTile({ ...newTile, name: e.target.value })
+                        setShowSuggestions(true)
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      className="w-full px-4 py-2 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-bold transition-colors"
+                    />
+
+                    {/* Auto-suggestions Dropdown */}
+                    {showSuggestions && suggestions.length > 0 && (
+                      <div className="absolute z-50 left-0 right-0 mt-1 bg-slate-900 border border-[#D4AF37]/40 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
+                        <div className="p-1">
+                          <p className="text-[9px] font-black uppercase text-[#D4AF37] px-3 py-1 border-b border-slate-800">
+                            Matching Inventory Items
+                          </p>
+                          {suggestions.map((inv) => (
+                            <div
+                              key={inv.id}
+                              onClick={() => handleSelectSuggestion(inv)}
+                              className="px-3 py-2 hover:bg-[#0F4C3A] cursor-pointer text-xs flex items-center justify-between transition-colors rounded-lg"
+                            >
+                              <span className="font-bold text-white">{inv.name}</span>
+                              <span className="text-[10px] text-[#D4AF37] font-semibold">
+                                {inv.size || "600x1200mm"} • {inv.type || "Glossy"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Tile Name with Autocomplete Inventory Suggestions */}
-                <div className="relative">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-1">
-                    Tile Design Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Type name (e.g. ASTEROID WHITE, ARMANI GREY)..."
-                    value={newTile.name}
-                    onChange={(e) => {
-                      setNewTile({ ...newTile, name: e.target.value })
-                      setShowSuggestions(true)
-                    }}
-                    onFocus={() => setShowSuggestions(true)}
-                    className="w-full px-4 py-2.5 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-bold"
-                  />
+                {/* SECTION 2: Specifications */}
+                <div className="p-4 bg-slate-800/40 rounded-2xl border border-slate-700/50 space-y-4">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></span>
+                    Specifications
+                  </h3>
 
-                  {/* Auto-suggestions Dropdown */}
-                  {showSuggestions && suggestions.length > 0 && (
-                    <div className="absolute z-50 left-0 right-0 mt-1 bg-slate-900 border border-[#D4AF37]/40 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
-                      <div className="p-1">
-                        <p className="text-[9px] font-black uppercase text-[#D4AF37] px-3 py-1 border-b border-slate-800">
-                          Matching Inventory Items
-                        </p>
-                        {suggestions.map((inv) => (
-                          <div
-                            key={inv.id}
-                            onClick={() => handleSelectSuggestion(inv)}
-                            className="px-3 py-2 hover:bg-[#0F4C3A] cursor-pointer text-xs flex items-center justify-between transition-colors rounded-lg"
+                  <div className="grid grid-cols-2 gap-4">
+                    {newTile.category !== 'one-piece' && (
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                          Surface Finish
+                        </label>
+                        {isCustomFinish ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={newTile.finish}
+                              onChange={(e) => setNewTile({ ...newTile, finish: e.target.value })}
+                              placeholder="Type finish..."
+                              className="w-full px-4 py-2 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold transition-colors"
+                            />
+                            <button type="button" onClick={() => { setIsCustomFinish(false); setNewTile({ ...newTile, finish: "HIGH GLOSSY" }) }} className="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <select
+                            value={newTile.finish}
+                            onChange={(e) => {
+                              if (e.target.value === "ADD_CUSTOM") {
+                                setIsCustomFinish(true)
+                                setNewTile({ ...newTile, finish: "" })
+                              } else {
+                                setNewTile({ ...newTile, finish: e.target.value })
+                              }
+                            }}
+                            className="w-full px-4 py-2 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold transition-colors"
                           >
-                            <span className="font-bold text-white">{inv.name}</span>
-                            <span className="text-[10px] text-[#D4AF37] font-semibold">
-                              {inv.size || "600x1200mm"} • {inv.type || "Glossy"}
-                            </span>
+                            <option value="HIGH GLOSSY">HIGH GLOSSY</option>
+                            <option value="GLOSSY">GLOSSY</option>
+                            <option value="MATT">MATT</option>
+                            <option value="CARVING">CARVING</option>
+                            <option value="INKY">INKY</option>
+                            <option value="SPECIAL COLORS">SPECIAL COLORS</option>
+                            <option value="ADD_CUSTOM">+ Add Custom Finish</option>
+                          </select>
+                        )}
+                      </div>
+                    )}
+
+                    <div className={newTile.category === 'one-piece' ? "col-span-2" : ""}>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                          Tile Dimensions
+                        </label>
+                        <input
+                          type="text"
+                          value={newTile.size}
+                          onChange={(e) => setNewTile({ ...newTile, size: e.target.value })}
+                          className="w-full px-4 py-2 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold transition-colors"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Random Faces Count (Not for One Piece) */}
+                    {newTile.category !== 'one-piece' && (
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                          Random Faces
+                        </label>
+                        <select
+                          value={newTile.facesCount}
+                          onChange={(e) => setNewTile({ ...newTile, facesCount: e.target.value })}
+                          className="w-full px-4 py-2 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold transition-colors"
+                        >
+                          <option value="1">1 Face (Single)</option>
+                          <option value="2">2 Faces (Double)</option>
+                          <option value="4">4 Faces (Quad Random)</option>
+                          <option value="6">6 Faces (Hex Random)</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Thickness moved here */}
+                    <div className={newTile.category === 'one-piece' ? "col-span-2" : ""}>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                        Thickness <span className="text-[10px] text-slate-500 font-normal">(Opt.)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newTile.thickness}
+                        placeholder="e.g. 9 mm"
+                        onChange={(e) => setNewTile({ ...newTile, thickness: e.target.value })}
+                        className="w-full px-4 py-2 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Feature Icons (Only for One Piece) */}
+                  {newTile.category === 'one-piece' && (
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                        Feature Icons (Select applicable)
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {["SYPHONIC FLUSHING", "WASHDOWN FLUSHING", "6D FLUSHING", "5D FLUSHING", "4D FLUSHING", "RIMLESS", "2D FLUSHING"].map(icon => {
+                          const isSelected = newTile.featureIcons.includes(icon)
+                          return (
+                            <label key={icon} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${isSelected ? "bg-[#D4AF37]/10 border-[#D4AF37]" : "bg-slate-900 border-slate-700 hover:border-slate-500"}`}>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  setNewTile(prev => ({
+                                    ...prev,
+                                    featureIcons: e.target.checked 
+                                      ? [...prev.featureIcons, icon] 
+                                      : prev.featureIcons.filter(i => i !== icon)
+                                  }))
+                                }}
+                                className="accent-[#D4AF37]"
+                              />
+                              <span className="text-[10px] font-bold text-slate-300">{icon}</span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* SECTION 3: Media & Assets */}
+                <div className="p-4 bg-slate-800/40 rounded-2xl border border-slate-700/50 space-y-4">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></span>
+                    Media & Assets
+                  </h3>
+
+                  {/* Photos Upload Area */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                      {newTile.category === 'one-piece' ? "Upload Product Photo (JPG, PNG, WebP)" : "Upload Tile Face Photos (JPG, PNG, WebP)"}
+                    </label>
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full h-20 border-2 border-dashed border-[#D4AF37]/40 hover:border-[#D4AF37] rounded-xl bg-slate-900 flex flex-col items-center justify-center cursor-pointer transition-all p-3"
+                    >
+                      {isUploading ? (
+                        <div className="flex items-center gap-2 text-xs font-bold text-[#D4AF37]">
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          <span>Uploading photos...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 text-[#D4AF37] mb-1" />
+                          <span className="text-xs font-bold text-slate-300">Click or drop {newTile.category === 'one-piece' ? "product photo" : "face photos"}</span>
+                          <span className="text-[10px] text-slate-500">
+                            {newTile.category === 'one-piece' ? "Upload 1 main product image" : "Upload 1 to 6 face images"}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleMultipleFilesUpload}
+                      className="hidden"
+                    />
+                  </div>
+
+                  {/* Uploaded Faces Preview */}
+                  {newTile.faces.length > 0 && (
+                    <div className="bg-slate-900/50 p-2 rounded-xl">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+                        Uploaded Faces ({newTile.faces.length}):
+                      </span>
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                        {newTile.faces.map((url, idx) => (
+                          <div key={idx} className="relative w-12 h-18 rounded-lg overflow-hidden border border-slate-700 shrink-0">
+                            <img src={url} alt="" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => setNewTile(prev => ({ ...prev, faces: prev.faces.filter((_, i) => i !== idx) }))}
+                              className="absolute top-0.5 right-0.5 bg-red-600 text-white rounded-full p-0.5"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                  {/* QR Section (Not for One Piece) */}
                   {newTile.category !== 'one-piece' && (
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-1">
-                        Surface Finish
-                      </label>
-                      <select
-                        value={newTile.finish}
-                        onChange={(e) => setNewTile({ ...newTile, finish: e.target.value })}
-                        className="w-full px-4 py-2.5 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold"
-                      >
-                        <option value="HIGH GLOSSY">HIGH GLOSSY</option>
-                        <option value="GLOSSY">GLOSSY</option>
-                        <option value="MATT">MATT</option>
-                        <option value="CARVING">CARVING</option>
-                        <option value="INKY">INKY</option>
-                        <option value="SPECIAL COLORS">SPECIAL COLORS</option>
-                      </select>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* QR Web Link URL Input */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                          3D View / Web Link
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="https://pateltilesceramic.com/tile/ST-101..."
+                          value={newTile.qrUrl}
+                          onChange={(e) => setNewTile({ ...newTile, qrUrl: e.target.value })}
+                          className="w-full px-4 py-2 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold transition-colors"
+                        />
+                        <p className="text-[9px] text-slate-400 mt-1 leading-tight">
+                          QR scan redirects to this web link.
+                        </p>
+                      </div>
+
+                      {/* Upload Custom QR Code Image */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                          Custom QR Image
+                        </label>
+                        {newTile.qrImage ? (
+                          <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-[#D4AF37]/40 h-[38px]">
+                            <img src={newTile.qrImage} alt="QR Code Preview" className="w-6 h-6 object-contain bg-white rounded flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] font-bold text-white truncate">Image Attached</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setNewTile(prev => ({ ...prev, qrImage: "" }))}
+                              className="p-1 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800 flex-shrink-0"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => qrFileInputRef.current?.click()}
+                            className="w-full h-[38px] border border-dashed border-[#D4AF37]/40 hover:border-[#D4AF37] rounded-xl bg-slate-900 flex items-center justify-center gap-2 cursor-pointer transition-all px-2"
+                          >
+                            {isUploadingQR ? (
+                              <div className="flex items-center gap-2 text-[10px] font-bold text-[#D4AF37]">
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                                <span>Uploading...</span>
+                              </div>
+                            ) : (
+                              <>
+                                <QrCode className="w-3.5 h-3.5 text-[#D4AF37]" />
+                                <span className="text-[10px] font-bold text-slate-300">Upload QR Image</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                        <input
+                          ref={qrFileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleQRFileUpload}
+                          className="hidden"
+                        />
+                      </div>
                     </div>
                   )}
-
-                  <div className={newTile.category === 'one-piece' ? "col-span-2" : ""}>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-1">
-                      Tile Dimensions
-                    </label>
-                    <input
-                      type="text"
-                      value={newTile.size}
-                      onChange={(e) => setNewTile({ ...newTile, size: e.target.value })}
-                      className="w-full px-4 py-2.5 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold"
-                    />
-                  </div>
                 </div>
 
-                {/* Random Faces Count (Not for One Piece) */}
-                {newTile.category !== 'one-piece' && (
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-1">
-                      Random Faces (No. of Tile Faces in Design)
-                    </label>
-                    <select
-                      value={newTile.facesCount}
-                      onChange={(e) => setNewTile({ ...newTile, facesCount: e.target.value })}
-                      className="w-full px-4 py-2.5 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold"
+                <div className="pt-4 flex items-center justify-between border-t border-slate-800">
+                  <span className="text-[10px] text-slate-500 font-bold">* Required</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddModalOpen(false)}
+                      className="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold text-xs transition-colors"
                     >
-                      <option value="1">1 Face (Single)</option>
-                      <option value="2">2 Faces (Double)</option>
-                      <option value="4">4 Faces (Quad Random)</option>
-                      <option value="6">6 Faces (Hex Random)</option>
-                    </select>
-                    <p className="text-[10px] text-slate-400 mt-1">This sets the RANDOM badge on the design page.</p>
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isUploading}
+                      className="px-6 py-2.5 rounded-xl bg-[#D4AF37] text-[#0A192F] font-black text-xs hover:bg-white hover:text-[#0A192F] transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {editingTileId ? "SAVE CHANGES" : "ADD DESIGN"}
+                    </button>
                   </div>
-                )}
-
-                {/* Feature Icons (Only for One Piece) */}
-                {newTile.category === 'one-piece' && (
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-2">
-                      Feature Icons (Select applicable)
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {["SYPHONIC FLUSHING", "WASHDOWN FLUSHING", "6D FLUSHING", "5D FLUSHING", "4D FLUSHING", "RIMLESS", "2D FLUSHING"].map(icon => {
-                        const isSelected = newTile.featureIcons.includes(icon)
-                        return (
-                          <label key={icon} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${isSelected ? "bg-[#D4AF37]/10 border-[#D4AF37]" : "bg-slate-900 border-slate-700 hover:border-slate-500"}`}>
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={(e) => {
-                                setNewTile(prev => ({
-                                  ...prev,
-                                  featureIcons: e.target.checked 
-                                    ? [...prev.featureIcons, icon] 
-                                    : prev.featureIcons.filter(i => i !== icon)
-                                }))
-                              }}
-                              className="accent-[#D4AF37]"
-                            />
-                            <span className="text-[10px] font-bold text-slate-300">{icon}</span>
-                          </label>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Photos Upload Area */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-1">
-                    {newTile.category === 'one-piece' ? "Upload Product Photo (JPG, PNG, WebP)" : "Upload Tile Face Photos (JPG, PNG, WebP)"}
-                  </label>
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-24 border-2 border-dashed border-[#D4AF37]/40 hover:border-[#D4AF37] rounded-2xl bg-slate-900 flex flex-col items-center justify-center cursor-pointer transition-all p-3"
-                  >
-                    {isUploading ? (
-                      <div className="flex items-center gap-2 text-xs font-bold text-[#D4AF37]">
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>Uploading photos...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <Upload className="w-5 h-5 text-[#D4AF37] mb-1" />
-                        <span className="text-xs font-bold text-slate-300">Click or drop {newTile.category === 'one-piece' ? "product photo" : "face photos"}</span>
-                        <span className="text-[10px] text-slate-500">
-                          {newTile.category === 'one-piece' ? "Upload 1 main product image" : "Upload 1 to 6 face images"}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleMultipleFilesUpload}
-                    className="hidden"
-                  />
-                </div>
-
-                {/* Uploaded Faces Preview */}
-                {newTile.faces.length > 0 && (
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-                      Uploaded Faces ({newTile.faces.length}):
-                    </span>
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                      {newTile.faces.map((url, idx) => (
-                        <div key={idx} className="relative w-12 h-18 rounded-lg overflow-hidden border border-slate-700 shrink-0">
-                          <img src={url} alt="" className="w-full h-full object-cover" />
-                          <button
-                            type="button"
-                            onClick={() => setNewTile(prev => ({ ...prev, faces: prev.faces.filter((_, i) => i !== idx) }))}
-                            className="absolute top-0.5 right-0.5 bg-red-600 text-white rounded-full p-0.5"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* QR Section (Not for One Piece) */}
-                {newTile.category !== 'one-piece' && (
-                  <>
-                    {/* QR Web Link URL Input */}
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-1">
-                        3D View / Web Link URL for QR Redirect (Optional)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="https://pateltilesceramic.com/tile/ST-101 or 3D view link..."
-                        value={newTile.qrUrl}
-                        onChange={(e) => setNewTile({ ...newTile, qrUrl: e.target.value })}
-                        className="w-full px-4 py-2.5 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold"
-                      />
-                      <p className="text-[10px] text-slate-400 mt-1">
-                        When customers click or scan the QR code in web or PDF, they will be redirected to this web link.
-                      </p>
-                    </div>
-
-                    {/* Upload Custom QR Code Image */}
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#D4AF37] mb-1">
-                        Upload Custom QR Code Image (Optional)
-                      </label>
-                      {newTile.qrImage ? (
-                        <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-900 border border-[#D4AF37]/40">
-                          <img src={newTile.qrImage} alt="QR Code Preview" className="w-12 h-12 object-contain bg-white rounded-xl p-1 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-white">Custom QR Image Attached</p>
-                            <p className="text-[10px] text-slate-400">Renders on top-right of page</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setNewTile(prev => ({ ...prev, qrImage: "" }))}
-                            className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div
-                          onClick={() => qrFileInputRef.current?.click()}
-                          className="w-full h-16 border border-dashed border-[#D4AF37]/40 hover:border-[#D4AF37] rounded-2xl bg-slate-900 flex items-center justify-center gap-2.5 cursor-pointer transition-all px-4"
-                        >
-                          {isUploadingQR ? (
-                            <div className="flex items-center gap-2 text-xs font-bold text-[#D4AF37]">
-                              <RefreshCw className="w-4 h-4 animate-spin" />
-                              <span>Uploading QR Image...</span>
-                            </div>
-                          ) : (
-                            <>
-                              <QrCode className="w-5 h-5 text-[#D4AF37]" />
-                              <span className="text-xs font-bold text-slate-300">Click to upload QR Code image file</span>
-                            </>
-                          )}
-                        </div>
-                      )}
-                      <input
-                        ref={qrFileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleQRFileUpload}
-                        className="hidden"
-                      />
-                    </div>
-                  </>
-                )}
-
-                <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddModalOpen(false)}
-                    className="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold text-xs"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49f27] text-[#0A192F] font-black text-xs shadow-md transition-all flex items-center gap-2"
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Save Design To Catalogue</span>
-                  </button>
                 </div>
               </form>
             </motion.div>
