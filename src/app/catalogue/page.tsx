@@ -644,7 +644,7 @@ export default function CatalogueStudioPage() {
         adminBtns.forEach((btn: any) => { btn.style.visibility = "hidden" })
 
         const canvas = await html2canvas(pageEl, {
-          scale: 4, // Upscaled for crisp zooming in the PDF
+          scale: 2.5, // Balanced for crisp zooming while avoiding mobile GPU texture limit crashes
           useCORS: true,
           allowTaint: true,
           backgroundColor: "#0A192F",
@@ -696,8 +696,8 @@ export default function CatalogueStudioPage() {
           doc.addPage([canvasW, canvasH], orientation)
         }
 
-        const imgData = canvas.toDataURL("image/png")
-        doc.addImage(imgData, "PNG", 0, 0, canvasW, canvasH)
+        const imgData = canvas.toDataURL("image/jpeg", 0.95)
+        doc.addImage(imgData, "JPEG", 0, 0, canvasW, canvasH)
 
         // ========================================================
         // ADD INTERACTIVE PDF LINKS (Internal Page Jumps & Web QR)
@@ -1085,7 +1085,7 @@ export default function CatalogueStudioPage() {
           const pageId = `page-${tile.pageNum}`
 
           return (
-            <div key={tile.id} id={pageId} className="relative">
+            <div key={tile.id} className="relative">
               {/* FLOATING LEFT: Edit & Remove buttons outside the page card (hidden in PDF) */}
               <div className="absolute -left-2 top-8 flex flex-col gap-2 z-10 no-export-btn">
                 <button
@@ -1108,6 +1108,7 @@ export default function CatalogueStudioPage() {
 
             {tile.category === 'one-piece' ? (
               <section
+                id={pageId}
                 className={`w-full h-[760px] rounded-3xl p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
                   activeTheme === "dark"
                     ? "bg-[#0A192F] text-white border border-[#D4AF37]/20"
@@ -1179,6 +1180,7 @@ export default function CatalogueStudioPage() {
               </section>
             ) : (
               <section
+                id={pageId}
                 className={`w-full h-[760px] rounded-3xl p-4 sm:p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
                   activeTheme === "dark"
                     ? "bg-[#0A192F] text-white border border-[#D4AF37]/20"
