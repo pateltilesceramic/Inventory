@@ -1479,7 +1479,7 @@ export async function updateCatalogueDesign(id: string, data: any) {
   if (data.faces !== undefined) updateData.faces = JSON.stringify(data.faces);
   if (data.qrImage !== undefined) updateData.qrImage = data.qrImage;
   if (data.qrUrl !== undefined) updateData.qrUrl = data.qrUrl;
-  if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
+  if (data.sortOrder !== undefined && data.sortOrder !== null) updateData.sortOrder = data.sortOrder;
 
   try {
     const design = await prisma.catalogueDesign.update({

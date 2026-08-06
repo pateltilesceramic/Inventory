@@ -162,6 +162,12 @@ export default function CatalogueStudioPage() {
             ...d,
             faces: JSON.parse(d.faces as string) as string[]
           }))
+          // Automatically keep "One Piece" tiles at the very bottom
+          parsedDesigns.sort((a, b) => {
+            if (a.category === 'one-piece' && b.category !== 'one-piece') return 1;
+            if (a.category !== 'one-piece' && b.category === 'one-piece') return -1;
+            return 0;
+          })
           setItems(parsedDesigns)
         } else {
           setItems(DEFAULT_CATALOGUE_ITEMS)
@@ -247,6 +253,13 @@ export default function CatalogueStudioPage() {
     const updated = [...items]
     const [movedItem] = updated.splice(sourceIdx, 1)
     updated.splice(targetIdx, 0, movedItem)
+    
+    // Enforce "One Piece" at the bottom always
+    updated.sort((a, b) => {
+      if (a.category === 'one-piece' && b.category !== 'one-piece') return 1;
+      if (a.category !== 'one-piece' && b.category === 'one-piece') return -1;
+      return 0;
+    })
     
     setItems(updated)
 
@@ -348,11 +361,11 @@ export default function CatalogueStudioPage() {
     ? items 
     : items.filter(item => item.category === selectedCategory || selectedCategory === "all")
 
-  // Dynamic height-based chunking to seamlessly handle mixed tile sizes
-  const MAX_PAGE_HEIGHT = 580
+  // Dynamic weight-based chunking to perfectly match the requested layout constraints
+  const MAX_WEIGHT = 3.0
   const rawIndexPagesChunks: any[][] = []
   let currentPageItems: any[] = []
-  let currentPageHeight = 0
+  let currentPageWeight = 0
   let currentFinish = ""
   let itemsInCurrentFinishRow = 0
 
@@ -364,28 +377,27 @@ export default function CatalogueStudioPage() {
     const s = (item.size || "").toLowerCase().replace(/\s/g, '')
     const isSquare = s.includes('600x600') || s.includes('2x2') || item.category === 'one-piece'
     
-    const newGroupRowHeight = isSquare ? 150 : 230
-    const continuationRowHeight = isSquare ? 110 : 190
+    // Assign weights: Square rows take 1.0 unit of space, Rect rows take 1.5 units
+    const rowWeight = isSquare ? 1.0 : 1.5
     
     if (itemFinish !== currentFinish) {
-      if (currentPageHeight + newGroupRowHeight > MAX_PAGE_HEIGHT && currentPageItems.length > 0) {
+      if (currentPageWeight + rowWeight > MAX_WEIGHT && currentPageItems.length > 0) {
         rawIndexPagesChunks.push(currentPageItems)
         currentPageItems = []
-        currentPageHeight = newGroupRowHeight
+        currentPageWeight = rowWeight
       } else {
-        currentPageHeight += newGroupRowHeight
+        currentPageWeight += rowWeight
       }
       currentFinish = itemFinish
       itemsInCurrentFinishRow = 0
     } else {
       if (itemsInCurrentFinishRow === 7) {
-        if (currentPageHeight + continuationRowHeight > MAX_PAGE_HEIGHT && currentPageItems.length > 0) {
+        if (currentPageWeight + rowWeight > MAX_WEIGHT && currentPageItems.length > 0) {
           rawIndexPagesChunks.push(currentPageItems)
           currentPageItems = []
-          // Wrapped to new page means it starts with a series header again
-          currentPageHeight = newGroupRowHeight 
+          currentPageWeight = rowWeight 
         } else {
-          currentPageHeight += continuationRowHeight
+          currentPageWeight += rowWeight
         }
         itemsInCurrentFinishRow = 0
       }
@@ -576,7 +588,17 @@ export default function CatalogueStudioPage() {
       }
       
       const createdTile = await addCatalogueDesign(newTileData)
-      setItems(prev => [...prev, { ...createdTile, faces: newTileData.faces }])
+      setItems(prev => {
+        const updated = [...prev, { ...createdTile, faces: newTileData.faces }]
+        updated.sort((a, b) => {
+          if (a.category === 'one-piece' && b.category !== 'one-piece') return 1;
+          if (a.category !== 'one-piece' && b.category === 'one-piece') return -1;
+          return 0;
+        })
+        // Save the corrected sort order to the database so it sticks
+        reorderCatalogueDesigns(updated.map(i => i.id)).catch(() => {})
+        return updated
+      })
     }
 
     setIsAddModalOpen(false)
