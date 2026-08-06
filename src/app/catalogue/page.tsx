@@ -348,11 +348,11 @@ export default function CatalogueStudioPage() {
     ? items 
     : items.filter(item => item.category === selectedCategory || selectedCategory === "all")
 
-  // Dynamic row-based chunking (Max 3 rows per index page to avoid cutoff)
-  const MAX_ROWS_PER_PAGE = 3
+  // Dynamic height-based chunking to seamlessly handle mixed tile sizes
+  const MAX_PAGE_HEIGHT = 580
   const rawIndexPagesChunks: any[][] = []
   let currentPageItems: any[] = []
-  let currentRowCount = 0
+  let currentPageHeight = 0
   let currentFinish = ""
   let itemsInCurrentFinishRow = 0
 
@@ -360,27 +360,34 @@ export default function CatalogueStudioPage() {
     const itemFinish = item.category === 'one-piece' 
       ? "ONE PIECE" 
       : (item.finish || "GLOSSY").toUpperCase()
+      
+    const s = (item.size || "").toLowerCase().replace(/\s/g, '')
+    const isSquare = s.includes('600x600') || s.includes('2x2') || item.category === 'one-piece'
+    
+    const newGroupRowHeight = isSquare ? 150 : 230
+    const continuationRowHeight = isSquare ? 110 : 190
     
     if (itemFinish !== currentFinish) {
-      if (currentRowCount >= MAX_ROWS_PER_PAGE) {
+      if (currentPageHeight + newGroupRowHeight > MAX_PAGE_HEIGHT && currentPageItems.length > 0) {
         rawIndexPagesChunks.push(currentPageItems)
         currentPageItems = []
-        currentRowCount = 0
+        currentPageHeight = newGroupRowHeight
+      } else {
+        currentPageHeight += newGroupRowHeight
       }
       currentFinish = itemFinish
       itemsInCurrentFinishRow = 0
-      currentRowCount += 1
     } else {
       if (itemsInCurrentFinishRow === 7) {
-        if (currentRowCount >= MAX_ROWS_PER_PAGE) {
+        if (currentPageHeight + continuationRowHeight > MAX_PAGE_HEIGHT && currentPageItems.length > 0) {
           rawIndexPagesChunks.push(currentPageItems)
           currentPageItems = []
-          currentRowCount = 1 
-          itemsInCurrentFinishRow = 0
+          // Wrapped to new page means it starts with a series header again
+          currentPageHeight = newGroupRowHeight 
         } else {
-          currentRowCount += 1
-          itemsInCurrentFinishRow = 0
+          currentPageHeight += continuationRowHeight
         }
+        itemsInCurrentFinishRow = 0
       }
     }
 
