@@ -654,6 +654,15 @@ export default function CatalogueStudioPage() {
             const allNodes = clonedDoc.querySelectorAll("*")
             allNodes.forEach((node: any) => {
               try {
+                // html2canvas BUG FIX: mix-blend-mode and drop-shadows often render as pitch black boxes
+                if (node.classList) {
+                  node.classList.remove("mix-blend-multiply")
+                  node.classList.remove("drop-shadow-2xl")
+                  node.classList.remove("drop-shadow-xl")
+                  node.classList.remove("drop-shadow-md")
+                  node.classList.remove("drop-shadow")
+                }
+                
                 const comp = window.getComputedStyle(node)
                 if (comp.color && (comp.color.includes("lab") || comp.color.includes("oklch"))) {
                   node.style.color = "#ffffff"
