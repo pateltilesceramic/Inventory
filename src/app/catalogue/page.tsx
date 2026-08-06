@@ -348,8 +348,8 @@ export default function CatalogueStudioPage() {
     ? items 
     : items.filter(item => item.category === selectedCategory || selectedCategory === "all")
 
-  // Dynamic row-based chunking (Max 2 rows per index page to avoid cutoff)
-  const MAX_ROWS_PER_PAGE = 2
+  // Dynamic row-based chunking (Max 3 rows per index page to avoid cutoff)
+  const MAX_ROWS_PER_PAGE = 3
   const rawIndexPagesChunks: any[][] = []
   let currentPageItems: any[] = []
   let currentRowCount = 0
@@ -933,7 +933,7 @@ export default function CatalogueStudioPage() {
                   const finishTypes = Array.from(new Set(chunkItems.map(getFinish)))
 
                   return (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       {finishTypes.map((finishName: any) => {
                         const groupItems = chunkItems.filter((t: any) => getFinish(t) === finishName)
                         return (
