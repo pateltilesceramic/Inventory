@@ -633,7 +633,7 @@ export default function CatalogueStudioPage() {
       }
 
       let doc: jsPDF | null = null
-      const totalPages = numIndexPages + 2 + (filteredItems.length * 2)
+      const totalPages = numIndexPages + 2 + globalItemIndex
 
       for (let i = 1; i <= totalPages; i++) {
         const pageEl = document.getElementById(`page-${i}`)
@@ -1339,7 +1339,7 @@ export default function CatalogueStudioPage() {
         {/* FINAL PAGE: LUXURY SHOWROOM DIRECTORY BACK COVER            */}
         {/* ============================================================ */}
         <section
-          id={`page-${numIndexPages + 2 + filteredItems.length}`}
+          id={`page-${numIndexPages + 2 + globalItemIndex}`}
           className={`w-full h-[760px] rounded-3xl p-8 sm:p-16 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
             activeTheme === "dark"
               ? "bg-[#0A192F] text-white border-2 border-[#D4AF37]/30"
