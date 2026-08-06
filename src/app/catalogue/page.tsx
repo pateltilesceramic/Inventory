@@ -633,11 +633,11 @@ export default function CatalogueStudioPage() {
       }
 
       let doc: jsPDF | null = null
-      const totalPages = numIndexPages + 2 + globalItemIndex
-
-      for (let i = 1; i <= totalPages; i++) {
+      
+      let i = 1;
+      while (true) {
         const pageEl = document.getElementById(`page-${i}`)
-        if (!pageEl) continue
+        if (!pageEl) break;
 
         // Hide only administrative edit/delete icons during capture
         const adminBtns = pageEl.querySelectorAll(".no-export-btn")
@@ -740,6 +740,8 @@ export default function CatalogueStudioPage() {
           const h = (r.height / pageRect.height) * canvasH
           doc?.link(x, y, w, h, { url })
         })
+
+        i++;
       }
 
       if (doc) {
