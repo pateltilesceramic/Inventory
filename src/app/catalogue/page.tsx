@@ -373,10 +373,12 @@ export default function CatalogueStudioPage() {
   filteredItems.forEach((item) => {
     const itemFinish = item.category === 'one-piece' 
       ? "ONE PIECE" 
+      : item.category === 'cabinets-vanity'
+      ? "CABINETS / VANITY"
       : (item.finish || "GLOSSY").toUpperCase()
       
     const s = (item.size || "").toLowerCase().replace(/\s/g, '')
-    const isSquare = s.includes('600x600') || s.includes('2x2') || item.category === 'one-piece'
+    const isSquare = s.includes('600x600') || s.includes('2x2') || item.category === 'one-piece' || item.category === 'cabinets-vanity'
     
     // Assign weights: Square rows take 1.0 unit of space, Rect rows take 1.5 units
     const rowWeight = isSquare ? 1.0 : 1.5
