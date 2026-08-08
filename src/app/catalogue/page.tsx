@@ -1213,7 +1213,7 @@ export default function CatalogueStudioPage() {
                     <div className="w-full">
                       <h3 className="text-[#D4AF37] text-sm font-bold tracking-widest uppercase mb-4 border-b border-[#D4AF37]/30 pb-2">Description</h3>
                       <ul className="space-y-3">
-                        {(tile.finish || "").split('\n').filter(line => line.trim().length > 0).map((line, idx) => (
+                        {(tile.finish || "").split('\n').filter((line: string) => line.trim().length > 0).map((line: string, idx: number) => (
                           <li key={idx} className="flex items-start gap-3">
                             <div className="mt-2 w-1.5 h-1.5 rounded-full bg-[#D4AF37] shrink-0 shadow-[0_0_8px_rgba(212,175,55,0.6)]" />
                             <span className="text-sm md:text-base text-slate-200 leading-relaxed font-medium">
