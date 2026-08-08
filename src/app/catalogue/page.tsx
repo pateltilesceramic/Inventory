@@ -29,6 +29,7 @@ const CATALOGUE_CATEGORIES = [
   { id: "pooja", name: "Pooja Room Tiles", subtitle: "POOJA ROOM DECORATIVE TILES 2026", sizeText: "POOJA ROOM TILES" },
   { id: "elevation", name: "Elevation Tiles", subtitle: "EXTERIOR ELEVATION TILES 2026", sizeText: "ELEVATION TILES" },
   { id: "one-piece", name: "One Piece", subtitle: "PREMIUM ONE PIECE 2026", sizeText: "ONE PIECE" },
+  { id: "cabinets-vanity", name: "Cabinets/Vanity Set", subtitle: "PREMIUM CABINETS & VANITY SETS 2026", sizeText: "CABINETS / VANITY" },
 ]
 
 // --- Catalogue Item Interface ---
@@ -551,7 +552,7 @@ export default function CatalogueStudioPage() {
         name: newTile.name.toUpperCase(),
         category: newTile.category,
         size: sizeStr,
-        finish: newTile.category === "one-piece" ? JSON.stringify(newTile.featureIcons) : newTile.finish.toUpperCase(),
+        finish: newTile.category === "one-piece" ? JSON.stringify(newTile.featureIcons) : (newTile.category === "cabinets-vanity" ? newTile.finish : newTile.finish.toUpperCase()),
         facesCount: parseInt(newTile.facesCount) || (newTile.faces.length || 4),
         faces: newTile.faces.length > 0 ? newTile.faces : undefined,
         qrImage: newTile.qrImage,
@@ -577,7 +578,7 @@ export default function CatalogueStudioPage() {
         name: newTile.name.toUpperCase(),
         code: newTile.code || `ST-${items.length + 101}`,
         size: sizeStr,
-        finish: newTile.category === "one-piece" ? JSON.stringify(newTile.featureIcons) : newTile.finish.toUpperCase(),
+        finish: newTile.category === "one-piece" ? JSON.stringify(newTile.featureIcons) : (newTile.category === "cabinets-vanity" ? newTile.finish : newTile.finish.toUpperCase()),
         facesCount: parseInt(newTile.facesCount) || (newTile.faces.length || 4),
         faces: newTile.faces.length > 0 ? newTile.faces : [
           "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80"
@@ -588,17 +589,15 @@ export default function CatalogueStudioPage() {
       }
       
       const createdTile = await addCatalogueDesign(newTileData)
-      setItems(prev => {
-        const updated = [...prev, { ...createdTile, faces: newTileData.faces }]
-        updated.sort((a, b) => {
-          if (a.category === 'one-piece' && b.category !== 'one-piece') return 1;
-          if (a.category !== 'one-piece' && b.category === 'one-piece') return -1;
-          return 0;
-        })
-        // Save the corrected sort order to the database so it sticks
-        reorderCatalogueDesigns(updated.map(i => i.id)).catch(() => {})
-        return updated
+      const updated = [...items, { ...createdTile, faces: newTileData.faces }]
+      updated.sort((a, b) => {
+        if (a.category === 'one-piece' && b.category !== 'one-piece') return 1;
+        if (a.category !== 'one-piece' && b.category === 'one-piece') return -1;
+        return 0;
       })
+      setItems(updated)
+      // Save the corrected sort order to the database so it sticks
+      reorderCatalogueDesigns(updated.map(i => i.id)).catch(() => {})
     }
 
     setIsAddModalOpen(false)
@@ -969,7 +968,11 @@ export default function CatalogueStudioPage() {
 
                 {/* Compact Category / Finish-wise Sectioned Grid */}
                 {(() => {
-                  const getFinish = (t: any) => t.category === 'one-piece' ? 'ONE PIECE' : (t.finish || 'GLOSSY').toUpperCase()
+                  const getFinish = (t: any) => {
+                    if (t.category === 'one-piece') return 'ONE PIECE'
+                    if (t.category === 'cabinets-vanity') return 'CABINETS / VANITY'
+                    return (t.finish || 'GLOSSY').toUpperCase()
+                  }
                   const finishTypes = Array.from(new Set(chunkItems.map(getFinish)))
 
                   return (
@@ -1031,9 +1034,9 @@ export default function CatalogueStudioPage() {
                                       const s = (tile.size || "").toLowerCase().replace(/\s/g, '')
                                       const isSquareTile = (s.includes('600x600') || s.includes('2x2'))
                                       
-                                      const aspectClass = tile.category === 'one-piece' || isSquareTile ? 'aspect-square' : 'aspect-[1/2]'
-                                      const bgClass = tile.category === 'one-piece' ? 'bg-slate-100 p-2' : 'bg-slate-900'
-                                      const imgClass = `w-full h-full group-hover:scale-105 transition-transform duration-300 ${tile.category === 'one-piece' ? 'object-contain mix-blend-multiply' : 'object-cover'}`
+                                      const aspectClass = tile.category === 'one-piece' || tile.category === 'cabinets-vanity' || isSquareTile ? 'aspect-square' : 'aspect-[1/2]'
+                                      const bgClass = tile.category === 'one-piece' || tile.category === 'cabinets-vanity' ? 'bg-slate-100 p-2' : 'bg-slate-900'
+                                      const imgClass = `w-full h-full group-hover:scale-105 transition-transform duration-300 ${tile.category === 'one-piece' || tile.category === 'cabinets-vanity' ? 'object-contain mix-blend-multiply' : 'object-cover'}`
 
                                       return (
                                         <div className={`relative w-16 sm:w-20 ${aspectClass} ${bgClass} rounded-lg overflow-hidden border border-slate-700/50 flex items-center justify-center`}>
@@ -1051,7 +1054,7 @@ export default function CatalogueStudioPage() {
                                       <h3 className="text-[10px] font-bold text-white group-hover:text-[#D4AF37] transition-colors truncate leading-tight">
                                         {tile.name}
                                       </h3>
-                                      {tile.category !== 'one-piece' && (
+                                      {tile.category !== 'one-piece' && tile.category !== 'cabinets-vanity' && (
                                         <p className="text-[8px] text-[#D4AF37]/80 font-bold uppercase tracking-wider mt-0.5">
                                           {tile.finish}
                                         </p>
@@ -1163,6 +1166,69 @@ export default function CatalogueStudioPage() {
 
                 {/* Bottom Navigation */}
                 <div className="flex justify-between items-center pt-6 border-t border-white/10 shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#D4AF37] text-[#0A192F] font-mono font-black flex items-center justify-center text-sm shadow-md">
+                      {tile.pageNum}
+                    </div>
+                    <span className="text-xs font-mono text-slate-400">Patel Tiles & Ceramic</span>
+                  </div>
+                  <button
+                    data-page-link="2"
+                    onClick={() => scrollToPage("page-2")}
+                    className="flex items-center gap-2 bg-[#0F4C3A] hover:bg-[#D4AF37] hover:text-[#0A192F] text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer border border-[#D4AF37]/40"
+                  >
+                    <span>👈 BACK TO INDEX</span>
+                  </button>
+                </div>
+              </section>
+            ) : tile.category === 'cabinets-vanity' ? (
+              <section
+                id={pageId}
+                className={`w-full h-[760px] rounded-3xl p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors ${
+                  activeTheme === "dark"
+                    ? "bg-[#0A192F] text-white border border-[#D4AF37]/20"
+                    : "bg-white text-slate-900 border border-slate-200"
+                }`}
+              >
+                {/* CABINETS / VANITY SET LAYOUT */}
+                <div className="w-full flex-1 flex pt-4">
+                  
+                  {/* Left Column: Image */}
+                  <div className="w-[45%] flex flex-col items-center border-r border-[#D4AF37]/30 pr-10">
+                    <h2 className="text-4xl font-black uppercase tracking-wider text-white text-center mb-8">
+                      {tile.name}
+                    </h2>
+                    
+                    <div className="w-full aspect-square bg-slate-100 rounded-3xl overflow-hidden shadow-2xl p-6 flex items-center justify-center border-4 border-[#D4AF37]/10">
+                      <img 
+                        src={tile.normalFaces?.[0] || tile.faces?.[0] || ""} 
+                        alt={tile.name} 
+                        className="w-full h-full object-contain mix-blend-multiply drop-shadow-2xl" 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Right Column: Description */}
+                  <div className="w-[55%] flex flex-col justify-center pl-10 py-8">
+                    <div className="w-full">
+                      <h3 className="text-[#D4AF37] text-sm font-bold tracking-widest uppercase mb-4 border-b border-[#D4AF37]/30 pb-2">Description</h3>
+                      <ul className="space-y-3">
+                        {(tile.finish || "").split('\n').filter(line => line.trim().length > 0).map((line, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <div className="mt-2 w-1.5 h-1.5 rounded-full bg-[#D4AF37] shrink-0 shadow-[0_0_8px_rgba(212,175,55,0.6)]" />
+                            <span className="text-sm md:text-base text-slate-200 leading-relaxed font-medium">
+                              {line.trim()}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Bottom Navigation */}
+                <div className="flex justify-between items-center pt-6 border-t border-white/10 shrink-0 mt-6">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-[#D4AF37] text-[#0A192F] font-mono font-black flex items-center justify-center text-sm shadow-md">
                       {tile.pageNum}
@@ -1475,6 +1541,7 @@ export default function CatalogueStudioPage() {
                       <option value="pooja">Pooja Room Tiles</option>
                       <option value="elevation">Elevation Tiles</option>
                       <option value="one-piece">One Piece</option>
+                      <option value="cabinets-vanity">Cabinets/Vanity Set</option>
                     </select>
                   </div>
 
@@ -1529,7 +1596,21 @@ export default function CatalogueStudioPage() {
                   </h3>
 
                   <div className="grid grid-cols-2 gap-4">
-                    {newTile.category !== 'one-piece' && (
+                    {newTile.category === 'cabinets-vanity' && (
+                      <div className="col-span-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                          Description
+                        </label>
+                        <textarea
+                          value={newTile.finish}
+                          onChange={(e) => setNewTile({ ...newTile, finish: e.target.value })}
+                          placeholder="Enter cabinet/vanity description..."
+                          rows={3}
+                          className="w-full px-4 py-2 text-sm rounded-xl bg-slate-900 border border-slate-700 focus:border-[#D4AF37] outline-none text-white font-semibold transition-colors"
+                        />
+                      </div>
+                    )}
+                    {newTile.category !== 'one-piece' && newTile.category !== 'cabinets-vanity' && (
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
                           Surface Finish
@@ -1595,8 +1676,8 @@ export default function CatalogueStudioPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    {/* Random Faces Count (Not for One Piece) */}
-                    {newTile.category !== 'one-piece' && (
+                    {/* Random Faces Count (Not for One Piece or Cabinets) */}
+                    {newTile.category !== 'one-piece' && newTile.category !== 'cabinets-vanity' && (
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
                           Random Faces
