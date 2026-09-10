@@ -454,20 +454,20 @@ export default function BillingPage() {
 
                {/* Modal Content - Scrollable Body */}
                <div className="p-3 sm:p-6 overflow-y-auto space-y-3 sm:space-y-6 flex-1 overscroll-contain">
-                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-6">
-                   <div className="space-y-1">
-                      <label className="text-[10px] sm:text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Customer Name</label>
-                       <input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="e.g. Walk-in Customer" className="w-full rounded-lg px-3 py-2 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-medium" />
+                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+                   <div className="space-y-1 col-span-2 sm:col-span-1">
+                      <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Customer Name</label>
+                      <input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="e.g. Walk-in Customer" className="w-full rounded-lg px-3 py-2 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-medium" />
                    </div>
 
-                   <div className="space-y-1">
-                       <label className="text-[10px] sm:text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Customer Phone</label>
-                        <input type="tel" inputMode="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="e.g. 9876543210 (Optional)" className="w-full rounded-lg px-3 py-2 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-medium" />
-                    </div>
+                   <div className="space-y-1 col-span-1">
+                      <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Customer Phone</label>
+                      <input type="tel" inputMode="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="9876543210" className="w-full rounded-lg px-3 py-2 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-medium" />
+                   </div>
 
-                   <div className="space-y-1">
-                      <label className="text-[10px] sm:text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Invoice Date</label>
-                       <input type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} className="w-full rounded-lg px-3 py-2 text-[#111111] outline-none transition-all skeu-input text-sm font-medium" />
+                   <div className="space-y-1 col-span-1">
+                      <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Invoice Date</label>
+                      <input type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} className="w-full rounded-lg px-3 py-2 text-[#111111] outline-none transition-all skeu-input text-sm font-medium" />
                    </div>
                  </div>
 
@@ -628,173 +628,169 @@ export default function BillingPage() {
                     {/* Mobile Card List View (sm:hidden) */}
                     <div className="sm:hidden divide-y divide-gray-100">
                        {billItems.map((bi) => (
-                          <div key={bi.tempId} className="p-3.5 bg-white space-y-3 relative">
-                             {/* Row 1: Full-Width Item Description Input */}
-                             <div className="space-y-1" ref={el => { dropdownRefs.current[bi.tempId] = el }}>
-                                <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">Item Description</label>
-                                <input 
-                                  value={bi.name} 
-                                  onChange={e => {
-                                    updateBillItem(bi.tempId, {
-                                      name: e.target.value,
-                                      itemId: null,
-                                      showSuggestions: true
-                                    });
-                                  }}
-                                  onFocus={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
-                                  onBlur={() => setTimeout(() => updateBillItem(bi.tempId, 'showSuggestions', false), 200)}
-                                  placeholder="Type item name..." 
-                                  className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-2 text-[#111111] text-sm outline-none transition-all font-medium" 
-                                />
+                          <div key={bi.tempId} className="p-2.5 bg-white space-y-2 relative border-b border-gray-100 last:border-0">
+                             {/* Line 1: Item Description Input + Category Tag/Slider + Trash Button */}
+                             <div className="flex items-center gap-1.5" ref={el => { dropdownRefs.current[bi.tempId] = el }}>
+                                <div className="flex-1 relative">
+                                  <input 
+                                    value={bi.name} 
+                                    onChange={e => {
+                                      updateBillItem(bi.tempId, {
+                                        name: e.target.value,
+                                        itemId: null,
+                                        showSuggestions: true
+                                      });
+                                    }}
+                                    onFocus={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
+                                    onBlur={() => setTimeout(() => updateBillItem(bi.tempId, 'showSuggestions', false), 200)}
+                                    placeholder="Type item name..." 
+                                    className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-2.5 py-1.5 text-[#111111] text-sm outline-none transition-all font-medium" 
+                                  />
 
-                                {/* Mobile Suggestions Dropdown */}
-                                {bi.showSuggestions && (
-                                  <div className="absolute z-[100] left-3 right-3 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
-                                     {inventory
-                                       .filter(i => {
-                                         const term = (bi?.name || "").trim().toLowerCase();
-                                         if (!term) return true;
-                                         return (i?.name || "").trim().toLowerCase().includes(term) || 
-                                                (i?.category || "").trim().toLowerCase().includes(term) ||
-                                                (i?.type || "").trim().toLowerCase().includes(term) ||
-                                                (i?.size || "").trim().toLowerCase().includes(term);
-                                       })
-                                       .map(item => (
-                                         <button 
-                                           key={item.id} 
-                                           type="button" 
-                                           onClick={() => selectInventoryItem(bi.tempId, item)}
-                                           className="w-full text-left p-3 hover:bg-[#1F6F5F]/5 border-b border-gray-100 last:border-0 transition-colors"
-                                         >
-                                           <div className="flex justify-between items-start mb-0.5">
-                                             <p className="text-xs font-bold text-[#111111]">{item.name}</p>
-                                             <span className="text-xs font-black text-[#1F6F5F]">₹{item.price}</span>
-                                           </div>
-                                           <div className="flex items-center gap-2">
-                                             <span className="text-[9px] font-black text-[#111111]/30 uppercase">{item.category}</span>
-                                           </div>
-                                           <p className="text-[10px] text-[#111111]/40 font-medium">Stock: {item.stockLevel} {item.unit}s {item.size ? `• ${item.size}` : ''} {item.type ? `• ${item.type}` : ''}</p>
-                                         </button>
-                                       ))
-                                     }
+                                  {/* Mobile Suggestions Dropdown */}
+                                  {bi.showSuggestions && (
+                                    <div className="absolute z-[100] left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
+                                       {inventory
+                                         .filter(i => {
+                                           const term = (bi?.name || "").trim().toLowerCase();
+                                           if (!term) return true;
+                                           return (i?.name || "").trim().toLowerCase().includes(term) || 
+                                                  (i?.category || "").trim().toLowerCase().includes(term) ||
+                                                  (i?.type || "").trim().toLowerCase().includes(term) ||
+                                                  (i?.size || "").trim().toLowerCase().includes(term);
+                                         })
+                                         .map(item => (
+                                           <button 
+                                             key={item.id} 
+                                             type="button" 
+                                             onClick={() => selectInventoryItem(bi.tempId, item)}
+                                             className="w-full text-left p-2.5 hover:bg-[#1F6F5F]/5 border-b border-gray-100 last:border-0 transition-colors"
+                                           >
+                                             <div className="flex justify-between items-start mb-0.5">
+                                               <p className="text-xs font-bold text-[#111111]">{item.name}</p>
+                                               <span className="text-xs font-black text-[#1F6F5F]">₹{item.price}</span>
+                                             </div>
+                                             <div className="flex items-center gap-2">
+                                               <span className="text-[9px] font-black text-[#111111]/30 uppercase">{item.category}</span>
+                                             </div>
+                                             <p className="text-[10px] text-[#111111]/40 font-medium">Stock: {item.stockLevel} {item.unit}s {item.size ? `• ${item.size}` : ''}</p>
+                                           </button>
+                                         ))
+                                       }
+                                    </div>
+                                  )}
+                                </div>
+
+                                {!bi.itemId && (
+                                  <div className="relative flex items-center bg-slate-100/90 border border-slate-200/80 rounded-full p-0.5 w-[90px] h-7 shrink-0 select-none overflow-hidden" title="Categorize ad-hoc tile or sanitary item">
+                                    <div 
+                                      className="absolute top-0.5 bottom-0.5 rounded-full transition-all duration-300 ease-out shadow-sm"
+                                      style={{
+                                        width: '26px',
+                                        left: bi.adhocMode === 'tile' ? '2px' : 
+                                              bi.adhocMode === 'sanitary' ? '60px' : '31px',
+                                        background: bi.adhocMode === 'tile' ? 'linear-gradient(135deg, #1F6F5F 0%, #2FA084 100%)' :
+                                                    bi.adhocMode === 'sanitary' ? 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)' : '#cbd5e1',
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => updateBillItem(bi.tempId, 'adhocMode', 'tile')}
+                                      className={`w-[28px] h-full text-center text-[8px] font-black z-10 transition-colors ${bi.adhocMode === 'tile' ? 'text-white' : 'text-slate-500'}`}
+                                    >Tile</button>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateBillItem(bi.tempId, 'adhocMode', null)}
+                                      className={`w-[28px] h-full text-center text-[7px] font-black z-10 transition-colors ${!bi.adhocMode ? 'text-white' : 'text-slate-400'}`}
+                                    >off</button>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateBillItem(bi.tempId, 'adhocMode', 'sanitary')}
+                                      className={`w-[28px] h-full text-center text-[8px] font-black z-10 transition-colors ${bi.adhocMode === 'sanitary' ? 'text-white' : 'text-slate-500'}`}
+                                    >San</button>
                                   </div>
                                 )}
+
+                                <button type="button" onClick={() => setBillItems(billItems.filter(i => i.tempId !== bi.tempId))} className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0" title="Delete Row">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                              </div>
 
-                             {/* Row 2: Category Slider + Unit Selector Beside It */}
-                             <div className="flex items-end justify-between gap-3 pt-1">
-                                {!bi.itemId ? (
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">Category Track</label>
-                                    <div className="relative flex items-center bg-slate-100/90 border border-slate-200/80 rounded-full p-0.5 w-[110px] h-8 shrink-0 select-none overflow-hidden">
-                                      <div 
-                                        className="absolute top-0.5 bottom-0.5 rounded-full transition-all duration-300 ease-out shadow-sm"
-                                        style={{
-                                          width: '32px',
-                                          left: bi.adhocMode === 'tile' ? '2px' : 
-                                                bi.adhocMode === 'sanitary' ? '72px' : '37px',
-                                          background: bi.adhocMode === 'tile' ? 'linear-gradient(135deg, #1F6F5F 0%, #2FA084 100%)' :
-                                                      bi.adhocMode === 'sanitary' ? 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)' : '#cbd5e1',
-                                        }}
-                                      />
-                                      <button
-                                        type="button"
-                                        onClick={() => updateBillItem(bi.tempId, 'adhocMode', 'tile')}
-                                        className={`w-[35px] h-full text-center text-[9px] font-black z-10 transition-colors ${bi.adhocMode === 'tile' ? 'text-white' : 'text-slate-500'}`}
-                                      >Tile</button>
-                                      <button
-                                        type="button"
-                                        onClick={() => updateBillItem(bi.tempId, 'adhocMode', null)}
-                                        className={`w-[35px] h-full text-center text-[8px] font-black z-10 transition-colors ${!bi.adhocMode ? 'text-white' : 'text-slate-400'}`}
-                                      >off</button>
-                                      <button
-                                        type="button"
-                                        onClick={() => updateBillItem(bi.tempId, 'adhocMode', 'sanitary')}
-                                        className={`w-[35px] h-full text-center text-[9px] font-black z-10 transition-colors ${bi.adhocMode === 'sanitary' ? 'text-white' : 'text-slate-500'}`}
-                                      >San</button>
-                                    </div>
-                                  </div>
-                                ) : <div />}
+                             {/* Line 2: Stepper [- 1 +] | Unit | Price (₹) | Subtotal */}
+                             <div className="flex items-center justify-between gap-1.5 bg-slate-50/70 p-1.5 rounded-lg border border-slate-100">
+                                {/* Stepper */}
+                                <div className="flex items-center gap-0.5 w-[96px] shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const current = Number(bi.quantity) || 0
+                                      if (current > 1) updateBillItem(bi.tempId, 'quantity', current - 1)
+                                    }}
+                                    className="w-6 h-7 rounded bg-white border border-gray-200 text-gray-700 font-bold flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs cursor-pointer shadow-xs"
+                                    title="Decrease 1"
+                                  >
+                                    -
+                                  </button>
+                                  <input 
+                                    type="number" 
+                                    inputMode="numeric"
+                                    min="1" 
+                                    value={bi.quantity} 
+                                    onChange={e => {
+                                      const val = e.target.value;
+                                      updateBillItem(bi.tempId, 'quantity', val === "" ? "" : (parseInt(val) || 0));
+                                    }} 
+                                    className="w-full text-center bg-white border border-gray-200 focus:border-[#2FA084] rounded py-1 text-[#111111] text-xs outline-none font-bold hide-arrows" 
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const current = Number(bi.quantity) || 0
+                                      updateBillItem(bi.tempId, 'quantity', current + 1)
+                                    }}
+                                    className="w-6 h-7 rounded bg-white border border-gray-200 text-gray-700 font-bold flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs cursor-pointer shadow-xs"
+                                    title="Increase 1"
+                                  >
+                                    +
+                                  </button>
+                                </div>
 
-                                <div className="w-28 space-y-1">
-                                   <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">Unit</label>
+                                {/* Unit */}
+                                <div className="w-14 shrink-0">
                                    <select 
                                      value={bi.unit} 
                                      onChange={e => updateBillItem(bi.tempId, 'unit', e.target.value)}
-                                     className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-1.5 text-[#111111] text-xs outline-none font-bold text-center cursor-pointer"
+                                     className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded py-1 text-[#111111] text-[11px] outline-none font-bold text-center cursor-pointer"
                                    >
                                       <option value="box">BOX</option>
                                       <option value="pc">PCS</option>
                                    </select>
                                 </div>
-                             </div>
 
-                             {/* Row 3: Qty + Price (₹) + Delete button */}
-                             <div className="grid grid-cols-12 gap-2 items-end pt-1">
-                                <div className="col-span-6 space-y-1">
-                                   <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">QTY</label>
-                                   <div className="flex items-center gap-1">
-                                     <button
-                                       type="button"
-                                       onClick={() => {
-                                         const current = Number(bi.quantity) || 0
-                                         if (current > 1) updateBillItem(bi.tempId, 'quantity', current - 1)
-                                       }}
-                                       className="w-7 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center shrink-0 active:scale-95 transition-all text-sm cursor-pointer"
-                                       title="Decrease 1"
-                                     >
-                                       -
-                                     </button>
-                                     <input 
-                                       type="number" 
-                                       inputMode="numeric"
-                                       min="1" 
-                                       value={bi.quantity} 
-                                       onChange={e => {
-                                         const val = e.target.value;
-                                         updateBillItem(bi.tempId, 'quantity', val === "" ? "" : (parseInt(val) || 0));
-                                       }} 
-                                       className="w-full text-center bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-1.5 text-[#111111] text-sm outline-none font-bold hide-arrows" 
-                                     />
-                                     <button
-                                       type="button"
-                                       onClick={() => {
-                                         const current = Number(bi.quantity) || 0
-                                         updateBillItem(bi.tempId, 'quantity', current + 1)
-                                       }}
-                                       className="w-7 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center shrink-0 active:scale-95 transition-all text-sm cursor-pointer"
-                                       title="Increase 1"
-                                     >
-                                       +
-                                     </button>
-                                   </div>
-                                </div>
-
-                                <div className="col-span-4 space-y-1">
-                                   <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">PRICE (₹)</label>
+                                {/* Price */}
+                                <div className="flex-1 min-w-[65px] relative">
+                                   <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold pointer-events-none">₹</span>
                                    <input 
                                      type="number" 
                                      inputMode="decimal"
                                      step="0.01"
                                      min="0" 
+                                     placeholder="0"
                                      value={bi.price} 
                                      onChange={e => {
                                        const val = e.target.value;
                                        updateBillItem(bi.tempId, 'price', val === "" ? "" : (parseFloat(val) || 0));
                                      }} 
-                                     className="w-full text-right bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-1.5 px-2 text-[#111111] text-sm outline-none font-bold hide-arrows" 
+                                     className="w-full text-right bg-white border border-gray-200 focus:border-[#2FA084] rounded py-1 pl-4 pr-1.5 text-[#111111] text-xs outline-none font-bold hide-arrows" 
                                    />
                                 </div>
 
-                                <div className="col-span-2 flex justify-end">
-                                   <button type="button" onClick={() => setBillItems(billItems.filter(i => i.tempId !== bi.tempId))} className="p-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors cursor-pointer" title="Delete Row"><Trash2 className="w-4 h-4" /></button>
+                                {/* Subtotal Badge */}
+                                <div className="text-right shrink-0 pl-1">
+                                   <span className="font-black text-xs text-[#1F6F5F]">
+                                     ₹{(Number(bi.quantity) * Number(bi.price)).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                   </span>
                                 </div>
-                             </div>
-
-                             {/* Row 4: Subtotal line */}
-                             <div className="flex justify-between items-center pt-1.5 border-t border-dashed border-gray-100 text-xs">
-                                <span className="font-bold text-[#111111]/40">Subtotal:</span>
-                                <span className="font-black text-sm text-[#1F6F5F]">₹{(Number(bi.quantity) * Number(bi.price)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                              </div>
                           </div>
                        ))}

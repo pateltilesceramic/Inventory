@@ -270,9 +270,9 @@ export default function PurchaseLedgerPage() {
               </div>
               <form onSubmit={handleAddEntry} className="space-y-3 sm:space-y-4 flex-1 overflow-y-auto pr-0.5">
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div className="relative">
-                    <label className="block text-xs font-bold text-[#111111]/70 uppercase tracking-wider mb-1.5">Select Party (Type or Select)</label>
+                    <label className="block text-[11px] font-bold text-[#111111]/70 uppercase tracking-wider mb-1">Select Party (Type or Select)</label>
                     <div className="relative">
                       <input
                         required
@@ -289,7 +289,7 @@ export default function PurchaseLedgerPage() {
                           }
                         }}
                         onFocus={() => setIsPartyDropdownOpen(true)}
-                        className="w-full rounded-xl border border-gray-200 pl-3 pr-10 py-2.5 text-sm font-semibold text-[#111111] outline-none focus:border-[#2FA084] skeu-input"
+                        className="w-full rounded-xl border border-gray-200 pl-3 pr-10 py-2 text-sm font-semibold text-[#111111] outline-none focus:border-[#2FA084] skeu-input"
                       />
                       <button
                         type="button"
@@ -322,35 +322,35 @@ export default function PurchaseLedgerPage() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-[#111111]/70 uppercase tracking-wider mb-1.5">Date</label>
+                    <label className="block text-[11px] font-bold text-[#111111]/70 uppercase tracking-wider mb-1">Date</label>
                     <input
                       required
                       type="date"
                       value={entryData.date}
                       onChange={e => setEntryData({ ...entryData, date: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-[#111111] outline-none focus:border-[#2FA084] skeu-input"
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-[#111111] outline-none focus:border-[#2FA084] skeu-input"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#111111]/70 uppercase tracking-wider mb-1.5">Narration / Descriptive Info</label>
+                  <label className="block text-[11px] font-bold text-[#111111]/70 uppercase tracking-wider mb-1">Narration / Descriptive Info</label>
                   <textarea
                     required
-                    rows={3}
+                    rows={2}
                     placeholder="e.g. Tile Purchase Bill #PUR-449 or Advance NEFT Sent"
                     value={entryData.narration}
                     onChange={e => setEntryData({ ...entryData, narration: e.target.value })}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-[#111111] outline-none focus:border-[#2FA084] skeu-input resize-y"
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-[#111111] outline-none focus:border-[#2FA084] skeu-input resize-y"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
                   <div>
-                    <div className="flex flex-col mb-1.5">
-                      <label className="text-xs font-bold text-green-700 uppercase tracking-wider">Debit (Dr) ₹</label>
+                    <div className="flex flex-col mb-1">
+                      <label className="text-[11px] font-bold text-green-700 uppercase tracking-wider">Debit (Dr) ₹</label>
                       {entryData.debit && Number(entryData.debit) > 0 && (
-                        <span className="text-[11px] font-extrabold text-green-800 bg-green-50 px-2 py-0.5 rounded-md border border-green-200 mt-0.5">
+                        <span className="text-[10px] font-extrabold text-green-800 bg-green-50 px-1.5 py-0.5 rounded border border-green-200 mt-0.5 truncate">
                           {numberToWordsIN(entryData.debit)}
                         </span>
                       )}
@@ -362,15 +362,15 @@ export default function PurchaseLedgerPage() {
                       placeholder="0.00"
                       value={entryData.debit}
                       onChange={e => setEntryData({ ...entryData, debit: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-green-700 outline-none focus:border-green-600 skeu-input"
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-bold text-green-700 outline-none focus:border-green-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Payment Made // Bill nu Payment</p>
+                    <p className="text-[9px] text-gray-400 mt-0.5 truncate">Payment Made // Bill nu Payment</p>
                   </div>
                   <div>
-                    <div className="flex flex-col mb-1.5">
-                      <label className="text-xs font-bold text-red-700 uppercase tracking-wider">Credit (Cr) ₹</label>
+                    <div className="flex flex-col mb-1">
+                      <label className="text-[11px] font-bold text-red-700 uppercase tracking-wider">Credit (Cr) ₹</label>
                       {entryData.credit && Number(entryData.credit) > 0 && (
-                        <span className="text-[11px] font-extrabold text-red-800 bg-red-50 px-2 py-0.5 rounded-md border border-red-200 mt-0.5">
+                        <span className="text-[10px] font-extrabold text-red-800 bg-red-50 px-1.5 py-0.5 rounded border border-red-200 mt-0.5 truncate">
                           {numberToWordsIN(entryData.credit)}
                         </span>
                       )}
@@ -382,9 +382,9 @@ export default function PurchaseLedgerPage() {
                       placeholder="0.00"
                       value={entryData.credit}
                       onChange={e => setEntryData({ ...entryData, credit: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-bold text-red-700 outline-none focus:border-red-600 skeu-input"
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-bold text-red-700 outline-none focus:border-red-600 skeu-input"
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Stock received // Company Nu bill Amount.</p>
+                    <p className="text-[9px] text-gray-400 mt-0.5 truncate">Stock recvd // Company Bill</p>
                   </div>
                 </div>
 

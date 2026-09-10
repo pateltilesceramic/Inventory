@@ -205,13 +205,15 @@
   box-shadow: var(--skeu-shadow-deep);
 }
 
-/* ── Skeuomorphic Input ── */
+/* ── Clean Modern Showroom Input ── */
 .skeu-input {
-  background: #E4E9E7;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08) inset, 0 1px 2px rgba(0,0,0,0.05) inset, 0 1px 0 rgba(255,255,255,0.85);
-  border: 1px solid rgba(0,0,0,0.08);
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   font-size: 16px; /* 16px base prevents mobile browser viewport auto-zoom */
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  color: #0F1715;
+  border-radius: 0.75rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 @media (min-width: 640px) {
   .skeu-input {
@@ -219,10 +221,12 @@
   }
 }
 .skeu-input:focus {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08) inset, 0 1px 2px rgba(0,0,0,0.05) inset, 0 0 0 2.5px rgba(111, 207, 151, 0.30), 0 1px 0 rgba(255,255,255,0.85);
+  background: #FFFFFF;
   border-color: #2FA084;
+  box-shadow: 0 0 0 3px rgba(47, 160, 132, 0.16);
   outline: none;
 }
+
 
 /* ── Skeuomorphic Primary Button ── */
 .skeu-btn-primary {

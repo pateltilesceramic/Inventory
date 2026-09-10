@@ -411,35 +411,39 @@ function UpdateModal({ item, onClose, onUpdate, onEdit, categories, types }: { i
             </div>
           </form>
         ) : (
-          <form onSubmit={handleEditSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5 md:col-span-2">
-                   <label className="text-[10px] font-black text-[#111111]/60 uppercase tracking-wide">Item Name</label>
+          <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+             <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+                <div className="space-y-1 col-span-2">
+                   <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Item Name</label>
                    <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full rounded-lg px-3 py-2 text-sm text-[#111111] outline-none transition-all font-semibold skeu-input" />
                 </div>
                 
-                <CustomDropdown label="Category" value={formData.category} onChange={(val) => setFormData({...formData, category: val})} defaultOptions={categories} />
-                <CustomDropdown label="Type/Finish" value={formData.type} onChange={(val) => setFormData({...formData, type: val})} defaultOptions={types} />
+                <div className="col-span-1">
+                  <CustomDropdown label="Category" value={formData.category} onChange={(val) => setFormData({...formData, category: val})} defaultOptions={categories} />
+                </div>
+                <div className="col-span-1">
+                  <CustomDropdown label="Type/Finish" value={formData.type} onChange={(val) => setFormData({...formData, type: val})} defaultOptions={types} />
+                </div>
                 
-                <div className="space-y-1.5">
-                   <label className="text-[10px] font-black text-[#111111]/60 uppercase tracking-wide">Size (Optional)</label>
+                <div className="space-y-1 col-span-1">
+                   <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Size (Optional)</label>
                    <input value={formData.size} onChange={e => setFormData({...formData, size: e.target.value})} className="w-full rounded-lg px-3 py-2 text-sm text-[#111111] outline-none transition-all font-semibold skeu-input" />
                 </div>
 
-                <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-[#111111]/60 uppercase tracking-wide">Unit</label>
+                <div className="space-y-1 col-span-1">
+                    <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Unit</label>
                     <select value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} className="w-full rounded-lg px-3 py-2 text-sm text-[#111111] outline-none transition-all font-semibold skeu-input">
                       <option value="box">Box</option>
                       <option value="pc">Piece</option>
                     </select>
                  </div>
 
-                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-[#111111]/60 uppercase tracking-wide">Min Stock Alert</label>
+                 <div className="space-y-1 col-span-2 sm:col-span-1">
+                    <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Min Stock Alert</label>
                     <input required type="number" min="0" value={formData.lowStockThreshold} onChange={e => setFormData({...formData, lowStockThreshold: e.target.value})} className="w-full rounded-lg px-3 py-2 text-sm text-[#111111] outline-none transition-all font-semibold skeu-input" />
                  </div>
 
-                 <div className="md:col-span-2">
+                 <div className="col-span-2">
                     <DesignUploadField
                       currentUrl={formData.designUrl || null}
                       onUpload={(url) => setFormData({...formData, designUrl: url})}
@@ -575,8 +579,8 @@ function CustomDropdown({
   const filteredOptions = options.filter(opt => opt.toLowerCase().includes((value || "").toLowerCase()))
 
   return (
-    <div className="space-y-1.5 relative" ref={dropdownRef}>
-      <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">{label}</label>
+    <div className="space-y-1 relative" ref={dropdownRef}>
+      <label className="text-[11px] font-bold text-slate-600 block">{label}</label>
       <div className="relative">
          <input 
             value={value}
@@ -591,20 +595,20 @@ function CustomDropdown({
                 }
               }
             }}
-            placeholder="Type to search or add..."
-            className="w-full rounded-xl px-4 py-3.5 text-[#111111] outline-none font-medium placeholder:text-[#111111]/30 transition-all skeu-input"
+            placeholder="Type or pick..."
+            className="w-full rounded-xl px-3 py-2 text-[#111111] text-sm outline-none font-medium placeholder:text-slate-400 transition-all skeu-input"
          />
-         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-[#111111]/40 pointer-events-none">▼</span>
+         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 pointer-events-none">▼</span>
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden text-[#111111]">
-           <div className="max-h-48 overflow-y-auto custom-scrollbar">
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden text-[#111111]">
+           <div className="max-h-44 overflow-y-auto custom-scrollbar">
              {filteredOptions.length > 0 ? filteredOptions.map(opt => (
                <div 
                  key={opt}
                  onClick={() => { onChange(opt); setIsOpen(false); }}
-                 className={`group flex justify-between items-center px-4 py-2.5 hover:bg-[#EEEEEE]/50 cursor-pointer text-sm font-medium transition-colors ${value === opt ? 'text-[#2FA084] bg-[#2FA084]/5 font-bold' : 'text-[#111111]'}`}
+                 className={`group flex justify-between items-center px-3.5 py-2 hover:bg-[#EEEEEE]/50 cursor-pointer text-xs font-semibold transition-colors ${value === opt ? 'text-[#2FA084] bg-[#2FA084]/5 font-bold' : 'text-[#111111]'}`}
                >
                  <span>{opt}</span>
                  <button 
@@ -616,8 +620,9 @@ function CustomDropdown({
                  </button>
                </div>
              )) : (
-               <div className="px-4 py-3 text-xs text-[#111111]/40 text-center font-medium">No matches found.</div>
+               <div className="px-3.5 py-2.5 text-xs text-[#111111]/40 text-center font-medium">No matches found.</div>
              )}
+
            </div>
            
            <div className="border-t border-gray-100 p-2 bg-gray-50">
@@ -1095,133 +1100,135 @@ export default function InventoryPage() {
           >
             <div className="p-3.5 sm:p-6 md:p-8 rounded-2xl" style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.65)', boxShadow: '0 1px 0 rgba(255,255,255,0.90) inset, 0 -1px 0 rgba(0,0,0,0.05) inset, 0 12px 40px rgba(0,0,0,0.10), 0 3px 10px rgba(0,0,0,0.07)' }}>
                <h2 className="text-base sm:text-xl font-bold text-[#1F6F5F] mb-3 sm:mb-6">Register New Inventory</h2>
-               <form onSubmit={handleAddSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-                  
-                  <div className="space-y-1">
-                     <label className="text-[10px] sm:text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Item Name</label>
-                     <input required placeholder="e.g. Premium Floor Tile" className="w-full rounded-lg px-3 py-2 sm:py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                  </div>
+               <form onSubmit={handleAddSubmit} className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
+                   
+                   <div className="space-y-1 col-span-2 lg:col-span-1">
+                      <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Item Name</label>
+                      <input required placeholder="e.g. Premium Floor Tile" className="w-full rounded-lg px-3 py-2 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-semibold" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                   </div>
 
-                  <CustomDropdown 
-                     label="Category" 
-                     value={formData.category} 
-                     onChange={(val) => setFormData({...formData, category: val})} 
-                     defaultOptions={["Tiles", "Sanitary", "Washbasin", "Table Top", ...categories]} 
-                  />
-
-                  <div className="space-y-1.5">
-                     <div className="flex items-center justify-between">
-                       <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Tile Size (Optional)</label>
-                     </div>
-                     <input 
-                       placeholder="e.g. 600x1200" 
-                       className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/40 font-semibold skeu-input" 
-                       value={formData.size} 
-                       onChange={e => setFormData({...formData, size: e.target.value})} 
+                   <div className="col-span-1">
+                     <CustomDropdown 
+                        label="Category" 
+                        value={formData.category} 
+                        onChange={(val) => setFormData({...formData, category: val})} 
+                        defaultOptions={["Tiles", "Sanitary", "Washbasin", "Table Top", ...categories]} 
                      />
-                     {/* Fast Dimension Preset Chips */}
-                     <div className="flex flex-wrap gap-1 pt-1">
-                       {["600x600", "600x1200", "800x1600", "300x450", "300x600"].map(sz => (
+                   </div>
+
+                   <div className="space-y-1 col-span-1">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Tile Size (Optional)</label>
+                      </div>
+                      <input 
+                        placeholder="e.g. 600x1200" 
+                        className="w-full rounded-lg px-3 py-2 text-sm text-[#111111] outline-none transition-all placeholder:text-[#111111]/40 font-semibold skeu-input" 
+                        value={formData.size} 
+                        onChange={e => setFormData({...formData, size: e.target.value})} 
+                      />
+                      {/* Fast Dimension Preset Chips */}
+                      <div className="flex flex-wrap gap-1 pt-0.5">
+                        {["600x600", "600x1200", "800x1600", "300x450"].map(sz => (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => setFormData({...formData, size: sz})}
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold border transition-all ${
+                              formData.size === sz 
+                                ? 'bg-[#1F6F5F] text-white border-[#1F6F5F]' 
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {sz}
+                          </button>
+                        ))}
+                      </div>
+                   </div>
+
+                   <div className="space-y-1 col-span-1">
+                     <CustomDropdown 
+                        label="Surface Finish / Type" 
+                        value={formData.type} 
+                        onChange={(val) => setFormData({...formData, type: val})} 
+                        defaultOptions={["Matte", "Glossy", "High Depth", "Carving", "Rustic", ...types]} 
+                     />
+                     {/* Fast Finish Preset Chips */}
+                     <div className="flex flex-wrap gap-1 pt-0.5">
+                       {["Glossy", "Matte", "High Depth", "Carving"].map(fn => (
                          <button
-                           key={sz}
+                           key={fn}
                            type="button"
-                           onClick={() => setFormData({...formData, size: sz})}
-                           className={`px-2 py-0.5 rounded text-[10px] font-black border transition-all ${
-                             formData.size === sz 
+                           onClick={() => setFormData({...formData, type: fn})}
+                           className={`px-1.5 py-0.5 rounded text-[9px] font-bold border transition-all ${
+                             formData.type === fn 
                                ? 'bg-[#1F6F5F] text-white border-[#1F6F5F]' 
                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                            }`}
                          >
-                           {sz}
+                           {fn}
                          </button>
                        ))}
                      </div>
-                  </div>
+                   </div>
 
-                  <div className="space-y-1.5">
-                    <CustomDropdown 
-                       label="Surface Finish / Type (Optional)" 
-                       value={formData.type} 
-                       onChange={(val) => setFormData({...formData, type: val})} 
-                       defaultOptions={["Matte", "Glossy", "High Depth", "Carving", "Rustic", ...types]} 
-                    />
-                    {/* Fast Finish Preset Chips */}
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {["Glossy", "Matte", "High Depth", "Carving"].map(fn => (
-                        <button
-                          key={fn}
-                          type="button"
-                          onClick={() => setFormData({...formData, type: fn})}
-                          className={`px-2 py-0.5 rounded text-[10px] font-black border transition-all ${
-                            formData.type === fn 
-                              ? 'bg-[#1F6F5F] text-white border-[#1F6F5F]' 
-                              : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                          }`}
-                        >
-                          {fn}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                   <div className="space-y-1 col-span-1">
+                      <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Physical Unit</label>
+                      <select className="w-full rounded-lg px-3 py-2 text-sm text-[#111111] outline-none transition-all font-semibold skeu-input" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})}>
+                         <option value="box">Box (Tiles)</option>
+                         <option value="pc">Piece (Sanitary)</option>
+                      </select>
+                   </div>
 
-                  <div className="space-y-1.5">
-                     <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Physical Unit</label>
-                     <select className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all skeu-input" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})}>
-                        <option value="box">Box (Tiles standard)</option>
-                        <option value="pc">Piece (Sanitary standard)</option>
-                     </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                     <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Initial Stock Quantity</label>
-                     <input 
-                       required 
-                       type="number" 
-                       inputMode="numeric"
-                       min="0" 
-                       placeholder="0" 
-                       className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input font-tabular" 
-                       value={formData.stockLevel} 
-                       onChange={e => setFormData({...formData, stockLevel: e.target.value})} 
-                     />
-                  </div>
-
-                  <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Low Stock Alert Threshold</label>
+                   <div className="space-y-1 col-span-1">
+                      <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Initial Stock</label>
                       <input 
                         required 
                         type="number" 
-                        inputMode="numeric"
+                        inputMode="numeric" 
                         min="0" 
-                        placeholder="40" 
-                        className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input font-tabular" 
-                        value={formData.lowStockThreshold} 
-                        onChange={e => setFormData({...formData, lowStockThreshold: e.target.value})} 
+                        placeholder="0" 
+                        className="w-full rounded-lg px-3 py-2 text-sm text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input font-tabular font-semibold" 
+                        value={formData.stockLevel} 
+                        onChange={e => setFormData({...formData, stockLevel: e.target.value})} 
                       />
                    </div>
 
-                   <div className="lg:col-span-3">
-                      <DesignUploadField
-                        currentUrl={formData.designUrl || null}
-                        onUpload={(url) => setFormData({...formData, designUrl: url})}
-                        onClear={() => setFormData({...formData, designUrl: ""})}
-                      />
-                   </div>
-
-                   {addError && (
-                    <div className="lg:col-span-3 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-                       <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                       <p className="text-sm font-bold text-red-600">{addError}</p>
+                   <div className="space-y-1 col-span-1">
+                       <label className="text-[11px] font-bold text-[#111111]/70 uppercase tracking-wide">Min Alert Limit</label>
+                       <input 
+                         required 
+                         type="number" 
+                         inputMode="numeric" 
+                         min="0" 
+                         placeholder="40" 
+                         className="w-full rounded-lg px-3 py-2 text-sm text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input font-tabular font-semibold" 
+                         value={formData.lowStockThreshold} 
+                         onChange={e => setFormData({...formData, lowStockThreshold: e.target.value})} 
+                       />
                     </div>
-                  )}
 
-                  <div className="lg:col-span-3 flex justify-end gap-3 mt-4">
-                     <button type="button" onClick={() => setIsAddRouteOpen(false)} className="px-5 py-2.5 rounded-lg text-[#111111]/60 hover:text-[#111111] font-bold transition-colors">Cancel</button>
-                     <button type="submit" disabled={isSaving} className="text-white px-8 py-2.5 rounded-xl font-black transition-all disabled:opacity-50" style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', border: '1px solid rgba(0,0,0,0.12)' }}>
-                        {isSaving ? 'Saving...' : 'Save Item'}
-                     </button>
-                  </div>
-               </form>
+                    <div className="col-span-2 lg:col-span-3">
+                       <DesignUploadField
+                         currentUrl={formData.designUrl || null}
+                         onUpload={(url) => setFormData({...formData, designUrl: url})}
+                         onClear={() => setFormData({...formData, designUrl: ""})}
+                       />
+                    </div>
+
+                    {addError && (
+                     <div className="col-span-2 lg:col-span-3 bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                        <p className="text-xs font-bold text-red-600">{addError}</p>
+                     </div>
+                   )}
+
+                   <div className="col-span-2 lg:col-span-3 flex justify-end gap-2.5 mt-2">
+                      <button type="button" onClick={() => setIsAddRouteOpen(false)} className="px-4 py-2 rounded-lg text-xs text-[#111111]/60 hover:text-[#111111] font-bold transition-colors">Cancel</button>
+                      <button type="submit" disabled={isSaving} className="text-white px-6 py-2 rounded-xl text-xs font-black transition-all disabled:opacity-50" style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', border: '1px solid rgba(0,0,0,0.12)' }}>
+                         {isSaving ? 'Saving...' : 'Save Item'}
+                      </button>
+                   </div>
+                </form>
             </div>
           </motion.div>
         )}
