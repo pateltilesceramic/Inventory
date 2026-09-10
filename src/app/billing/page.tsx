@@ -68,7 +68,10 @@ export default function BillingPage() {
         getBills().catch(e => { console.error("Error fetching bills:", e); return null })
       ])
       if (invData) setInventory(invData.items || [])
-      if (billsData) setBills(billsData || [])
+      if (billsData) {
+        const sorted = [...(billsData || [])].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        setBills(sorted)
+      }
     } finally {
       setLoading(false)
     }
@@ -85,7 +88,7 @@ export default function BillingPage() {
     setCustomerName("")
     setCustomerPhone("")
     setInvoiceDate(new Date().toISOString().split('T')[0])
-    setBillItems([])
+    setBillItems([{ tempId: Math.random().toString(36).substr(2, 9), itemId: null, name: "", unit: "box", quantity: 1, price: "", adhocMode: null, showSuggestions: false }])
     setFinalNetAmountInput("")
     setAmountPaidInput("")
     setValidationError("")
@@ -157,7 +160,16 @@ export default function BillingPage() {
   }
 
   const selectInventoryItem = (tempId: string, item: any) => {
-    setBillItems(prev => prev.map(bi => bi.tempId === tempId ? { ...bi, itemId: item.id, name: item.name, unit: item.unit, adhocMode: null, showSuggestions: false } : bi))
+    setBillItems(prev => prev.map(bi => bi.tempId === tempId ? {
+      ...bi,
+      itemId: item.id,
+      name: item.name,
+      unit: item.unit || bi.unit || "box",
+      price: (item.price !== undefined && item.price !== null && item.price !== "") ? item.price : bi.price,
+      quantity: bi.quantity ? bi.quantity : 1,
+      adhocMode: null,
+      showSuggestions: false
+    } : bi))
   }
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -488,7 +500,7 @@ export default function BillingPage() {
                           </div>
                           <div className="divide-y divide-gray-100 min-h-[50px]">
                              {billItems.map((bi) => (
-                                <div key={bi.tempId} className="flex items-start p-3 hover:bg-gray-50/50 transition-colors gap-2">
+                                <div key={bi.tempId} className={`flex items-start p-3 hover:bg-gray-50/50 transition-colors gap-2 relative ${bi.showSuggestions ? 'z-30' : 'z-10'}`}>
                                    {/* Autocomplete Description Input */}
                                    <div className="flex-1 relative" ref={el => { dropdownRefs.current[bi.tempId] = el }}>
                                       <div className="flex items-center gap-1.5">
@@ -502,7 +514,8 @@ export default function BillingPage() {
                                             });
                                           }}
                                           onFocus={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
-                                          onBlur={() => setTimeout(() => updateBillItem(bi.tempId, 'showSuggestions', false), 200)}
+                                          onClick={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
+                                          onBlur={() => setTimeout(() => updateBillItem(bi.tempId, 'showSuggestions', false), 350)}
                                           placeholder="Type item name..." 
                                           className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-2 text-[#111111] text-sm outline-none transition-all font-medium" 
                                         />
@@ -541,7 +554,10 @@ export default function BillingPage() {
 
                                       {/* Inventory Suggestions Dropdown */}
                                       {bi.showSuggestions && (
-                                        <div className="absolute z-[100] left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-56 overflow-y-auto">
+                                        <div 
+                                          onMouseDown={e => e.preventDefault()}
+                                          className="absolute z-[100] left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-56 overflow-y-auto"
+                                        >
                                            {inventory
                                              .filter(i => {
                                                const term = (bi?.name || "").trim().toLowerCase();
@@ -555,6 +571,14 @@ export default function BillingPage() {
                                                <button 
                                                  key={item.id} 
                                                  type="button" 
+                                                 onMouseDown={e => {
+                                                   e.preventDefault();
+                                                   selectInventoryItem(bi.tempId, item);
+                                                 }}
+                                                 onTouchEnd={e => {
+                                                   e.preventDefault();
+                                                   selectInventoryItem(bi.tempId, item);
+                                                 }}
                                                  onClick={() => selectInventoryItem(bi.tempId, item)}
                                                  className="w-full text-left px-3.5 py-2.5 hover:bg-[#1F6F5F]/5 border-b border-gray-100 last:border-0 transition-colors flex justify-between items-center group cursor-pointer"
                                                >
@@ -629,7 +653,7 @@ export default function BillingPage() {
                     {/* Mobile Card List View (sm:hidden) */}
                     <div className="sm:hidden divide-y divide-gray-100">
                        {billItems.map((bi) => (
-                          <div key={bi.tempId} className="p-2.5 bg-white space-y-2 relative border-b border-gray-100 last:border-0">
+                          <div key={bi.tempId} className={`p-2.5 bg-white space-y-2 relative border-b border-gray-100 last:border-0 ${bi.showSuggestions ? 'z-30' : 'z-10'}`}>
                              {/* Line 1: Item Description Input + Category Tag/Slider + Trash Button */}
                              <div className="flex items-center gap-1.5" ref={el => { dropdownRefs.current[bi.tempId] = el }}>
                                 <div className="flex-1 relative">
@@ -643,14 +667,18 @@ export default function BillingPage() {
                                       });
                                     }}
                                     onFocus={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
-                                    onBlur={() => setTimeout(() => updateBillItem(bi.tempId, 'showSuggestions', false), 200)}
+                                    onClick={() => updateBillItem(bi.tempId, 'showSuggestions', true)}
+                                    onBlur={() => setTimeout(() => updateBillItem(bi.tempId, 'showSuggestions', false), 350)}
                                     placeholder="Type item name..." 
                                     className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-2.5 py-1.5 text-[#111111] text-sm outline-none transition-all font-medium" 
                                   />
 
                                   {/* Mobile Suggestions Dropdown */}
                                   {bi.showSuggestions && (
-                                    <div className="absolute z-[100] left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
+                                    <div 
+                                      onMouseDown={e => e.preventDefault()}
+                                      className="absolute z-[100] left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto"
+                                    >
                                        {inventory
                                          .filter(i => {
                                            const term = (bi?.name || "").trim().toLowerCase();
@@ -664,8 +692,16 @@ export default function BillingPage() {
                                            <button 
                                              key={item.id} 
                                              type="button" 
+                                             onMouseDown={e => {
+                                               e.preventDefault();
+                                               selectInventoryItem(bi.tempId, item);
+                                             }}
+                                             onTouchEnd={e => {
+                                               e.preventDefault();
+                                               selectInventoryItem(bi.tempId, item);
+                                             }}
                                              onClick={() => selectInventoryItem(bi.tempId, item)}
-                                             className="w-full text-left p-2.5 hover:bg-[#1F6F5F]/5 border-b border-gray-100 last:border-0 transition-colors"
+                                             className="w-full text-left p-2.5 hover:bg-[#1F6F5F]/5 border-b border-gray-100 last:border-0 transition-colors cursor-pointer"
                                            >
                                              <div className="flex justify-between items-start mb-0.5">
                                                <p className="text-xs font-bold text-[#111111]">{item.name}</p>
@@ -1202,7 +1238,7 @@ export default function BillingPage() {
               const matchesDate = !dateFilter || new Date(b.createdAt).toISOString().substring(0, 10) === dateFilter
               const matchesTab = activeTab === 'All' || (activeTab === 'Pending' && (b.balanceDue || 0) > 0)
               return matchesSearch && matchesDate && matchesTab
-            })
+            }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             const itemsPerPage = 50
             const totalPages = Math.ceil(filteredBills.length / itemsPerPage)
             const paginatedBills = filteredBills.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
