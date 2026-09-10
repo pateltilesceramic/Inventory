@@ -394,10 +394,10 @@ export default function BillingPage() {
 
   return (
     <div className="w-full pb-20 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-4 sm:mb-8 gap-3">
         <div>
           <h1 className="typo-h1">Smart Billing</h1>
-          <p className="typo-body text-[#111111]/60 mt-1">Create invoices, manage transactions, and track payments.</p>
+          <p className="text-xs sm:text-sm text-[#111111]/60 mt-0.5 sm:mt-1">Create invoices, manage transactions, and track payments.</p>
         </div>
         <button 
           onClick={() => { 
@@ -410,18 +410,18 @@ export default function BillingPage() {
               setIsAddRouteOpen(true)
             }
           }}
-          className="flex items-center gap-2 text-white px-5 py-2.5 rounded-lg font-bold transition-all cursor-pointer"
+          className="flex items-center gap-1.5 text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold transition-all cursor-pointer text-xs sm:text-sm shrink-0"
           style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', border: '1px solid rgba(0,0,0,0.12)' }}
         >
-          <Plus className={`w-5 h-5 transition-transform duration-300 ${isAddRouteOpen ? 'rotate-45' : ''}`} />
-          {isAddRouteOpen ? (editingBill ? 'Close Edit' : 'Close Invoice') : 'New Invoice'}
+          <Plus className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 ${isAddRouteOpen ? 'rotate-45' : ''}`} />
+          {isAddRouteOpen ? (editingBill ? 'Close' : 'Close') : '+ New Invoice'}
         </button>
       </div>
 
       <AnimatePresence>
         {isAddRouteOpen && (
           <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto" 
+            className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center sm:p-4 overflow-hidden" 
             style={{ background: 'rgba(10,30,25,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
             onClick={(e) => {
               if (e.target === e.currentTarget) {
@@ -431,45 +431,46 @@ export default function BillingPage() {
             }}
           >
             <motion.div
-               initial={{ opacity: 0, scale: 0.95, y: 15 }}
+               initial={{ opacity: 0, scale: 0.98, y: 10 }}
                animate={{ opacity: 1, scale: 1, y: 0 }}
-               exit={{ opacity: 0, scale: 0.95, y: 15 }}
+               exit={{ opacity: 0, scale: 0.98, y: 10 }}
                transition={{ duration: 0.2 }}
-               className="w-full max-w-5xl my-auto bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative"
+               className="w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-5xl bg-white sm:rounded-3xl border-0 sm:border border-gray-200 shadow-2xl overflow-hidden flex flex-col relative"
             >
                {/* Modal Header */}
-               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-[#1F6F5F]/5 shrink-0">
-                  <h2 className="text-lg sm:text-xl font-bold text-[#1F6F5F] flex items-center gap-2">
-                     <Receipt className="w-5 h-5 text-[#2FA084]" />
+               <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-4 border-b border-gray-100 bg-[#1F6F5F]/5 shrink-0">
+                  <h2 className="text-base sm:text-xl font-bold text-[#1F6F5F] flex items-center gap-2">
+                     <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-[#2FA084]" />
                      {editingBill ? `Edit Invoice (${editingBill.invoiceNo || 'Draft'})` : 'Create Invoice Draft'}
                   </h2>
                   <button 
                      type="button"
                      onClick={() => { setIsAddRouteOpen(false); resetForm(); }}
-                     className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-200/50 rounded-xl transition-colors cursor-pointer"
+                     className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-200/50 rounded-xl transition-colors cursor-pointer"
                   >
                      <X className="w-5 h-5" />
                   </button>
                </div>
 
                {/* Modal Content - Scrollable Body */}
-               <div className="p-6 overflow-y-auto space-y-6 flex-1">
-                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                   <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Customer Name</label>
-                       <input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="e.g. Walk-in Customer" className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-medium" />
+               <div className="p-3 sm:p-6 overflow-y-auto space-y-3 sm:space-y-6 flex-1 overscroll-contain">
+                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-6">
+                   <div className="space-y-1">
+                      <label className="text-[10px] sm:text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Customer Name</label>
+                       <input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="e.g. Walk-in Customer" className="w-full rounded-lg px-3 py-2 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-medium" />
                    </div>
 
-                   <div className="space-y-1.5">
-                       <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Customer Phone</label>
-                        <input type="tel" inputMode="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="e.g. 9876543210 (Optional)" className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-medium" />
+                   <div className="space-y-1">
+                       <label className="text-[10px] sm:text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Customer Phone</label>
+                        <input type="tel" inputMode="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="e.g. 9876543210 (Optional)" className="w-full rounded-lg px-3 py-2 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-medium" />
                     </div>
 
-                   <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Invoice Date</label>
-                       <input type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all skeu-input text-sm font-medium" />
+                   <div className="space-y-1">
+                      <label className="text-[10px] sm:text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Invoice Date</label>
+                       <input type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} className="w-full rounded-lg px-3 py-2 text-[#111111] outline-none transition-all skeu-input text-sm font-medium" />
                    </div>
                  </div>
+
 
                  {/* Items Container */}
                  <div className="border border-gray-200 rounded-xl bg-white pb-24 sm:pb-28">
@@ -729,7 +730,7 @@ export default function BillingPage() {
                              </div>
 
                              {/* Row 3: Qty + Price (₹) + Delete button */}
-                             <div className="grid grid-cols-12 gap-3 items-end pt-1">
+                             <div className="grid grid-cols-12 gap-2 items-end pt-1">
                                 <div className="col-span-6 space-y-1">
                                    <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">QTY</label>
                                    <div className="flex items-center gap-1">
@@ -739,7 +740,7 @@ export default function BillingPage() {
                                          const current = Number(bi.quantity) || 0
                                          if (current > 1) updateBillItem(bi.tempId, 'quantity', current - 1)
                                        }}
-                                       className="w-8 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center shrink-0 active:scale-95 transition-all text-base cursor-pointer"
+                                       className="w-7 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center shrink-0 active:scale-95 transition-all text-sm cursor-pointer"
                                        title="Decrease 1"
                                      >
                                        -
@@ -753,7 +754,7 @@ export default function BillingPage() {
                                          const val = e.target.value;
                                          updateBillItem(bi.tempId, 'quantity', val === "" ? "" : (parseInt(val) || 0));
                                        }} 
-                                       className="w-full text-center bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-2 text-[#111111] text-sm outline-none font-bold hide-arrows" 
+                                       className="w-full text-center bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-1.5 text-[#111111] text-sm outline-none font-bold hide-arrows" 
                                      />
                                      <button
                                        type="button"
@@ -761,7 +762,7 @@ export default function BillingPage() {
                                          const current = Number(bi.quantity) || 0
                                          updateBillItem(bi.tempId, 'quantity', current + 1)
                                        }}
-                                       className="w-8 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center shrink-0 active:scale-95 transition-all text-base cursor-pointer"
+                                       className="w-7 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center shrink-0 active:scale-95 transition-all text-sm cursor-pointer"
                                        title="Increase 1"
                                      >
                                        +
@@ -781,17 +782,17 @@ export default function BillingPage() {
                                        const val = e.target.value;
                                        updateBillItem(bi.tempId, 'price', val === "" ? "" : (parseFloat(val) || 0));
                                      }} 
-                                     className="w-full text-right bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-2 px-2 text-[#111111] text-sm outline-none font-bold hide-arrows" 
+                                     className="w-full text-right bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-1.5 px-2 text-[#111111] text-sm outline-none font-bold hide-arrows" 
                                    />
                                 </div>
 
                                 <div className="col-span-2 flex justify-end">
-                                   <button type="button" onClick={() => setBillItems(billItems.filter(i => i.tempId !== bi.tempId))} className="p-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors cursor-pointer" title="Delete Row"><Trash2 className="w-4 h-4" /></button>
+                                   <button type="button" onClick={() => setBillItems(billItems.filter(i => i.tempId !== bi.tempId))} className="p-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors cursor-pointer" title="Delete Row"><Trash2 className="w-4 h-4" /></button>
                                 </div>
                              </div>
 
                              {/* Row 4: Subtotal line */}
-                             <div className="flex justify-between items-center pt-2 border-t border-dashed border-gray-100 text-xs">
+                             <div className="flex justify-between items-center pt-1.5 border-t border-dashed border-gray-100 text-xs">
                                 <span className="font-bold text-[#111111]/40">Subtotal:</span>
                                 <span className="font-black text-sm text-[#1F6F5F]">₹{(Number(bi.quantity) * Number(bi.price)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                              </div>
@@ -801,7 +802,7 @@ export default function BillingPage() {
                  </div>
                     
                  {/* Add Row Button */}
-                 <div className="p-4 bg-gray-50/50 border border-gray-200 border-dashed rounded-xl">
+                 <div className="p-3 bg-gray-50/50 border border-gray-200 border-dashed rounded-xl">
                     <button 
                       type="button" 
                       onClick={addNewRow}
@@ -820,15 +821,15 @@ export default function BillingPage() {
                  )}
                </div>
 
-               {/* Modal Footer - Fixed */}
-               <div className="p-4 sm:p-6 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 shrink-0">
-                  <div className="flex flex-wrap gap-6 items-center justify-between sm:justify-start">
+               {/* Modal Footer - Fixed & Keyboard Resilient */}
+               <div className="p-3 sm:p-5 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 shrink-0 shadow-lg">
+                  <div className="flex flex-wrap gap-2.5 sm:gap-6 items-center justify-between sm:justify-start">
                      <div>
-                        <p className="text-[10px] text-[#111111]/50 uppercase tracking-widest font-bold">Total Net Amount</p>
-                        <p className="text-xl sm:text-2xl font-black text-[#1F6F5F]">₹{billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0).toFixed(2)}</p>
+                        <p className="text-[9px] sm:text-[10px] text-[#111111]/50 uppercase tracking-widest font-bold">Total Net</p>
+                        <p className="text-base sm:text-2xl font-black text-[#1F6F5F]">₹{billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0).toFixed(2)}</p>
                      </div>
-                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-[#111111]/60 uppercase tracking-wider block">Final Net Amount (₹)</label>
+                     <div className="space-y-0.5">
+                        <label className="text-[9px] sm:text-[10px] font-bold text-[#111111]/60 uppercase tracking-wider block">Final Net (₹)</label>
                         <input 
                           type="number"
                           inputMode="decimal"
@@ -836,11 +837,11 @@ export default function BillingPage() {
                           placeholder={billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0).toFixed(2)}
                           value={finalNetAmountInput}
                           onChange={e => setFinalNetAmountInput(e.target.value)}
-                          className="w-36 sm:w-40 bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-1.5 text-sm font-bold outline-none text-right shadow-sm hide-arrows"
+                          className="w-24 sm:w-40 bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-2 py-1 text-xs sm:text-sm font-bold outline-none text-right shadow-sm hide-arrows"
                         />
                      </div>
-                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-[#111111]/60 uppercase tracking-wider block">Advance Received (₹)</label>
+                     <div className="space-y-0.5">
+                        <label className="text-[9px] sm:text-[10px] font-bold text-[#111111]/60 uppercase tracking-wider block">Advance (₹)</label>
                         <input 
                           type="number"
                           inputMode="decimal"
@@ -848,22 +849,22 @@ export default function BillingPage() {
                           placeholder={finalNetAmountInput || billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0).toFixed(2)}
                           value={amountPaidInput}
                           onChange={e => setAmountPaidInput(e.target.value)}
-                          className="w-36 sm:w-40 bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-3 py-1.5 text-sm font-bold outline-none text-right shadow-sm hide-arrows"
+                          className="w-24 sm:w-40 bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg px-2 py-1 text-xs sm:text-sm font-bold outline-none text-right shadow-sm hide-arrows"
                         />
                      </div>
                      {amountPaidInput && Number(amountPaidInput) < (Number(finalNetAmountInput) || billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0)) && (
-                        <div className="hidden sm:block">
-                           <p className="text-[10px] text-orange-500 uppercase tracking-widest font-bold">Balance Due</p>
-                           <p className="text-xl font-black text-orange-500">
+                        <div>
+                           <p className="text-[9px] sm:text-[10px] text-orange-500 uppercase tracking-widest font-bold">Due</p>
+                           <p className="text-xs sm:text-xl font-black text-orange-500">
                              ₹{((Number(finalNetAmountInput) || billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0)) - Number(amountPaidInput)).toFixed(2)}
                            </p>
                         </div>
                       )}
                   </div>
-                  <div className="flex gap-3 items-center justify-end w-full sm:w-auto">
-                     <button type="button" onClick={() => { setIsAddRouteOpen(false); resetForm(); }} className="px-4 py-2.5 rounded-lg text-[#111111]/60 hover:text-[#111111] font-medium transition-colors cursor-pointer text-sm">Cancel</button>
-                     <button onClick={handleSaveBill} disabled={!customerName || billItems.length === 0 || isSubmitting} className="flex-1 sm:flex-none text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-sm text-center" style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', border: '1px solid rgba(0,0,0,0.12)' }}>
-                        {isSubmitting ? 'Saving...' : (editingBill ? 'Update & Sync Stock' : 'Finalize & Deduct Stock')}
+                  <div className="flex gap-2 sm:gap-3 items-center justify-end w-full sm:w-auto">
+                     <button type="button" onClick={() => { setIsAddRouteOpen(false); resetForm(); }} className="px-3 py-1.5 rounded-lg text-[#111111]/60 hover:text-[#111111] font-medium transition-colors cursor-pointer text-xs sm:text-sm">Cancel</button>
+                     <button onClick={handleSaveBill} disabled={!customerName || billItems.length === 0 || isSubmitting} className="flex-1 sm:flex-none text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-sm text-center" style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', border: '1px solid rgba(0,0,0,0.12)' }}>
+                        {isSubmitting ? 'Saving...' : (editingBill ? 'Update Stock' : 'Finalize & Deduct Stock')}
                      </button>
                   </div>
                </div>
@@ -1326,39 +1327,39 @@ export default function BillingPage() {
                     </div>
 
                     {/* Mobile Card */}
-                    <div className="md:hidden p-4 hover:bg-gray-50/50 transition-colors space-y-3">
+                    <div className="md:hidden p-3 hover:bg-gray-50/50 transition-colors space-y-2">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-black text-[#1F6F5F] text-sm">{bill.invoiceNo}</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-black text-[#1F6F5F] text-xs sm:text-sm">{bill.invoiceNo}</span>
                             <span className="text-[9px] uppercase tracking-wider font-bold text-[#111111]/30">#{bill.id.slice(0, 4)}</span>
                           </div>
-                          <p className="font-bold text-[#111111] text-sm mt-0.5">{bill.customerName}</p>
+                          <p className="font-bold text-[#111111] text-xs sm:text-sm mt-0.5 truncate">{bill.customerName}</p>
                           {bill.customerPhone && (
-                            <p className="text-xs text-[#111111]/60 font-semibold">{bill.customerPhone}</p>
+                            <p className="text-[11px] text-[#111111]/60 font-semibold">{bill.customerPhone}</p>
                           )}
-                          <p className="text-[10px] text-[#111111]/40 font-semibold mt-0.5">
+                          <p className="text-[9px] text-[#111111]/40 font-semibold">
                             {formatDate(bill.createdAt)}
                           </p>
                         </div>
 
                         <div className="text-right shrink-0">
-                          <p className="font-black text-base text-[#1F6F5F]">
+                          <p className="font-black text-sm sm:text-base text-[#1F6F5F]">
                             ₹{(bill.finalNetAmount !== null && bill.finalNetAmount !== undefined ? bill.finalNetAmount : bill.totalAmount).toFixed(2)}
                           </p>
-                          <div className="mt-1 flex flex-col items-end gap-0.5">
+                          <div className="mt-0.5 flex flex-col items-end">
                             {bill.balanceDue > 0 ? (
                               bill.amountPaid > 0 ? (
-                                <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                                <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded">
                                   Due: ₹{bill.balanceDue.toFixed(2)}
                                 </span>
                               ) : (
-                                <span className="text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">
+                                <span className="text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded">
                                   UNPAID
                                 </span>
                               )
                             ) : (
-                              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
                                 PAID
                               </span>
                             )}
@@ -1366,17 +1367,17 @@ export default function BillingPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                        <div className="flex items-center gap-1.5">
+                      <div className="flex items-center justify-between pt-1.5 border-t border-gray-100">
+                        <div className="flex items-center gap-1">
                           <button 
                             onClick={() => setSelectedBillForView(bill)} 
-                            className="px-3 py-1.5 bg-[#2FA084]/10 text-[#1F6F5F] text-xs font-bold rounded-lg transition-colors border border-[#2FA084]/20"
+                            className="px-2.5 py-1 bg-[#2FA084]/10 text-[#1F6F5F] text-[11px] font-bold rounded-lg transition-colors border border-[#2FA084]/20"
                           >
                             View
                           </button>
                           <button 
                             onClick={() => handleWhatsAppShare(bill)}
-                            className="p-2 bg-emerald-50 text-emerald-700 rounded-lg transition-colors border border-emerald-200 flex items-center justify-center cursor-pointer"
+                            className="p-1 bg-emerald-50 text-emerald-700 rounded-lg transition-colors border border-emerald-200 flex items-center justify-center cursor-pointer"
                             title="Share on WhatsApp"
                           >
                             <MessageCircle className="w-3.5 h-3.5" />
@@ -1384,25 +1385,25 @@ export default function BillingPage() {
                           {bill.balanceDue > 0 && (
                             <button 
                               onClick={() => { setPaymentModalBill(bill); setPaymentAmountInput(""); setPaymentError(""); }}
-                              className="px-2.5 py-1.5 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg transition-colors border border-amber-200"
+                              className="px-2 py-1 bg-amber-50 text-amber-700 text-[11px] font-bold rounded-lg transition-colors border border-amber-200"
                             >
                               + Pay
                             </button>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <button 
                             onClick={() => handleEditBill(bill)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-[#1F6F5F] bg-gray-100 rounded-lg"
+                            className="flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-[#1F6F5F] bg-gray-100 rounded-lg"
                           >
-                            <Pencil className="w-3.5 h-3.5" /> Edit
+                            <Pencil className="w-3 h-3" /> Edit
                           </button>
                           <button 
                             onClick={() => requestDeleteBill(bill.id)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-600 bg-red-50 rounded-lg"
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                           >
-                            <Trash2 className="w-3.5 h-3.5" /> Del
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>

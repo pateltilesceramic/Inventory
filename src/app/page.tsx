@@ -73,85 +73,85 @@ export default function Dashboard() {
     : 0
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 sm:space-y-8">
+    <div className="w-full max-w-6xl mx-auto space-y-4 sm:space-y-8">
       {/* ── Executive Header & Quick Actions Dock ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-black tracking-widest text-[#1F6F5F] uppercase">Live Showroom & Warehouse Operations</span>
+            <span className="text-[9px] sm:text-[10px] font-black tracking-widest text-[#1F6F5F] uppercase">Live Showroom Operations</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-[#0F1715] mt-1 font-serif">
+          <h1 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight text-[#0F1715] mt-0.5 sm:mt-1 font-serif">
             Showroom Executive Cockpit
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 font-medium">
+          <p className="text-[11px] sm:text-sm text-gray-500 font-medium">
             Patel Tiles & Ceramic · Counter Billing, Inventory Control & Sales Register
           </p>
         </div>
 
         {/* Quick Action Dock */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           <Link
             href="/billing"
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#2FA084] to-[#1F6F5F] text-white text-xs font-black shadow-md active:scale-95 transition-all whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#2FA084] to-[#1F6F5F] text-white text-xs font-black shadow-md active:scale-95 transition-all whitespace-nowrap"
           >
-            <Receipt className="w-4 h-4" />
+            <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>+ Counter Bill</span>
           </Link>
 
           <Link
             href="/gst-billing"
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white border border-gray-200 text-[#0F1715] hover:bg-gray-50 text-xs font-bold shadow-sm active:scale-95 transition-all whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2.5 rounded-xl bg-white border border-gray-200 text-[#0F1715] hover:bg-gray-50 text-xs font-bold shadow-sm active:scale-95 transition-all whitespace-nowrap"
           >
-            <FileText className="w-4 h-4 text-[#1F6F5F]" />
+            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1F6F5F]" />
             <span>+ GST Invoice</span>
           </Link>
 
           <Link
             href="/catalogue"
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white border border-gray-200 text-[#0F1715] hover:bg-gray-50 text-xs font-bold shadow-sm active:scale-95 transition-all whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2.5 rounded-xl bg-white border border-gray-200 text-[#0F1715] hover:bg-gray-50 text-xs font-bold shadow-sm active:scale-95 transition-all whitespace-nowrap"
           >
-            <Store className="w-4 h-4 text-[#D4AF37]" />
+            <Store className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37]" />
             <span>Catalogue</span>
           </Link>
         </div>
       </div>
 
       {/* ── Main Showroom KPI Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
         
         {/* 1. Monthly Revenue Slab */}
         <FadeIn delay={0.05}>
           <div 
-            className="rounded-3xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden h-full text-white shadow-xl group"
+            className="rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 flex flex-col justify-between relative overflow-hidden h-full text-white shadow-xl group"
             style={{
               background: 'linear-gradient(135deg, #0f3d32 0%, #165A4B 60%, #0d332a 100%)',
               border: '1px solid rgba(255,255,255,0.12)'
             }}
           >
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0 shadow-inner">
-                  <TrendingUp className="w-5 h-5 text-[#6FCF97]" />
+            <div className="flex items-start justify-between gap-3 mb-2.5 sm:mb-4">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0 shadow-inner">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#6FCF97]" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[#6FCF97]">Monthly Sales Revenue</p>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white font-tabular leading-tight mt-0.5">
+                  <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#6FCF97]">Monthly Sales Revenue</p>
+                  <h3 className="text-xl sm:text-3xl font-black text-white font-tabular leading-tight mt-0.5">
                     ₹{(stats.monthlyRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </h3>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 py-3 border-y border-white/10 my-1">
+            <div className="grid grid-cols-2 gap-2 py-2 sm:py-3 border-y border-white/10 my-1">
               <div>
                 <p className="text-[9px] font-black uppercase text-white/50">Total Invoices</p>
-                <p className="text-sm font-black text-white">{stats.monthlyBillsCount ?? 0} Bills</p>
+                <p className="text-xs sm:text-sm font-black text-white">{stats.monthlyBillsCount ?? 0} Bills</p>
               </div>
               <div>
                 <p className="text-[9px] font-black uppercase text-white/50">Avg Order Value</p>
-                <p className="text-sm font-black text-white font-tabular">₹{averageTicket.toLocaleString()}</p>
+                <p className="text-xs sm:text-sm font-black text-white font-tabular">₹{averageTicket.toLocaleString()}</p>
               </div>
             </div>
 
@@ -164,7 +164,7 @@ export default function Dashboard() {
                   setSelectedYear(y)
                   setSelectedMonth(m)
                 }}
-                className="bg-black/30 border border-white/20 rounded-lg px-2.5 py-1 text-[11px] font-bold text-white outline-none cursor-pointer"
+                className="bg-black/30 border border-white/20 rounded-lg px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-[11px] font-bold text-white outline-none cursor-pointer"
               >
                 {getMonthOptions().map(opt => (
                   <option key={opt.value} value={opt.value} className="bg-[#165A4B] text-white">
@@ -178,23 +178,23 @@ export default function Dashboard() {
 
         {/* 2. Total Warehouse Physical Stock */}
         <FadeIn delay={0.1}>
-          <div className="ceramic-card p-5 sm:p-6 flex flex-col justify-between h-full">
+          <div className="ceramic-card p-3.5 sm:p-6 flex flex-col justify-between h-full">
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-[#1F6F5F]/10 border border-[#1F6F5F]/20 flex items-center justify-center text-[#1F6F5F] shrink-0">
-                    <Boxes className="w-5 h-5" />
+              <div className="flex items-center justify-between mb-2.5 sm:mb-3">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#1F6F5F]/10 border border-[#1F6F5F]/20 flex items-center justify-center text-[#1F6F5F] shrink-0">
+                    <Boxes className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total Live Stock</p>
-                    <h3 className="text-2xl sm:text-3xl font-black text-[#0F1715] font-tabular leading-tight mt-0.5">
+                    <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400">Total Live Stock</p>
+                    <h3 className="text-xl sm:text-3xl font-black text-[#0F1715] font-tabular leading-tight mt-0.5">
                       {(stats.totalBoxes ?? 0).toLocaleString()} <span className="text-xs font-bold text-gray-400">Units</span>
                     </h3>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2 mt-4">
+              <div className="space-y-1.5 sm:space-y-2 mt-3 sm:mt-4">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-500 font-bold">Tiles Inventory:</span>
                   <span className="font-black text-[#1F6F5F]">{(stats.tilesStock ?? 0).toLocaleString()} Boxes</span>

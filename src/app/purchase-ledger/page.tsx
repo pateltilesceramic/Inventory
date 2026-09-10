@@ -171,19 +171,19 @@ export default function PurchaseLedgerPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
             <button
               onClick={handleOpenHistory}
-              className="flex items-center justify-center gap-2 bg-white text-[#111111] px-3.5 py-2.5 rounded-xl font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap"
+              className="flex items-center justify-center gap-1.5 bg-white text-[#111111] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl font-bold text-xs sm:text-sm border border-gray-200 hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap"
             >
-              <History className="w-4 h-4 text-[#1F6F5F]" /> History
+              <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1F6F5F]" /> History
             </button>
 
             <button
               onClick={() => setIsAddPartyOpen(true)}
-              className="flex items-center justify-center gap-2 bg-white text-[#111111] px-3.5 py-2.5 rounded-xl font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap"
+              className="flex items-center justify-center gap-1.5 bg-white text-[#111111] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl font-bold text-xs sm:text-sm border border-gray-200 hover:bg-gray-50 transition-all shadow-sm whitespace-nowrap"
             >
-              <Plus className="w-4 h-4 text-[#1F6F5F]" /> Add Party
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1F6F5F]" /> Add Party
             </button>
 
             <button
@@ -195,14 +195,14 @@ export default function PurchaseLedgerPage() {
                 }
                 setIsAddEntryOpen(true)
               }}
-              className="flex items-center justify-center gap-2 text-white px-4 py-2.5 rounded-xl font-black text-sm transition-all shadow-md whitespace-nowrap flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-1.5 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl font-black text-xs sm:text-sm transition-all shadow-md whitespace-nowrap flex-1 sm:flex-none"
               style={{ 
                 background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', 
                 boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', 
                 border: '1px solid rgba(0,0,0,0.12)' 
               }}
             >
-              <Plus className="w-4 h-4" /> Create Entry
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Create Entry
             </button>
           </div>
         </div>
@@ -211,36 +211,36 @@ export default function PurchaseLedgerPage() {
       {/* Add Party Modal */}
       <AnimatePresence>
         {isAddPartyOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(10,30,25,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+          <div className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center sm:p-4 overflow-hidden" style={{ background: 'rgba(10,30,25,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md p-6 rounded-2xl bg-white border border-gray-200 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 10 }}
+              className="w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-md p-4 sm:p-6 sm:rounded-2xl bg-white border-0 sm:border border-gray-200 shadow-2xl flex flex-col"
             >
-              <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-[#1F6F5F] flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-[#2FA084]" /> Add Purchase Party
+              <div className="flex justify-between items-center pb-3 mb-3 border-b border-gray-100 shrink-0">
+                <h3 className="text-base sm:text-lg font-bold text-[#1F6F5F] flex items-center gap-2">
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-[#2FA084]" /> Add Purchase Party
                 </h3>
-                <button onClick={() => setIsAddPartyOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+                <button onClick={() => setIsAddPartyOpen(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"><X className="w-5 h-5" /></button>
               </div>
-              <form onSubmit={handleAddParty} className="space-y-4">
+              <form onSubmit={handleAddParty} className="space-y-3 sm:space-y-4 flex-1 flex flex-col justify-between">
                 <div>
-                  <label className="block text-xs font-bold text-[#111111]/70 uppercase tracking-wider mb-1.5">Supplier / Party Name</label>
+                  <label className="block text-[10px] sm:text-xs font-bold text-[#111111]/70 uppercase tracking-wider mb-1">Supplier / Party Name</label>
                   <input
                     required
                     placeholder="e.g. Morbi Ceramics Factory"
                     value={partyName}
                     onChange={e => setPartyName(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-[#111111] outline-none focus:border-[#2FA084] skeu-input"
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-[#111111] outline-none focus:border-[#2FA084] skeu-input"
                   />
                 </div>
-                <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setIsAddPartyOpen(false)} className="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Cancel</button>
+                <div className="flex justify-end gap-2 pt-3 border-t border-gray-100 shrink-0">
+                  <button type="button" onClick={() => setIsAddPartyOpen(false)} className="px-3 py-1.5 text-xs sm:text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Cancel</button>
                   <button
                     type="submit"
                     disabled={isSavingParty}
-                    className="px-5 py-2 text-sm font-black text-white rounded-xl transition-all disabled:opacity-50"
+                    className="px-4 py-1.5 text-xs sm:text-sm font-black text-white rounded-xl transition-all disabled:opacity-50"
                     style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)' }}
                   >
                     {isSavingParty ? "Saving..." : "Save Party"}
@@ -255,20 +255,21 @@ export default function PurchaseLedgerPage() {
       {/* Create Entry Modal */}
       <AnimatePresence>
         {isAddEntryOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(10,30,25,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+          <div className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center sm:p-4 overflow-hidden" style={{ background: 'rgba(10,30,25,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg p-6 rounded-2xl bg-white border border-gray-200 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 10 }}
+              className="w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-lg p-4 sm:p-6 sm:rounded-2xl bg-white border-0 sm:border border-gray-200 shadow-2xl flex flex-col"
             >
-              <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-[#1F6F5F] flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-[#2FA084]" /> Record Ledger Entry
+              <div className="flex justify-between items-center pb-3 mb-3 border-b border-gray-100 shrink-0">
+                <h3 className="text-base sm:text-lg font-bold text-[#1F6F5F] flex items-center gap-2">
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-[#2FA084]" /> Record Ledger Entry
                 </h3>
-                <button onClick={() => setIsAddEntryOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+                <button onClick={() => setIsAddEntryOpen(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"><X className="w-5 h-5" /></button>
               </div>
-              <form onSubmit={handleAddEntry} className="space-y-4">
+              <form onSubmit={handleAddEntry} className="space-y-3 sm:space-y-4 flex-1 overflow-y-auto pr-0.5">
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="relative">
                     <label className="block text-xs font-bold text-[#111111]/70 uppercase tracking-wider mb-1.5">Select Party (Type or Select)</label>
@@ -387,12 +388,12 @@ export default function PurchaseLedgerPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
-                  <button type="button" onClick={() => setIsAddEntryOpen(false)} className="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Cancel</button>
+                <div className="flex justify-end gap-2 pt-3 border-t border-gray-100 shrink-0 mt-auto">
+                  <button type="button" onClick={() => setIsAddEntryOpen(false)} className="px-3 py-1.5 text-xs sm:text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Cancel</button>
                   <button
                     type="submit"
                     disabled={isSavingEntry}
-                    className="px-5 py-2 text-sm font-black text-white rounded-xl transition-all disabled:opacity-50"
+                    className="px-4 py-1.5 text-xs sm:text-sm font-black text-white rounded-xl transition-all disabled:opacity-50"
                     style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)' }}
                   >
                     {isSavingEntry ? "Saving..." : "Save Entry"}

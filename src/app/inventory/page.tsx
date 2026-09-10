@@ -1091,15 +1091,15 @@ export default function InventoryPage() {
              initial={{ opacity: 0, y: -20 }}
              animate={{ opacity: 1, y: 0 }}
              exit={{ opacity: 0, y: -20 }}
-             className="mb-8"
+             className="mb-6 sm:mb-8"
           >
-            <div className="p-8 rounded-2xl" style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.65)', boxShadow: '0 1px 0 rgba(255,255,255,0.90) inset, 0 -1px 0 rgba(0,0,0,0.05) inset, 0 12px 40px rgba(0,0,0,0.10), 0 3px 10px rgba(0,0,0,0.07)' }}>
-               <h2 className="text-xl font-bold text-[#1F6F5F] mb-6">Register New Inventory</h2>
-               <form onSubmit={handleAddSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="p-3.5 sm:p-6 md:p-8 rounded-2xl" style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.65)', boxShadow: '0 1px 0 rgba(255,255,255,0.90) inset, 0 -1px 0 rgba(0,0,0,0.05) inset, 0 12px 40px rgba(0,0,0,0.10), 0 3px 10px rgba(0,0,0,0.07)' }}>
+               <h2 className="text-base sm:text-xl font-bold text-[#1F6F5F] mb-3 sm:mb-6">Register New Inventory</h2>
+               <form onSubmit={handleAddSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                   
-                  <div className="space-y-1.5">
-                     <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Item Name</label>
-                     <input required placeholder="e.g. Premium Floor Tile" className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                  <div className="space-y-1">
+                     <label className="text-[10px] sm:text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Item Name</label>
+                     <input required placeholder="e.g. Premium Floor Tile" className="w-full rounded-lg px-3 py-2 sm:py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                   </div>
 
                   <CustomDropdown 
@@ -1332,35 +1332,35 @@ export default function InventoryPage() {
               </div>
 
               {/* Enhanced Mobile Ceramic Card */}
-              <div className="md:hidden p-4 hover:bg-emerald-50/20 transition-colors">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 min-w-0">
+              <div className="md:hidden p-2.5 sm:p-4 hover:bg-emerald-50/20 transition-colors">
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-start gap-2.5 min-w-0">
                     {item.designUrl ? (
                       <button
                         onClick={() => setDesignViewerItem(item)}
-                        className="w-12 h-12 rounded-2xl overflow-hidden border border-gray-200 hover:border-[#2FA084] transition-all shrink-0 cursor-pointer shadow-sm relative"
+                        className="w-10 h-10 rounded-xl overflow-hidden border border-gray-200 hover:border-[#2FA084] transition-all shrink-0 cursor-pointer shadow-sm relative"
                         title="View Design Preview"
                       >
                         <img src={item.designUrl} alt="" className="w-full h-full object-cover" />
                       </button>
                     ) : (
-                      <div className="w-12 h-12 rounded-2xl bg-[#1F6F5F]/10 border border-[#1F6F5F]/20 flex items-center justify-center text-[#1F6F5F] shrink-0">
-                        <Package className="w-6 h-6" />
+                      <div className="w-10 h-10 rounded-xl bg-[#1F6F5F]/10 border border-[#1F6F5F]/20 flex items-center justify-center text-[#1F6F5F] shrink-0">
+                        <Package className="w-5 h-5" />
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-black text-[#0F1715] leading-snug break-words uppercase">{item.name}</h3>
-                      <div className="flex items-center gap-1.5 flex-wrap mt-1">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                      <h3 className="text-xs font-black text-[#0F1715] leading-snug break-words uppercase">{item.name}</h3>
+                      <div className="flex items-center gap-1 flex-wrap mt-0.5">
+                        <span className="text-[9px] font-black uppercase tracking-wider text-gray-500 bg-gray-100 px-1 py-0.2 rounded">
                           {item.category}
                         </span>
                         {item.size && (
-                          <span className="tile-dim-tag">
+                          <span className="tile-dim-tag py-0 text-[9px]">
                             {item.size}
                           </span>
                         )}
                         {item.type && (
-                          <span className="text-[10px] bg-[#2FA084]/10 px-1.5 py-0.5 rounded font-bold text-[#1F6F5F] border border-[#2FA084]/20 capitalize">
+                          <span className="text-[9px] bg-[#2FA084]/10 px-1 py-0.2 rounded font-bold text-[#1F6F5F] border border-[#2FA084]/20 capitalize">
                             {item.type}
                           </span>
                         )}
@@ -1370,40 +1370,40 @@ export default function InventoryPage() {
 
                   {/* Stock counter */}
                   <div className="text-right shrink-0">
-                    <p className="font-black text-xl text-[#1F6F5F] font-tabular leading-none">{item.stockLevel}</p>
-                    <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">{item.unit}s</p>
+                    <p className="font-black text-lg text-[#1F6F5F] font-tabular leading-none">{item.stockLevel}</p>
+                    <p className="text-[8px] text-gray-400 font-bold uppercase mt-0.5">{item.unit}s</p>
                   </div>
                 </div>
 
                 {/* Bottom row: status + direct + adjust action + more icons */}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md ${
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`inline-flex px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-md ${
                       item.stockLevel <= item.lowStockThreshold 
                       ? 'bg-red-100 text-red-700 border border-red-200' 
                       : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                     }`}>
-                      {item.stockLevel <= item.lowStockThreshold ? '⚠ Low Stock' : '✓ Healthy'}
+                      {item.stockLevel <= item.lowStockThreshold ? '⚠ Low' : '✓ Healthy'}
                     </span>
                     {item.designUrl && (
                       <button
                         onClick={() => setDesignViewerItem(item)}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md border border-[#2FA084]/30 bg-[#2FA084]/10 text-[#1F6F5F]"
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-md border border-[#2FA084]/30 bg-[#2FA084]/10 text-[#1F6F5F]"
                       >
-                        <Eye className="w-3 h-3" /> Preview
+                        <Eye className="w-2.5 h-2.5" /> Preview
                       </button>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <button 
                       onClick={() => setUpdateItem(item)} 
-                      className="px-2.5 py-1.5 rounded-xl bg-[#1F6F5F] text-white text-[10px] font-black tracking-tight active:scale-95 shadow-sm transition-all"
+                      className="px-2 py-1 rounded-lg bg-[#1F6F5F] text-white text-[10px] font-black tracking-tight active:scale-95 shadow-xs transition-all"
                     >
                       + Adjust
                     </button>
-                    <button onClick={() => setHistoryItem(item)} className="p-2 rounded-xl text-gray-400 hover:text-[#2FA084] transition-all bg-gray-100" title="Logs"><History className="w-4 h-4" /></button>
-                    <button onClick={() => handleDeleteRequest(item.id)} className="p-2 rounded-xl text-gray-400 hover:text-red-500 transition-all bg-gray-100" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => setHistoryItem(item)} className="p-1.5 rounded-lg text-gray-400 hover:text-[#2FA084] transition-all bg-gray-100" title="Logs"><History className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => handleDeleteRequest(item.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 transition-all bg-gray-100" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </div>
               </div>

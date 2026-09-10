@@ -759,51 +759,52 @@ export default function CatalogueStudioPage() {
   return (
     <div className="w-full min-h-screen pb-20 max-w-7xl mx-auto px-4 sm:px-6">
       {/* Studio Header Toolbar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 py-6 border-b border-slate-200/80 mb-6 print:hidden">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 py-3 sm:py-6 border-b border-slate-200/80 mb-4 sm:mb-6 print:hidden">
         <div>
           <div className="flex items-center gap-2">
-            <Link href="/" className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+            <Link href="/" className="p-1.5 sm:p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <BookOpen className="w-6 h-6 text-[#0F4C3A]" /> Catalogue Studio
+            <h1 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+              <BookOpen className="w-5 h-5 text-[#0F4C3A]" /> Catalogue Studio
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30 text-[10px] font-black uppercase tracking-wider">
-              Multi-Catalogue Engine
+            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
+              Engine
             </span>
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">
-            Create custom catalogues for Flooring, Bathroom, Parking, Pooja Room & Elevation tiles.
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
+            Create custom catalogues for Flooring, Bathroom, Elevation & Pooja tiles.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        {/* Compact Actions Row */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
           {/* Add New Tile Button */}
           <button
             onClick={handleOpenAddModal}
-            className="flex items-center gap-2 bg-[#0F4C3A] hover:bg-[#0c3d2e] text-white px-4 py-2.5 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 bg-[#0F4C3A] hover:bg-[#0c3d2e] text-white px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl text-xs font-black shadow-sm transition-all active:scale-95 cursor-pointer whitespace-nowrap"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>Upload Designs</span>
           </button>
 
           {/* Theme Toggle */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shrink-0">
             <button
               onClick={() => setActiveTheme("dark")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                 activeTheme === "dark" ? "bg-[#0A192F] text-[#D4AF37] shadow-sm" : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              🌌 Midnight Gold
+              🌌 Midnight
             </button>
             <button
               onClick={() => setActiveTheme("light")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                 activeTheme === "light" ? "bg-white text-[#0A192F] shadow-sm" : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              ✨ Crisp Studio
+              ✨ Crisp
             </button>
           </div>
 
@@ -811,17 +812,17 @@ export default function CatalogueStudioPage() {
           <button
             onClick={handleExportPDF}
             disabled={isExportingPDF}
-            className="flex items-center gap-2 bg-[#D4AF37] hover:bg-[#c49f27] text-[#0A192F] px-5 py-2.5 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 bg-[#D4AF37] hover:bg-[#c49f27] text-[#0A192F] px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl text-xs font-black shadow-sm transition-all active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
           >
             {isExportingPDF ? (
               <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Generating HD PDF...</span>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Generating...</span>
               </>
             ) : (
               <>
-                <Download className="w-4 h-4" />
-                <span>Download PDF</span>
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span>PDF</span>
               </>
             )}
           </button>
