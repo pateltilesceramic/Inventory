@@ -192,6 +192,7 @@ export default function BillingPage() {
       finalNetAmount: finalAmountVal,
       amountPaid: amountPaidVal,
       balanceDue: balanceDueVal,
+      createdAt: invoiceDate ? `${invoiceDate}T12:00:00.000Z` : undefined,
       items: payloadItems
     }
 
@@ -860,7 +861,7 @@ export default function BillingPage() {
                   <div className="flex gap-2 sm:gap-3 items-center justify-end w-full sm:w-auto">
                      <button type="button" onClick={() => { setIsAddRouteOpen(false); resetForm(); }} className="px-3 py-1.5 rounded-lg text-[#111111]/60 hover:text-[#111111] font-medium transition-colors cursor-pointer text-xs sm:text-sm">Cancel</button>
                      <button onClick={handleSaveBill} disabled={!customerName || billItems.length === 0 || isSubmitting} className="flex-1 sm:flex-none text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-sm text-center" style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset, 0 -2px 0 rgba(0,0,0,0.18) inset, 0 4px 14px rgba(31,111,95,0.30)', border: '1px solid rgba(0,0,0,0.12)' }}>
-                        {isSubmitting ? 'Saving...' : (editingBill ? 'Update Stock' : 'Finalize & Deduct Stock')}
+                        {isSubmitting ? 'Saving...' : (editingBill ? 'UPDATE' : 'Finalize & Deduct Stock')}
                      </button>
                   </div>
                </div>
