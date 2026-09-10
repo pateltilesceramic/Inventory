@@ -23,13 +23,24 @@ import {
 // --- Catalogue Category Presets ---
 const CATALOGUE_CATEGORIES = [
   { id: "all", name: "Master Collection", subtitle: "PREMIUM COLLECTION 2026", sizeText: "ALL TILES & SANITARY" },
-  { id: "flooring", name: "Flooring Tiles", subtitle: "PREMIUM TILES COLLECTION 2026", sizeText: "FLOOR TILES" },
+  { id: "tiles-only", name: "Tiles Only", subtitle: "PREMIUM TILES COLLECTION 2026", sizeText: "ALL TILES" },
+  { id: "sanitary", name: "Sanitaryware Only", subtitle: "LUXURY SANITARY & VANITY 2026", sizeText: "SANITARY COLLECTION" },
+  { id: "elevation", name: "Elevation Tiles", subtitle: "EXTERIOR ELEVATION TILES 2026", sizeText: "ELEVATION TILES" },
   { id: "bathroom", name: "Bathroom Tiles", subtitle: "LUXURY BATHROOM TILES 2026", sizeText: "BATHROOM TILES" },
+  { id: "flooring", name: "Flooring Tiles", subtitle: "PREMIUM TILES COLLECTION 2026", sizeText: "FLOOR TILES" },
   { id: "parking", name: "Parking Tiles", subtitle: "HEAVY DUTY PARKING TILES 2026", sizeText: "PARKING TILES" },
   { id: "pooja", name: "Pooja Room Tiles", subtitle: "POOJA ROOM DECORATIVE TILES 2026", sizeText: "POOJA ROOM TILES" },
-  { id: "elevation", name: "Elevation Tiles", subtitle: "EXTERIOR ELEVATION TILES 2026", sizeText: "ELEVATION TILES" },
   { id: "one-piece", name: "One Piece", subtitle: "PREMIUM ONE PIECE 2026", sizeText: "ONE PIECE" },
   { id: "cabinets-vanity", name: "Cabinets/Vanity Set", subtitle: "PREMIUM CABINETS & VANITY SETS 2026", sizeText: "CABINETS / VANITY" },
+]
+
+// --- Catalogue Size Presets ---
+const CATALOGUE_SIZES = [
+  { id: "all", name: "All Sizes", label: "All Sizes" },
+  { id: "4x2", name: "4x2 (600x1200)", label: "4x2 (600x1200 mm)" },
+  { id: "2x2", name: "2x2 (600x600)", label: "2x2 (600x600 mm)" },
+  { id: "800x1600", name: "800x1600", label: "800x1600 mm" },
+  { id: "elevation-sizes", name: "Elevation Sizes", label: "300x450 / 300x600 mm" },
 ]
 
 // --- Catalogue Item Interface ---
@@ -185,6 +196,8 @@ export default function CatalogueStudioPage() {
 
 
   const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedSize, setSelectedSize] = useState("all")
+  const [isQuickExportModalOpen, setIsQuickExportModalOpen] = useState(false)
   const [activeTheme, setActiveTheme] = useState<"dark" | "light">("dark")
   const [catalogTitle, setCatalogTitle] = useState("PATEL TILES & CERAMIC")
   const [catalogSubtitle, setCatalogSubtitle] = useState("PREMIUM COLLECTION 2026")
@@ -347,20 +360,100 @@ export default function CatalogueStudioPage() {
     setIsAddModalOpen(true)
   }
 
+  // Synchronize dynamic cover and size labels
+  const updateCatalogueMeta = (catId: string, sizeId: string) => {
+    let sub = "PREMIUM COLLECTION 2026"
+    let st = "ALL TILES & SANITARY"
+
+    if (sizeId === "4x2") {
+      sub = "PREMIUM 4x2 (600x1200 MM) TILES 2026"
+      st = "4x2 (600x1200 MM)"
+    } else if (sizeId === "2x2") {
+      sub = "PREMIUM 2x2 (600x600 MM) TILES 2026"
+      st = "2x2 (600x600 MM)"
+    } else if (sizeId === "800x1600") {
+      sub = "LUXURY SLAB 800x1600 MM 2026"
+      st = "800x1600 MM"
+    } else if (sizeId === "elevation-sizes") {
+      sub = "EXTERIOR ELEVATION TILES 2026"
+      st = "ELEVATION SIZES"
+    }
+
+    if (catId === "sanitary") {
+      sub = sizeId !== "all" ? `LUXURY SANITARYWARE (${st}) 2026` : "LUXURY SANITARYWARE & VANITY 2026"
+      st = "SANITARY COLLECTION"
+    } else if (catId === "elevation") {
+      sub = sizeId !== "all" ? `EXTERIOR ELEVATION TILES (${st}) 2026` : "EXTERIOR ELEVATION TILES 2026"
+      st = "ELEVATION TILES"
+    } else if (catId === "bathroom") {
+      sub = sizeId !== "all" ? `LUXURY BATHROOM TILES (${st}) 2026` : "LUXURY BATHROOM TILES 2026"
+      st = "BATHROOM TILES"
+    } else if (catId === "flooring") {
+      sub = sizeId !== "all" ? `PREMIUM FLOOR TILES (${st}) 2026` : "PREMIUM FLOOR TILES 2026"
+      st = "FLOOR TILES"
+    } else if (catId === "pooja") {
+      sub = sizeId !== "all" ? `POOJA ROOM TILES (${st}) 2026` : "POOJA ROOM DECORATIVE TILES 2026"
+      st = "POOJA ROOM TILES"
+    } else if (catId === "parking") {
+      sub = sizeId !== "all" ? `HEAVY DUTY PARKING TILES (${st}) 2026` : "HEAVY DUTY PARKING TILES 2026"
+      st = "PARKING TILES"
+    } else if (catId === "one-piece") {
+      sub = "PREMIUM ONE PIECE 2026"
+      st = "ONE PIECE"
+    } else if (catId === "cabinets-vanity") {
+      sub = "PREMIUM CABINETS & VANITY SETS 2026"
+      st = "CABINETS / VANITY"
+    }
+
+    setCatalogSubtitle(sub)
+    setTileSizeText(st)
+  }
+
   // Handle Category Switching
   const handleCategorySelect = (catId: string) => {
     setSelectedCategory(catId)
-    const preset = CATALOGUE_CATEGORIES.find(c => c.id === catId)
-    if (preset) {
-      setCatalogSubtitle(preset.subtitle)
-      setTileSizeText(preset.sizeText)
-    }
+    updateCatalogueMeta(catId, selectedSize)
   }
 
-  // Filter items by category
-  const filteredItems = selectedCategory === "all" 
-    ? items 
-    : items.filter(item => item.category === selectedCategory || selectedCategory === "all")
+  // Handle Size Switching
+  const handleSizeSelect = (sizeId: string) => {
+    setSelectedSize(sizeId)
+    updateCatalogueMeta(selectedCategory, sizeId)
+  }
+
+  // Category matching helper
+  const matchesCategory = (item: CatalogueItem, catId: string) => {
+    if (catId === "all") return true
+    if (catId === "sanitary") {
+      return item.category === "one-piece" || item.category === "cabinets-vanity" || item.category === "sanitary"
+    }
+    if (catId === "tiles-only") {
+      return item.category !== "one-piece" && item.category !== "cabinets-vanity" && item.category !== "sanitary"
+    }
+    return item.category === catId
+  }
+
+  // Size matching helper
+  const matchesSize = (item: CatalogueItem, sizeId: string) => {
+    if (sizeId === "all") return true
+    const s = (item.size || "").toLowerCase().replace(/\s/g, '')
+    if (sizeId === "4x2") {
+      return s.includes("600x1200") || s.includes("1200x600") || s.includes("4x2") || s.includes("4*2")
+    }
+    if (sizeId === "2x2") {
+      return s.includes("600x600") || s.includes("2x2") || s.includes("2*2")
+    }
+    if (sizeId === "800x1600") {
+      return s.includes("800x1600") || s.includes("1600x800")
+    }
+    if (sizeId === "elevation-sizes") {
+      return s.includes("300x450") || s.includes("300x600") || item.category === "elevation"
+    }
+    return true
+  }
+
+  // Filter items by category AND size
+  const filteredItems = items.filter(item => matchesCategory(item, selectedCategory) && matchesSize(item, selectedSize))
 
   // Dynamic weight-based chunking to perfectly match the requested layout constraints
   const MAX_WEIGHT = 3.0
@@ -746,7 +839,15 @@ export default function CatalogueStudioPage() {
       }
 
       if (doc) {
-        doc.save(`Patel_Tiles_Catalogue_${selectedCategory.toUpperCase()}_2026.pdf`)
+        let exportName = "Patel_Tiles_Catalogue"
+        if (selectedCategory !== "all") {
+          exportName += `_${selectedCategory.toUpperCase().replace(/[^A-Z0-9]/g, '_')}`
+        }
+        if (selectedSize !== "all") {
+          exportName += `_${selectedSize.toUpperCase().replace(/[^A-Z0-9]/g, '_')}`
+        }
+        exportName += "_2026.pdf"
+        doc.save(exportName)
       }
     } catch (err) {
       console.error("PDF generation error, falling back to browser print:", err)
@@ -754,6 +855,17 @@ export default function CatalogueStudioPage() {
     } finally {
       setIsExportingPDF(false)
     }
+  }
+
+  // Quick Export Presets Handler
+  const handleQuickExport = (catId: string, sizeId: string) => {
+    setSelectedCategory(catId)
+    setSelectedSize(sizeId)
+    updateCatalogueMeta(catId, sizeId)
+    setIsQuickExportModalOpen(false)
+    setTimeout(() => {
+      handleExportPDF()
+    }, 450)
   }
 
   return (
@@ -808,55 +920,103 @@ export default function CatalogueStudioPage() {
             </button>
           </div>
 
-          {/* Download PDF */}
+          {/* Download PDF Button */}
           <button
-            onClick={handleExportPDF}
+            onClick={() => setIsQuickExportModalOpen(true)}
             disabled={isExportingPDF}
             className="flex items-center gap-1.5 bg-[#D4AF37] hover:bg-[#c49f27] text-[#0A192F] px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl text-xs font-black shadow-sm transition-all active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
+            title="Download Filtered Catalogue PDF"
           >
             {isExportingPDF ? (
               <>
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Generating...</span>
+                <span>Generating PDF...</span>
               </>
             ) : (
               <>
                 <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>PDF</span>
+                <span>Download PDF</span>
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* CATALOGUE CATEGORY SELECTOR BAR */}
-      <div className="mb-8 p-3 rounded-2xl bg-[#0A192F] border border-[#D4AF37]/30 shadow-lg print:hidden">
-        <div className="flex items-center justify-between gap-2 mb-2 px-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5" /> Select Catalogue Category to Generate:
-          </span>
-          <span className="text-[10px] font-mono text-slate-400 font-bold">
-            Showing {filteredItems.length} Tiles • {numIndexPages} Index {numIndexPages === 1 ? "Page" : "Pages"}
-          </span>
+      {/* CATALOGUE DUAL-AXIS FILTER BAR (CATEGORY & SIZES) */}
+      <div className="mb-8 p-3.5 sm:p-4 rounded-2xl bg-[#0A192F] border border-[#D4AF37]/30 shadow-lg print:hidden space-y-3">
+        {/* Status Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-black uppercase tracking-wider text-[#D4AF37] flex items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5 text-[#D4AF37]" /> Catalogue Studio Filters:
+            </span>
+            <span className="text-[10px] font-mono text-slate-300 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700">
+              {filteredItems.length} {filteredItems.length === 1 ? 'Design' : 'Designs'} • {numIndexPages} Index {numIndexPages === 1 ? 'Page' : 'Pages'}
+            </span>
+          </div>
+
+          {(selectedCategory !== "all" || selectedSize !== "all") && (
+            <button
+              onClick={() => {
+                setSelectedCategory("all")
+                setSelectedSize("all")
+                updateCatalogueMeta("all", "all")
+              }}
+              className="text-[10px] font-bold text-amber-300 hover:text-white underline cursor-pointer transition-colors"
+            >
+              Reset Filters (Show All)
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {CATALOGUE_CATEGORIES.map(cat => {
-            const isSelected = selectedCategory === cat.id
-            return (
-              <button
-                key={cat.id}
-                onClick={() => handleCategorySelect(cat.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 border ${
-                  isSelected
-                    ? "bg-[#D4AF37] text-[#0A192F] border-[#D4AF37] shadow-md font-black"
-                    : "bg-slate-900/80 text-slate-300 border-slate-800 hover:border-[#D4AF37]/50 hover:text-white"
-                }`}
-              >
-                {cat.name}
-              </button>
-            )
-          })}
+        {/* Row 1: Category & Department Pills */}
+        <div className="space-y-1">
+          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block px-1">
+            Department / Category
+          </span>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {CATALOGUE_CATEGORIES.map(cat => {
+              const isSelected = selectedCategory === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => handleCategorySelect(cat.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border cursor-pointer ${
+                    isSelected
+                      ? "bg-[#D4AF37] text-[#0A192F] border-[#D4AF37] shadow-md font-black"
+                      : "bg-slate-900/80 text-slate-300 border-slate-800 hover:border-[#D4AF37]/50 hover:text-white"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Row 2: Tile Size Filter Pills */}
+        <div className="space-y-1 pt-1 border-t border-slate-800/70">
+          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block px-1">
+            Tile Dimensions (Size)
+          </span>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {CATALOGUE_SIZES.map(sz => {
+              const isSelected = selectedSize === sz.id
+              return (
+                <button
+                  key={sz.id}
+                  onClick={() => handleSizeSelect(sz.id)}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 border cursor-pointer ${
+                    isSelected
+                      ? "bg-emerald-500 text-white border-emerald-400 shadow-sm font-bold"
+                      : "bg-slate-900/60 text-slate-300 border-slate-800 hover:border-emerald-500/50 hover:text-white"
+                  }`}
+                >
+                  {sz.label}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
@@ -1899,6 +2059,172 @@ export default function CatalogueStudioPage() {
                   </div>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick Export Catalogue PDF Modal */}
+      <AnimatePresence>
+        {isQuickExportModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:hidden" style={{ background: 'rgba(5, 15, 30, 0.85)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="w-full max-w-xl rounded-3xl bg-[#0A192F] border-2 border-[#D4AF37]/50 shadow-2xl p-5 sm:p-7 text-white space-y-5 relative overflow-hidden"
+            >
+              {/* Background Ambient Glow */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none" />
+
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4 relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-[#D4AF37]/15 border border-[#D4AF37]/40 text-[#D4AF37]">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                      Export Catalogue PDF
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Select a specific category, tile size, or download your current selection
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsQuickExportModalOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Current Active Selection Card */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800/80 border border-slate-700/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#D4AF37]">
+                    Current Screen Selection
+                  </span>
+                  <span className="text-xs font-mono font-bold text-slate-300">
+                    {filteredItems.length} {filteredItems.length === 1 ? 'Design' : 'Designs'} • {numIndexPages} {numIndexPages === 1 ? 'Page' : 'Pages'}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 text-slate-300">
+                    Category: <strong className="text-white">{CATALOGUE_CATEGORIES.find(c => c.id === selectedCategory)?.name || selectedCategory}</strong>
+                  </span>
+                  <span className="bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 text-slate-300">
+                    Size: <strong className="text-white">{CATALOGUE_SIZES.find(s => s.id === selectedSize)?.label || selectedSize}</strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  disabled={isExportingPDF || filteredItems.length === 0}
+                  onClick={() => {
+                    setIsQuickExportModalOpen(false)
+                    handleExportPDF()
+                  }}
+                  className="w-full py-3 rounded-xl bg-[#D4AF37] hover:bg-[#c49f27] text-[#0A192F] font-black text-xs sm:text-sm uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Current Selection ({filteredItems.length} Items)</span>
+                </button>
+              </div>
+
+              {/* 1-Click Fast Presets */}
+              <div className="space-y-2 relative z-10">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] block">
+                  ⚡ 1-Click Specific Catalogue Downloads
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* 4x2 Tiles */}
+                  <button
+                    type="button"
+                    disabled={isExportingPDF}
+                    onClick={() => handleQuickExport("all", "4x2")}
+                    className="p-3 rounded-xl bg-slate-900 hover:bg-slate-800/90 border border-slate-700/80 hover:border-[#D4AF37]/50 text-left transition-all group cursor-pointer flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-xs font-bold text-white group-hover:text-[#D4AF37] transition-colors">4x2 Tiles Catalogue</p>
+                      <p className="text-[10px] text-slate-400">600x1200 mm Only ({items.filter(i => matchesSize(i, "4x2")).length} Items)</p>
+                    </div>
+                    <Download className="w-4 h-4 text-slate-400 group-hover:text-[#D4AF37] transition-colors" />
+                  </button>
+
+                  {/* 2x2 Tiles */}
+                  <button
+                    type="button"
+                    disabled={isExportingPDF}
+                    onClick={() => handleQuickExport("all", "2x2")}
+                    className="p-3 rounded-xl bg-slate-900 hover:bg-slate-800/90 border border-slate-700/80 hover:border-[#D4AF37]/50 text-left transition-all group cursor-pointer flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-xs font-bold text-white group-hover:text-[#D4AF37] transition-colors">2x2 Tiles Catalogue</p>
+                      <p className="text-[10px] text-slate-400">600x600 mm Only ({items.filter(i => matchesSize(i, "2x2")).length} Items)</p>
+                    </div>
+                    <Download className="w-4 h-4 text-slate-400 group-hover:text-[#D4AF37] transition-colors" />
+                  </button>
+
+                  {/* Sanitaryware Only */}
+                  <button
+                    type="button"
+                    disabled={isExportingPDF}
+                    onClick={() => handleQuickExport("sanitary", "all")}
+                    className="p-3 rounded-xl bg-slate-900 hover:bg-slate-800/90 border border-slate-700/80 hover:border-[#D4AF37]/50 text-left transition-all group cursor-pointer flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-xs font-bold text-white group-hover:text-[#D4AF37] transition-colors">Sanitaryware & Vanity</p>
+                      <p className="text-[10px] text-slate-400">One Piece & Cabinets ({items.filter(i => matchesCategory(i, "sanitary")).length} Items)</p>
+                    </div>
+                    <Download className="w-4 h-4 text-slate-400 group-hover:text-[#D4AF37] transition-colors" />
+                  </button>
+
+                  {/* Elevation Tiles */}
+                  <button
+                    type="button"
+                    disabled={isExportingPDF}
+                    onClick={() => handleQuickExport("elevation", "all")}
+                    className="p-3 rounded-xl bg-slate-900 hover:bg-slate-800/90 border border-slate-700/80 hover:border-[#D4AF37]/50 text-left transition-all group cursor-pointer flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-xs font-bold text-white group-hover:text-[#D4AF37] transition-colors">Elevation Tiles</p>
+                      <p className="text-[10px] text-slate-400">Exterior Walls ({items.filter(i => matchesCategory(i, "elevation")).length} Items)</p>
+                    </div>
+                    <Download className="w-4 h-4 text-slate-400 group-hover:text-[#D4AF37] transition-colors" />
+                  </button>
+
+                  {/* Bathroom Tiles */}
+                  <button
+                    type="button"
+                    disabled={isExportingPDF}
+                    onClick={() => handleQuickExport("bathroom", "all")}
+                    className="p-3 rounded-xl bg-slate-900 hover:bg-slate-800/90 border border-slate-700/80 hover:border-[#D4AF37]/50 text-left transition-all group cursor-pointer flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-xs font-bold text-white group-hover:text-[#D4AF37] transition-colors">Bathroom Tiles</p>
+                      <p className="text-[10px] text-slate-400">Luxury Bath Concept ({items.filter(i => matchesCategory(i, "bathroom")).length} Items)</p>
+                    </div>
+                    <Download className="w-4 h-4 text-slate-400 group-hover:text-[#D4AF37] transition-colors" />
+                  </button>
+
+                  {/* Complete Master Catalogue */}
+                  <button
+                    type="button"
+                    disabled={isExportingPDF}
+                    onClick={() => handleQuickExport("all", "all")}
+                    className="p-3 rounded-xl bg-slate-900 hover:bg-slate-800/90 border border-slate-700/80 hover:border-[#D4AF37]/50 text-left transition-all group cursor-pointer flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-xs font-bold text-white group-hover:text-[#D4AF37] transition-colors">Full Master Catalogue</p>
+                      <p className="text-[10px] text-slate-400">All Tiles & Sanitary ({items.length} Items)</p>
+                    </div>
+                    <Download className="w-4 h-4 text-slate-400 group-hover:text-[#D4AF37] transition-colors" />
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </div>
         )}
