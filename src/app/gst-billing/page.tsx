@@ -506,7 +506,7 @@ export default function GSTBillingPage() {
                                   </div>
                                   <div className="md:w-20">
                                      <label className="md:hidden text-[9px] font-black text-[#111111]/30 uppercase mb-1 block text-center">Qty</label>
-                                     <input type="number" value={item.qty || ""} onChange={e => {
+                                     <input type="number" inputMode="numeric" value={item.qty || ""} onChange={e => {
                                        const newItems = [...lineItems]
                                        newItems[idx].qty = e.target.value
                                        setLineItems(newItems)
@@ -514,7 +514,7 @@ export default function GSTBillingPage() {
                                   </div>
                                   <div className="md:w-32">
                                      <label className="md:hidden text-[9px] font-black text-[#111111]/30 uppercase mb-1 block text-right">Rate (₹)</label>
-                                     <input type="number" value={item.rate || ""} onChange={e => {
+                                     <input type="number" inputMode="decimal" step="0.01" value={item.rate || ""} onChange={e => {
                                        const newItems = [...lineItems]
                                        newItems[idx].rate = e.target.value
                                        setLineItems(newItems)

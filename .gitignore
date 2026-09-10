@@ -26,6 +26,8 @@ next-env.d.ts
 
 # assistant & logs
 .gemini
+.agent
+.agents
 /scratch
 /artifacts
 /walkthrough.md

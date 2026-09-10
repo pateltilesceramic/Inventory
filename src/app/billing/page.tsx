@@ -1,10 +1,10 @@
 "use client"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import { FadeIn } from "@/components/motion/FadeIn"
 import { SecurityGate } from "@/components/SecurityGate"
 import { PaginationControls } from "@/components/common/PaginationControls"
 import { getInventory, createBill, updateBill, getBills, deleteBill, backfillInvoiceNumbers, recordBillPayment } from "@/lib/actions"
-import { Trash2, Search, Receipt, Plus, AlertCircle, Calendar, Filter, Printer, X, Layers, Droplet, Pencil } from "lucide-react"
+import { Trash2, Search, Receipt, Plus, AlertCircle, Calendar, Filter, Printer, X, Layers, Droplet, Pencil, MessageCircle, Minus, ChevronDown, ChevronUp, Users, Wallet, Phone, Clock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 function formatDate(dateStr: string) {
@@ -40,6 +40,12 @@ export default function BillingPage() {
   const [billSearch, setBillSearch] = useState("")
   const [dateFilter, setDateFilter] = useState("") // Empty string means "Show All" by default
   const [activeTab, setActiveTab] = useState<"All" | "Pending">("All")
+  const [pendingViewMode, setPendingViewMode] = useState<"customer" | "bills">("customer")
+  const [expandedCustomers, setExpandedCustomers] = useState<Record<string, boolean>>({})
+  const [customerPaymentModal, setCustomerPaymentModal] = useState<{ customerName: string; customerPhone?: string; totalDue: number; bills: any[] } | null>(null)
+  const [customerPaymentAmount, setCustomerPaymentAmount] = useState("")
+  const [isSubmittingCustomerPayment, setIsSubmittingCustomerPayment] = useState(false)
+  const [customerPaymentError, setCustomerPaymentError] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -83,6 +89,36 @@ export default function BillingPage() {
     setFinalNetAmountInput("")
     setAmountPaidInput("")
     setValidationError("")
+  }
+
+  const handleWhatsAppShare = (bill: any) => {
+    const rawPhone = (bill.customerPhone || "").replace(/[^0-9]/g, "")
+    const phone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone
+    const finalAmt = bill.finalNetAmount !== null && bill.finalNetAmount !== undefined ? bill.finalNetAmount : bill.totalAmount
+    const itemsText = (bill.items || []).map((i: any, idx: number) => 
+      `${idx + 1}. *${i.name}* - ${i.quantity} ${i.unit}s @ ₹${i.price} = ₹${(i.quantity * i.price).toFixed(2)}`
+    ).join('\n')
+    
+    const balanceText = (bill.balanceDue || 0) > 0 
+      ? `\n*Advance Received:* ₹${((bill.amountPaid || 0)).toFixed(2)}\n*Balance Due:* ₹${bill.balanceDue.toFixed(2)}`
+      : `\n*Status:* PAID IN FULL ✅`
+
+    const message = `*PATEL TILES & CERAMIC*\n` +
+      `--------------------------------\n` +
+      `*Invoice:* ${bill.invoiceNo || 'Cash Bill'}\n` +
+      `*Date:* ${formatDate(bill.createdAt)}\n` +
+      `*Customer:* ${bill.customerName}\n` +
+      (bill.customerPhone ? `*Phone:* ${bill.customerPhone}\n` : '') +
+      `--------------------------------\n` +
+      `*Items:*\n${itemsText}\n` +
+      `--------------------------------\n` +
+      `*Final Total:* ₹${finalAmt.toFixed(2)}${balanceText}\n\n` +
+      `Thank you for your business!`
+
+    const waUrl = phone 
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+      : `https://wa.me/?text=${encodeURIComponent(message)}`
+    window.open(waUrl, '_blank')
   }
 
   const handleEditBill = (bill: any) => {
@@ -250,6 +286,112 @@ export default function BillingPage() {
     }
   }
 
+  const getDaysAgo = (dateStr: string) => {
+    const diffMs = Date.now() - new Date(dateStr).getTime()
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    if (days === 0) return "Today"
+    if (days === 1) return "1 day ago"
+    return `${days} days ago`
+  }
+
+  // Customer Groups for Pending Bills
+  const customerGroups = useMemo(() => {
+    const map = new Map<string, {
+      customerName: string
+      customerPhone?: string
+      totalDue: number
+      totalAmount: number
+      bills: any[]
+      oldestDate: string
+    }>()
+
+    bills.forEach(bill => {
+      if ((bill.balanceDue || 0) > 0) {
+        const nameKey = (bill.customerName || "Walk-in Customer").trim().toLowerCase()
+        const existing = map.get(nameKey)
+        const billTotal = bill.finalNetAmount !== null && bill.finalNetAmount !== undefined ? bill.finalNetAmount : bill.totalAmount
+
+        if (!existing) {
+          map.set(nameKey, {
+            customerName: bill.customerName || "Walk-in Customer",
+            customerPhone: bill.customerPhone || "",
+            totalDue: bill.balanceDue || 0,
+            totalAmount: billTotal || 0,
+            bills: [bill],
+            oldestDate: bill.createdAt
+          })
+        } else {
+          existing.totalDue += (bill.balanceDue || 0)
+          existing.totalAmount += (billTotal || 0)
+          if (bill.customerPhone && !existing.customerPhone) {
+            existing.customerPhone = bill.customerPhone
+          }
+          existing.bills.push(bill)
+          if (new Date(bill.createdAt) < new Date(existing.oldestDate)) {
+            existing.oldestDate = bill.createdAt
+          }
+        }
+      }
+    })
+
+    // Sort bills in each group oldest first (FIFO order)
+    const list = Array.from(map.values()).map(g => ({
+      ...g,
+      bills: g.bills.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    }))
+
+    // Sort customer groups by highest balance due first
+    return list.sort((a, b) => b.totalDue - a.totalDue)
+  }, [bills])
+
+  const totalPendingDues = useMemo(() => {
+    return bills.reduce((acc, b) => acc + (b.balanceDue || 0), 0)
+  }, [bills])
+
+  const totalPendingBillsCount = useMemo(() => {
+    return bills.filter(b => (b.balanceDue || 0) > 0).length
+  }, [bills])
+
+  // FIFO payment distribution across customer's pending bills
+  const handleCustomerPayment = async () => {
+    if (!customerPaymentModal) return
+    setCustomerPaymentError("")
+    let remainingAmount = parseFloat(customerPaymentAmount)
+    if (isNaN(remainingAmount) || remainingAmount <= 0) {
+      setCustomerPaymentError("Please enter a valid amount greater than 0.")
+      return
+    }
+    if (remainingAmount > customerPaymentModal.totalDue + 0.05) {
+      setCustomerPaymentError(`Amount cannot exceed total balance due (₹${customerPaymentModal.totalDue.toFixed(2)})`)
+      return
+    }
+
+    setIsSubmittingCustomerPayment(true)
+    try {
+      // Settle oldest bills first
+      const sortedBills = [...customerPaymentModal.bills].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      for (const b of sortedBills) {
+        if (remainingAmount <= 0.009) break
+        const billDue = b.balanceDue || 0
+        if (billDue <= 0) continue
+        const paymentForThisBill = Math.min(remainingAmount, billDue)
+        const res: any = await recordBillPayment(b.id, paymentForThisBill)
+        if (res && res.success === false) {
+          throw new Error(res.error || `Failed to record payment for invoice ${b.invoiceNo}`)
+        }
+        remainingAmount -= paymentForThisBill
+      }
+
+      setCustomerPaymentModal(null)
+      setCustomerPaymentAmount("")
+      await loadData()
+    } catch (err: any) {
+      setCustomerPaymentError(err?.message || "Failed to record customer payment.")
+    } finally {
+      setIsSubmittingCustomerPayment(false)
+    }
+  }
+
   return (
     <div className="w-full pb-20 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -319,9 +461,9 @@ export default function BillingPage() {
                    </div>
 
                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Customer Phone</label>
-                       <input value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="e.g. 9876543210 (Optional)" className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-medium" />
-                   </div>
+                       <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Customer Phone</label>
+                        <input type="tel" inputMode="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="e.g. 9876543210 (Optional)" className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input text-sm font-medium" />
+                    </div>
 
                    <div className="space-y-1.5">
                       <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Invoice Date</label>
@@ -443,6 +585,7 @@ export default function BillingPage() {
                                    <div className="w-24">
                                       <input 
                                         type="number" 
+                                        inputMode="numeric"
                                         min="1" 
                                         value={bi.quantity} 
                                         onChange={e => {
@@ -456,6 +599,8 @@ export default function BillingPage() {
                                    <div className="w-32">
                                       <input 
                                         type="number" 
+                                        inputMode="decimal"
+                                        step="0.01"
                                         min="0" 
                                         value={bi.price} 
                                         onChange={e => {
@@ -585,24 +730,51 @@ export default function BillingPage() {
 
                              {/* Row 3: Qty + Price (₹) + Delete button */}
                              <div className="grid grid-cols-12 gap-3 items-end pt-1">
-                                <div className="col-span-5 space-y-1">
+                                <div className="col-span-6 space-y-1">
                                    <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">QTY</label>
-                                   <input 
-                                     type="number" 
-                                     min="1" 
-                                     value={bi.quantity} 
-                                     onChange={e => {
-                                       const val = e.target.value;
-                                       updateBillItem(bi.tempId, 'quantity', val === "" ? "" : (parseInt(val) || 0));
-                                     }} 
-                                     className="w-full text-center bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-2 text-[#111111] text-sm outline-none font-bold hide-arrows" 
-                                   />
+                                   <div className="flex items-center gap-1">
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                         const current = Number(bi.quantity) || 0
+                                         if (current > 1) updateBillItem(bi.tempId, 'quantity', current - 1)
+                                       }}
+                                       className="w-8 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center shrink-0 active:scale-95 transition-all text-base cursor-pointer"
+                                       title="Decrease 1"
+                                     >
+                                       -
+                                     </button>
+                                     <input 
+                                       type="number" 
+                                       inputMode="numeric"
+                                       min="1" 
+                                       value={bi.quantity} 
+                                       onChange={e => {
+                                         const val = e.target.value;
+                                         updateBillItem(bi.tempId, 'quantity', val === "" ? "" : (parseInt(val) || 0));
+                                       }} 
+                                       className="w-full text-center bg-white border border-gray-200 focus:border-[#2FA084] rounded-lg py-2 text-[#111111] text-sm outline-none font-bold hide-arrows" 
+                                     />
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                         const current = Number(bi.quantity) || 0
+                                         updateBillItem(bi.tempId, 'quantity', current + 1)
+                                       }}
+                                       className="w-8 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center shrink-0 active:scale-95 transition-all text-base cursor-pointer"
+                                       title="Increase 1"
+                                     >
+                                       +
+                                     </button>
+                                   </div>
                                 </div>
 
-                                <div className="col-span-5 space-y-1">
+                                <div className="col-span-4 space-y-1">
                                    <label className="text-[9px] font-bold text-[#111111]/40 uppercase block">PRICE (₹)</label>
                                    <input 
                                      type="number" 
+                                     inputMode="decimal"
+                                     step="0.01"
                                      min="0" 
                                      value={bi.price} 
                                      onChange={e => {
@@ -659,6 +831,7 @@ export default function BillingPage() {
                         <label className="text-[10px] font-bold text-[#111111]/60 uppercase tracking-wider block">Final Net Amount (₹)</label>
                         <input 
                           type="number"
+                          inputMode="decimal"
                           step="0.01"
                           placeholder={billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0).toFixed(2)}
                           value={finalNetAmountInput}
@@ -670,6 +843,7 @@ export default function BillingPage() {
                         <label className="text-[10px] font-bold text-[#111111]/60 uppercase tracking-wider block">Advance Received (₹)</label>
                         <input 
                           type="number"
+                          inputMode="decimal"
                           step="0.01"
                           placeholder={finalNetAmountInput || billItems.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0).toFixed(2)}
                           value={amountPaidInput}
@@ -767,6 +941,82 @@ export default function BillingPage() {
            </div>
         </div>
         
+        {/* Executive Dues Exposure Deck (Only on Pending Bills Tab) */}
+        {activeTab === 'Pending' && (
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-500/5 via-[#1F6F5F]/5 to-transparent border-b border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              <div className="bg-white/95 backdrop-blur rounded-2xl p-4 border border-amber-200 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider">Total Market Dues</span>
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700">
+                    <Wallet className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-xl sm:text-2xl font-black text-amber-700 font-tabular mt-1.5">
+                  ₹{totalPendingDues.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </p>
+                <p className="text-[10px] font-semibold text-gray-500 mt-0.5">Total uncollected across all accounts</p>
+              </div>
+
+              <div className="bg-white/95 backdrop-blur rounded-2xl p-4 border border-emerald-200 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-[#1F6F5F] uppercase tracking-wider">Parties with Dues</span>
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-[#1F6F5F]">
+                    <Users className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-xl sm:text-2xl font-black text-[#1F6F5F] font-tabular mt-1.5">
+                  {customerGroups.length} <span className="text-xs font-bold text-gray-500">Parties</span>
+                </p>
+                <p className="text-[10px] font-semibold text-gray-500 mt-0.5">Contractors, builders & customers</p>
+              </div>
+
+              <div className="bg-white/95 backdrop-blur rounded-2xl p-4 border border-gray-200 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-gray-600 uppercase tracking-wider">Total Unpaid Invoices</span>
+                  <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-700">
+                    <Receipt className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-xl sm:text-2xl font-black text-gray-800 font-tabular mt-1.5">
+                  {totalPendingBillsCount} <span className="text-xs font-bold text-gray-500">Invoices</span>
+                </p>
+                <p className="text-[10px] font-semibold text-gray-500 mt-0.5">Across {customerGroups.length} customer accounts</p>
+              </div>
+            </div>
+
+            {/* View Mode Switcher */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Mode:</span>
+                <div className="inline-flex p-0.5 bg-white border border-gray-200 rounded-xl shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setPendingViewMode("customer")}
+                    className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all cursor-pointer ${pendingViewMode === 'customer' ? 'bg-[#1F6F5F] text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'}`}
+                  >
+                    By Customer (Combined)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPendingViewMode("bills")}
+                    className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all cursor-pointer ${pendingViewMode === 'bills' ? 'bg-[#1F6F5F] text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'}`}
+                  >
+                    By Invoices (Single)
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-[11px] font-medium text-gray-500">
+                {pendingViewMode === 'customer' 
+                  ? 'Combining multiple bills per customer into single balance accounts' 
+                  : 'Showing all individual unpaid invoice rows'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!(activeTab === 'Pending' && pendingViewMode === 'customer') && (
         <div className="hidden md:grid grid-cols-12 gap-4 p-5 text-[11px] font-black text-[#111111] uppercase tracking-widest" style={{ borderBottom: '2px solid rgba(0,0,0,0.1)', background: 'linear-gradient(180deg, rgba(31,111,95,0.06) 0%, rgba(31,111,95,0.02) 100%)' }}>
           <div className="col-span-2">Invoice No</div>
           <div className={activeTab === 'Pending' ? "col-span-2" : "col-span-3"}>Customer Details</div>
@@ -775,9 +1025,180 @@ export default function BillingPage() {
           <div className="col-span-2 text-center">Receipt</div>
           <div className="col-span-2 text-center">Actions</div>
         </div>
+        )}
 
         <div className="divide-y divide-gray-300 border-t border-b border-gray-300">
-          {(() => {
+          {activeTab === 'Pending' && pendingViewMode === 'customer' ? (
+            <div className="divide-y divide-gray-200">
+              {(() => {
+                const filteredGroups = customerGroups.filter(g => {
+                  if (!billSearch.trim()) return true
+                  const q = billSearch.toLowerCase().trim()
+                  return g.customerName.toLowerCase().includes(q) || 
+                         (g.customerPhone && g.customerPhone.includes(q)) ||
+                         g.bills.some(b => b.invoiceNo && b.invoiceNo.toLowerCase().includes(q))
+                })
+
+                if (loading) {
+                  return <div className="p-10 text-center text-[#111111]/40 font-medium">Fetching customer accounts...</div>
+                }
+
+                if (customerGroups.length === 0) {
+                  return (
+                    <div className="p-16 text-center text-[#111111]/40">
+                      <Receipt className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                      <p className="font-bold text-base text-[#111111]/80">No Pending Customer Dues!</p>
+                      <p className="text-xs text-gray-500 mt-1">All sales and contractor invoices have been fully paid.</p>
+                    </div>
+                  )
+                }
+
+                if (filteredGroups.length === 0) {
+                  return <div className="p-16 text-center text-[#111111]/40 font-medium italic">No customer accounts match your search.</div>
+                }
+
+                return filteredGroups.map((g, i) => (
+                  <FadeIn key={g.customerName} delay={i * 0.02}>
+                    <div className="p-4 sm:p-5 hover:bg-gray-50/70 transition-colors">
+                      {/* Main Row */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-start gap-3.5 min-w-0">
+                          <div className="w-10 h-10 rounded-2xl bg-[#1F6F5F]/10 text-[#1F6F5F] border border-[#2FA084]/20 flex items-center justify-center font-black text-sm shrink-0 uppercase shadow-xs">
+                            {g.customerName.slice(0, 2)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="text-base font-black text-[#111111] truncate">{g.customerName}</h3>
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-200">
+                                {g.bills.length} {g.bills.length === 1 ? 'Bill' : 'Bills'} Pending
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 font-medium flex-wrap">
+                              {g.customerPhone ? (
+                                <a href={`tel:${g.customerPhone}`} className="inline-flex items-center gap-1 text-[#1F6F5F] font-bold hover:underline">
+                                  <Phone className="w-3 h-3" /> {g.customerPhone}
+                                </a>
+                              ) : (
+                                <span className="text-gray-400 italic text-[11px]">No phone</span>
+                              )}
+                              <span className="inline-flex items-center gap-1 text-gray-500 text-[11px]">
+                                <Clock className="w-3 h-3 text-gray-400" /> Oldest: {getDaysAgo(g.oldestDate)} ({formatDate(g.oldestDate)})
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Financials & Primary Actions */}
+                        <div className="flex items-center justify-between sm:justify-end gap-3.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                          <div className="text-left sm:text-right">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-amber-700">Total Balance Due</p>
+                            <p className="text-lg sm:text-xl font-black text-amber-700 font-tabular leading-tight">
+                              ₹{g.totalDue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </p>
+                            <p className="text-[10px] text-gray-400 font-medium">
+                              Invoiced: ₹{g.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCustomerPaymentModal(g)
+                                setCustomerPaymentAmount(String(g.totalDue))
+                                setCustomerPaymentError("")
+                              }}
+                              className="px-3.5 py-2 rounded-xl text-xs font-black text-white active:scale-95 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                              style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)' }}
+                              title="Settle balance across all bills (FIFO)"
+                            >
+                              <Wallet className="w-3.5 h-3.5" /> Settle Dues
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setExpandedCustomers(prev => ({
+                                  ...prev,
+                                  [g.customerName]: !prev[g.customerName]
+                                }))
+                              }}
+                              className="px-3 py-2 rounded-xl text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                              title="Toggle bill breakdown"
+                            >
+                              <span>Invoices ({g.bills.length})</span>
+                              {expandedCustomers[g.customerName] ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Expandable Bills Breakdown Accordion */}
+                      {expandedCustomers[g.customerName] && (
+                        <div className="mt-4 pt-3 border-t border-dashed border-gray-200 bg-gray-50/80 rounded-xl p-3 space-y-2">
+                          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-gray-400 px-2">
+                            <span>Individual Unpaid Invoices for {g.customerName}</span>
+                            <span>Oldest to Newest</span>
+                          </div>
+                          <div className="divide-y divide-gray-200/80 bg-white rounded-lg border border-gray-200 overflow-hidden shadow-xs">
+                            {g.bills.map(bill => {
+                              const finalAmt = bill.finalNetAmount !== null && bill.finalNetAmount !== undefined ? bill.finalNetAmount : bill.totalAmount
+                              return (
+                                <div key={bill.id} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50/80 transition-colors">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#1F6F5F] flex items-center justify-center font-bold text-xs shrink-0">
+                                      <Receipt className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-black text-xs text-[#1F6F5F]">{bill.invoiceNo || 'Draft'}</span>
+                                        <span className="text-[10px] text-gray-400 font-semibold">{formatDate(bill.createdAt)} ({getDaysAgo(bill.createdAt)})</span>
+                                      </div>
+                                      <p className="text-[11px] text-gray-500 font-medium">
+                                        Total: ₹{finalAmt.toFixed(2)} • Paid: ₹{(bill.amountPaid || 0).toFixed(2)}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                                    <div className="text-left sm:text-right">
+                                      <span className="text-[9px] font-black uppercase text-amber-700 block">Due</span>
+                                      <span className="text-sm font-black text-amber-700 font-tabular">₹{bill.balanceDue.toFixed(2)}</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedBillForView(bill)}
+                                        className="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                                      >
+                                        View
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setPaymentModalBill(bill)
+                                          setPaymentAmountInput(String(bill.balanceDue))
+                                          setPaymentError("")
+                                        }}
+                                        className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold rounded-lg transition-colors border border-amber-200 cursor-pointer"
+                                      >
+                                        + Pay
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </FadeIn>
+                ))
+              })()}
+            </div>
+          ) : (() => {
             const filteredBills = bills.filter(b => {
               const matchesSearch = b.customerName.toLowerCase().includes(billSearch.toLowerCase()) || (b.invoiceNo && b.invoiceNo.toLowerCase().includes(billSearch.toLowerCase()))
               const matchesDate = !dateFilter || new Date(b.createdAt).toISOString().substring(0, 10) === dateFilter
@@ -830,31 +1251,55 @@ export default function BillingPage() {
                           <p className="font-black text-sm text-[#1F6F5F]">
                             ₹{(bill.finalNetAmount !== null && bill.finalNetAmount !== undefined ? bill.finalNetAmount : bill.totalAmount).toFixed(2)}
                           </p>
+                          <div className="mt-1 flex justify-center">
+                            {bill.balanceDue > 0 ? (
+                              bill.amountPaid > 0 ? (
+                                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                                  PARTIAL (Due ₹{bill.balanceDue.toFixed(2)})
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
+                                  UNPAID
+                                </span>
+                              )
+                            ) : (
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                PAID
+                              </span>
+                            )}
+                          </div>
                       </div>
 
                       {activeTab === 'Pending' && (
                         <div className="col-span-2 text-center flex flex-col items-center justify-center">
                           {bill.balanceDue > 0 ? (
-                            <p className="font-black text-sm text-orange-500">
+                            <p className="font-black text-sm text-amber-600">
                               ₹{bill.balanceDue.toFixed(2)}
                             </p>
                           ) : (
-                            <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md">PAID</span>
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">PAID</span>
                           )}
                         </div>
                       )}
 
-                      <div className="col-span-2 text-center flex justify-center items-center gap-2">
+                      <div className="col-span-2 text-center flex justify-center items-center gap-1.5">
                         <button 
                             onClick={() => setSelectedBillForView(bill)} 
-                            className="px-3 py-1.5 bg-[#2FA084]/10 hover:bg-[#2FA084]/20 text-[#1F6F5F] text-xs font-bold rounded-lg transition-colors border border-[#2FA084]/20 whitespace-nowrap cursor-pointer shadow-sm"
+                            className="px-2.5 py-1.5 bg-[#2FA084]/10 hover:bg-[#2FA084]/20 text-[#1F6F5F] text-xs font-bold rounded-lg transition-colors border border-[#2FA084]/20 whitespace-nowrap cursor-pointer shadow-sm"
                         >
-                            View Bill
+                            View
+                        </button>
+                        <button 
+                            onClick={() => handleWhatsAppShare(bill)} 
+                            className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg transition-colors border border-emerald-200 cursor-pointer shadow-sm"
+                            title="Send invoice via WhatsApp"
+                        >
+                            <MessageCircle className="w-3.5 h-3.5" />
                         </button>
                         {bill.balanceDue > 0 && (
                           <button 
                               onClick={() => { setPaymentModalBill(bill); setPaymentAmountInput(""); setPaymentError(""); }} 
-                              className="px-2.5 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-bold rounded-lg transition-colors border border-orange-200 whitespace-nowrap cursor-pointer shadow-sm flex items-center gap-1"
+                              className="px-2 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold rounded-lg transition-colors border border-amber-200 whitespace-nowrap cursor-pointer shadow-sm flex items-center gap-1"
                               title="Record Advance Payment"
                           >
                               + Pay
@@ -901,30 +1346,45 @@ export default function BillingPage() {
                           <p className="font-black text-base text-[#1F6F5F]">
                             ₹{(bill.finalNetAmount !== null && bill.finalNetAmount !== undefined ? bill.finalNetAmount : bill.totalAmount).toFixed(2)}
                           </p>
-                          {activeTab === 'Pending' && (
-                            bill.balanceDue > 0 ? (
-                              <div className="mt-1 flex flex-col items-end">
-                                <p className="text-[11px] text-orange-500 uppercase tracking-widest font-bold">Balance: ₹{bill.balanceDue.toFixed(2)}</p>
-                              </div>
+                          <div className="mt-1 flex flex-col items-end gap-0.5">
+                            {bill.balanceDue > 0 ? (
+                              bill.amountPaid > 0 ? (
+                                <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                                  Due: ₹{bill.balanceDue.toFixed(2)}
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">
+                                  UNPAID
+                                </span>
+                              )
                             ) : (
-                              <p className="mt-1"><span className="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">PAID</span></p>
-                            )
-                          )}
+                              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                                PAID
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <button 
                             onClick={() => setSelectedBillForView(bill)} 
                             className="px-3 py-1.5 bg-[#2FA084]/10 text-[#1F6F5F] text-xs font-bold rounded-lg transition-colors border border-[#2FA084]/20"
                           >
-                            View Bill
+                            View
+                          </button>
+                          <button 
+                            onClick={() => handleWhatsAppShare(bill)}
+                            className="p-2 bg-emerald-50 text-emerald-700 rounded-lg transition-colors border border-emerald-200 flex items-center justify-center cursor-pointer"
+                            title="Share on WhatsApp"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
                           </button>
                           {bill.balanceDue > 0 && (
                             <button 
                               onClick={() => { setPaymentModalBill(bill); setPaymentAmountInput(""); setPaymentError(""); }}
-                              className="px-2.5 py-1.5 bg-orange-50 text-orange-700 text-xs font-bold rounded-lg transition-colors border border-orange-200"
+                              className="px-2.5 py-1.5 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg transition-colors border border-amber-200"
                             >
                               + Pay
                             </button>
@@ -1206,17 +1666,25 @@ export default function BillingPage() {
                 ) : <div />}
                 <div className="flex gap-2">
                   <button 
-                    onClick={() => setSelectedBillForView(null)} 
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#111111]/60 hover:text-[#111111] text-xs font-bold rounded-lg transition-colors border border-gray-200 shadow-sm cursor-pointer"
+                    onClick={() => handleWhatsAppShare(selectedBillForView)} 
+                    className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow-md transition-colors cursor-pointer"
+                    title="Send invoice via WhatsApp"
                   >
-                    Close
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp
                   </button>
                   <button 
                     onClick={() => window.print()} 
-                    className="flex items-center gap-1.5 bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 bg-[#1F6F5F] hover:bg-[#2FA084] text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow-md transition-colors cursor-pointer"
                   >
                     <Printer className="w-4 h-4" />
                     Print
+                  </button>
+                  <button 
+                    onClick={() => setSelectedBillForView(null)} 
+                    className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-[#111111]/60 hover:text-[#111111] text-xs font-bold rounded-lg transition-colors border border-gray-200 shadow-sm cursor-pointer"
+                  >
+                    Close
                   </button>
                 </div>
               </div>
@@ -1295,6 +1763,99 @@ export default function BillingPage() {
                   style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)' }}
                 >
                   {isSubmittingPayment ? "Saving..." : "Save Payment"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* Customer Settle Dues Modal */}
+      <AnimatePresence>
+        {customerPaymentModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(10,30,25,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md p-6 rounded-3xl bg-white border border-gray-200 shadow-2xl space-y-4"
+            >
+              <div className="flex justify-between items-center pb-3 border-b border-gray-100">
+                <div>
+                  <h3 className="text-lg font-bold text-[#1F6F5F] flex items-center gap-2">
+                    <Wallet className="w-5 h-5 text-[#2FA084]" /> Settle Customer Dues
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">{customerPaymentModal.customerName}</p>
+                </div>
+                <button onClick={() => setCustomerPaymentModal(null)} className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100"><X className="w-5 h-5" /></button>
+              </div>
+
+              <div className="bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Customer Account:</span>
+                  <span className="font-bold text-gray-900">{customerPaymentModal.customerName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Pending Invoices:</span>
+                  <span className="font-bold text-[#1F6F5F]">{customerPaymentModal.bills.length} Invoices</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-amber-200">
+                  <span className="text-amber-900 font-bold">Total Combined Balance Due:</span>
+                  <span className="font-black text-base text-amber-700 font-tabular">₹{customerPaymentModal.totalDue.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 text-[11px] text-emerald-800 font-medium">
+                💡 Payment will automatically settle the customer's oldest pending bills first (FIFO).
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="block text-xs font-bold text-[#111111]/70 uppercase tracking-wider">Amount Received (₹)</label>
+                  <button
+                    type="button"
+                    onClick={() => setCustomerPaymentAmount(String(customerPaymentModal.totalDue))}
+                    className="text-[10px] font-black text-[#1F6F5F] hover:underline"
+                  >
+                    Full Balance (₹{customerPaymentModal.totalDue.toFixed(2)})
+                  </button>
+                </div>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  min="1"
+                  max={customerPaymentModal.totalDue}
+                  autoFocus
+                  placeholder={`Max ₹${customerPaymentModal.totalDue.toFixed(2)}`}
+                  value={customerPaymentAmount}
+                  onChange={e => setCustomerPaymentAmount(e.target.value)}
+                  className="w-full bg-white border border-gray-200 focus:border-[#2FA084] rounded-xl px-4 py-2.5 text-base font-black outline-none shadow-xs"
+                />
+              </div>
+
+              {customerPaymentError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  {customerPaymentError}
+                </div>
+              )}
+
+              <div className="flex gap-2 justify-end pt-2 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setCustomerPaymentModal(null)}
+                  className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCustomerPayment}
+                  disabled={isSubmittingCustomerPayment || !customerPaymentAmount || parseFloat(customerPaymentAmount) <= 0}
+                  className="px-5 py-2 text-xs font-bold text-white rounded-xl transition-all shadow-md disabled:opacity-40 cursor-pointer flex items-center gap-1.5"
+                  style={{ background: 'linear-gradient(180deg, #2FA084 0%, #1F6F5F 100%)' }}
+                >
+                  {isSubmittingCustomerPayment ? 'Processing...' : 'Confirm & Settle Dues'}
                 </button>
               </div>
             </motion.div>

@@ -15,7 +15,7 @@
 
 :root {
   --background: #EEEEEE;
-  --foreground: #111111;
+  --foreground: #0F1715;
   --primary: #1F6F5F;
   --primary-foreground: #FFFFFF;
   --secondary: #2FA084;
@@ -23,22 +23,30 @@
   --accent: #6FCF97;
   --accent-foreground: #111111;
 
+  /* ── Luxury Tile & Sanitary Accents ── */
+  --gold-accent: #D4AF37;
+  --gold-accent-muted: rgba(212, 175, 55, 0.15);
+  --bronze-accent: #B8860B;
+  --ceramic-white: #FFFFFF;
+  --marble-surface: #F6F9F7;
+  --slate-dark: #122822;
+
   /* ── Glass Surfaces ── */
-  --glass-white: rgba(255, 255, 255, 0.72);
-  --glass-white-strong: rgba(255, 255, 255, 0.88);
-  --glass-dark: rgba(17, 17, 17, 0.55);
+  --glass-white: rgba(255, 255, 255, 0.78);
+  --glass-white-strong: rgba(255, 255, 255, 0.92);
+  --glass-dark: rgba(17, 30, 26, 0.75);
   --glass-primary: rgba(31, 111, 95, 0.14);
   --glass-blur: blur(18px);
   --glass-blur-heavy: blur(28px);
-  --glass-border: rgba(255, 255, 255, 0.28);
+  --glass-border: rgba(255, 255, 255, 0.45);
   --glass-border-dark: rgba(255, 255, 255, 0.12);
 
-  /* ── Skeuomorphic Shadows ── */
-  --skeu-shadow-raised: 0 1px 0 rgba(255,255,255,0.55) inset, 0 -1px 0 rgba(0,0,0,0.12) inset, 0 4px 12px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.08);
+  /* ── Skeuomorphic & Ceramic Slabs Shadows ── */
+  --skeu-shadow-raised: 0 1px 0 rgba(255,255,255,0.75) inset, 0 -1px 0 rgba(0,0,0,0.08) inset, 0 4px 14px rgba(15,50,40,0.08), 0 1px 3px rgba(0,0,0,0.04);
   --skeu-shadow-pressed: 0 1px 3px rgba(0,0,0,0.18) inset, 0 1px 0 rgba(255,255,255,0.20) inset;
-  --skeu-shadow-well: 0 2px 6px rgba(0,0,0,0.10) inset, 0 1px 2px rgba(0,0,0,0.07) inset;
-  --skeu-shadow-card: 0 1px 0 rgba(255,255,255,0.80) inset, 0 -1px 0 rgba(0,0,0,0.06) inset, 0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
-  --skeu-shadow-deep: 0 20px 60px rgba(0,0,0,0.20), 0 8px 24px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.15) inset;
+  --skeu-shadow-well: 0 2px 6px rgba(0,0,0,0.08) inset, 0 1px 2px rgba(0,0,0,0.05) inset;
+  --skeu-shadow-card: 0 1px 0 rgba(255,255,255,0.95) inset, 0 -1px 0 rgba(0,0,0,0.04) inset, 0 12px 32px rgba(15,50,40,0.07), 0 2px 8px rgba(0,0,0,0.04);
+  --skeu-shadow-deep: 0 24px 64px rgba(10,35,28,0.24), 0 8px 24px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.25) inset;
 }
 
 @layer base {
@@ -342,4 +350,83 @@
   background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0) 100%);
   animation: shine-sweep 3.5s ease-in-out infinite;
   pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════
+   CERAMIC SHOWROOM & MOBILE-FIRST UTILITIES
+════════════════════════════════════════════════════════ */
+
+/* Mobile Bottom Navigation Safe Space */
+.pb-mobile-nav {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 16px));
+}
+
+@media (min-width: 768px) {
+  .pb-mobile-nav {
+    padding-bottom: 2.5rem;
+  }
+}
+
+/* Touch Targets: minimum 44px for comfortable thumbs in showroom/counter use */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+/* High-Visibility Tabular Numeric font for financial amounts & stock counts */
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Ceramic Slab Card: Looks like a polished porcelain or quartz tile */
+.ceramic-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 251, 249, 0.92) 100%);
+  border: 1px solid rgba(31, 111, 95, 0.14);
+  box-shadow: 
+    0 1px 0 rgba(255, 255, 255, 1) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.03) inset,
+    0 8px 24px rgba(15, 55, 45, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.03);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 1.25rem;
+}
+
+/* Luxury Gold Badge for VIPs / Paid invoices / Net Grand Totals */
+.gold-badge {
+  background: linear-gradient(135deg, #F9F1DC 0%, #F5E5BE 100%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #8C6D1F;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+
+/* Tile Dimension Tag */
+.tile-dim-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: rgba(31, 111, 95, 0.08);
+  color: #1F6F5F;
+  border: 1px solid rgba(31, 111, 95, 0.2);
+}
+
+/* Mobile Bottom Sheet Backdrop & Surface */
+.mobile-sheet-container {
+  max-height: 90vh;
+  border-top-left-radius: 1.5rem;
+  border-top-right-radius: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .mobile-sheet-container {
+    max-height: 85vh;
+    border-radius: 1.5rem;
+  }
 }

@@ -350,12 +350,13 @@ function UpdateModal({ item, onClose, onUpdate, onEdit, categories, types }: { i
               </div>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-2">
               <label className="text-[10px] font-black text-[#111111]/40 uppercase tracking-widest ml-1">Quantity to Update</label>
               <div className="relative">
                 <input 
                   autoFocus
                   type="number"
+                  inputMode="numeric"
                   value={amount}
                   onChange={e => { setAmount(e.target.value); setError(""); }}
                   placeholder="e.g. +20 or -5"
@@ -365,12 +366,41 @@ function UpdateModal({ item, onClose, onUpdate, onEdit, categories, types }: { i
                   {item.unit}s
                 </span>
               </div>
+
+              {/* Quick Stepper Chips for Counter Speed */}
+              <div className="flex items-center justify-center gap-1.5 pt-1">
+                {[
+                  { label: "+10", val: 10 },
+                  { label: "+50", val: 50 },
+                  { label: "+100", val: 100 },
+                  { label: "-10", val: -10 },
+                  { label: "-50", val: -50 }
+                ].map(step => (
+                  <button
+                    key={step.label}
+                    type="button"
+                    onClick={() => {
+                      const cur = parseInt(amount) || 0
+                      setAmount(String(cur + step.val))
+                      setError("")
+                    }}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-black tracking-tight border transition-all active:scale-95 ${
+                      step.val > 0 
+                        ? 'bg-emerald-50 text-[#1F6F5F] border-emerald-200 hover:bg-emerald-100' 
+                        : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                    }`}
+                  >
+                    {step.label}
+                  </button>
+                ))}
+              </div>
+
               {error ? (
                 <p className="text-red-500 text-[9px] font-bold flex items-center justify-center gap-1 mt-1">
                   <AlertCircle className="w-3 h-3"/> {error}
                 </p>
               ) : (
-                <p className="text-[9px] text-[#111111]/30 font-bold text-center uppercase tracking-tight">Add (+) or Deduct (-) boxes</p>
+                <p className="text-[9px] text-[#111111]/30 font-bold text-center uppercase tracking-tight">Add (+) or Deduct (-) units</p>
               )}
             </div>
 
@@ -1080,33 +1110,94 @@ export default function InventoryPage() {
                   />
 
                   <div className="space-y-1.5">
-                     <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Tile Size (Optional)</label>
-                     <input placeholder="e.g. 60x60" className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/40 font-semibold skeu-input" value={formData.size} onChange={e => setFormData({...formData, size: e.target.value})} />
+                     <div className="flex items-center justify-between">
+                       <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Tile Size (Optional)</label>
+                     </div>
+                     <input 
+                       placeholder="e.g. 600x1200" 
+                       className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/40 font-semibold skeu-input" 
+                       value={formData.size} 
+                       onChange={e => setFormData({...formData, size: e.target.value})} 
+                     />
+                     {/* Fast Dimension Preset Chips */}
+                     <div className="flex flex-wrap gap-1 pt-1">
+                       {["600x600", "600x1200", "800x1600", "300x450", "300x600"].map(sz => (
+                         <button
+                           key={sz}
+                           type="button"
+                           onClick={() => setFormData({...formData, size: sz})}
+                           className={`px-2 py-0.5 rounded text-[10px] font-black border transition-all ${
+                             formData.size === sz 
+                               ? 'bg-[#1F6F5F] text-white border-[#1F6F5F]' 
+                               : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                           }`}
+                         >
+                           {sz}
+                         </button>
+                       ))}
+                     </div>
                   </div>
 
-                  <CustomDropdown 
-                     label="Surface Finish / Type (Optional)" 
-                     value={formData.type} 
-                     onChange={(val) => setFormData({...formData, type: val})} 
-                     defaultOptions={["Matte", "Glossy", "High Depth", ...types]} 
-                  />
+                  <div className="space-y-1.5">
+                    <CustomDropdown 
+                       label="Surface Finish / Type (Optional)" 
+                       value={formData.type} 
+                       onChange={(val) => setFormData({...formData, type: val})} 
+                       defaultOptions={["Matte", "Glossy", "High Depth", "Carving", "Rustic", ...types]} 
+                    />
+                    {/* Fast Finish Preset Chips */}
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {["Glossy", "Matte", "High Depth", "Carving"].map(fn => (
+                        <button
+                          key={fn}
+                          type="button"
+                          onClick={() => setFormData({...formData, type: fn})}
+                          className={`px-2 py-0.5 rounded text-[10px] font-black border transition-all ${
+                            formData.type === fn 
+                              ? 'bg-[#1F6F5F] text-white border-[#1F6F5F]' 
+                              : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          {fn}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   <div className="space-y-1.5">
                      <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Physical Unit</label>
                      <select className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all skeu-input" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})}>
-                        <option value="box">Box</option>
-                        <option value="pc">Piece</option>
+                        <option value="box">Box (Tiles standard)</option>
+                        <option value="pc">Piece (Sanitary standard)</option>
                      </select>
                   </div>
 
                   <div className="space-y-1.5">
                      <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Initial Stock Quantity</label>
-                     <input required type="number" min="0" placeholder="0" className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input" value={formData.stockLevel} onChange={e => setFormData({...formData, stockLevel: e.target.value})} />
+                     <input 
+                       required 
+                       type="number" 
+                       inputMode="numeric"
+                       min="0" 
+                       placeholder="0" 
+                       className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input font-tabular" 
+                       value={formData.stockLevel} 
+                       onChange={e => setFormData({...formData, stockLevel: e.target.value})} 
+                     />
                   </div>
 
                   <div className="space-y-1.5">
                       <label className="text-xs font-bold text-[#111111]/60 uppercase tracking-wide">Low Stock Alert Threshold</label>
-                      <input required type="number" min="0" placeholder="40" className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input" value={formData.lowStockThreshold} onChange={e => setFormData({...formData, lowStockThreshold: e.target.value})} />
+                      <input 
+                        required 
+                        type="number" 
+                        inputMode="numeric"
+                        min="0" 
+                        placeholder="40" 
+                        className="w-full rounded-lg px-4 py-2.5 text-[#111111] outline-none transition-all placeholder:text-[#111111]/30 skeu-input font-tabular" 
+                        value={formData.lowStockThreshold} 
+                        onChange={e => setFormData({...formData, lowStockThreshold: e.target.value})} 
+                      />
                    </div>
 
                    <div className="lg:col-span-3">
@@ -1136,8 +1227,39 @@ export default function InventoryPage() {
         )}
       </AnimatePresence>
 
-      {/* Inventory Table */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', border: '1px solid rgba(255,255,255,0.65)', boxShadow: '0 1px 0 rgba(255,255,255,0.90) inset, 0 -1px 0 rgba(0,0,0,0.05) inset, 0 6px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05)' }}>
+      {/* Horizontal Quick Category Filter Chips */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-4 scrollbar-none select-none">
+        <button
+          onClick={() => setSelectedCategory("all")}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap active:scale-95 ${
+            selectedCategory === "all"
+              ? 'bg-[#1F6F5F] text-white shadow-md'
+              : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          All Items ({items.length})
+        </button>
+        {categories.map(cat => {
+          const count = items.filter(it => it.category === cat).length
+          const isSelected = selectedCategory === cat
+          return (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap active:scale-95 ${
+                isSelected
+                  ? 'bg-[#1F6F5F] text-white shadow-md'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {cat} ({count})
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Inventory Table & Mobile Cards */}
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', border: '1px solid rgba(255,255,255,0.75)', boxShadow: '0 1px 0 rgba(255,255,255,0.90) inset, 0 -1px 0 rgba(0,0,0,0.05) inset, 0 6px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05)' }}>
         {/* Desktop Table Header - Frozen Sticky Top */}
         <div className="hidden md:grid grid-cols-12 gap-4 p-5 text-[11px] font-black text-[#111111] uppercase tracking-widest sticky top-0 z-20" style={{ borderBottom: '2px solid rgba(0,0,0,0.1)', background: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(245,248,247,0.98) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
           <div className="col-span-4">Item Details</div>
@@ -1147,7 +1269,7 @@ export default function InventoryPage() {
           <div className="col-span-2 text-right px-4">Management</div>
         </div>
 
-        <div className="divide-y divide-gray-300 border-t border-b border-gray-300">
+        <div className="divide-y divide-gray-200 border-t border-b border-gray-200">
           {loading ? (
             <div className="p-20 text-center text-[#111111]/40 font-medium">Loading inventory database...</div>
           ) : filteredItems.length === 0 ? (
@@ -1188,7 +1310,7 @@ export default function InventoryPage() {
                 <div className="col-span-2 text-center text-xs text-[#444444] font-bold">{item.category}</div>
                 <div className="col-span-2 flex flex-col items-center justify-center">
                   <div className="flex items-baseline gap-1">
-                    <p className="font-black text-xl text-[#1F6F5F]">{item.stockLevel}</p>
+                    <p className="font-black text-xl text-[#1F6F5F] font-tabular">{item.stockLevel}</p>
                     <p className="text-[10px] text-[#111111]/40 font-bold uppercase">{item.unit}s</p>
                   </div>
                   <p className="text-[9px] text-[#111111]/30 font-bold uppercase tracking-wide">Min: {item.lowStockThreshold}</p>
@@ -1203,69 +1325,85 @@ export default function InventoryPage() {
                   </div>
                 </div>
                 <div className="col-span-2 text-right flex justify-end items-center gap-2 px-2">
-                  <button onClick={() => setUpdateItem(item)} className="p-2.5 rounded-xl text-[#111111]/40 hover:text-[#1F6F5F] transition-all skeu-btn-action" title="Update Stock"><Edit className="w-4 h-4" /></button>
-                  <button onClick={() => setHistoryItem(item)} className="p-2.5 rounded-xl text-[#111111]/40 hover:text-[#2FA084] transition-all skeu-btn-action" title="View History"><History className="w-4 h-4" /></button>
-                  <button onClick={() => handleDeleteRequest(item.id)} className="p-2.5 rounded-xl text-[#111111]/40 hover:text-red-500 transition-all skeu-btn-action" title="Delete Record"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => setUpdateItem(item)} className="p-2.5 rounded-xl text-[#111111]/40 hover:text-[#1F6F5F] transition-all skeu-btn-action cursor-pointer" title="Update Stock"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => setHistoryItem(item)} className="p-2.5 rounded-xl text-[#111111]/40 hover:text-[#2FA084] transition-all skeu-btn-action cursor-pointer" title="View History"><History className="w-4 h-4" /></button>
+                  <button onClick={() => handleDeleteRequest(item.id)} className="p-2.5 rounded-xl text-[#111111]/40 hover:text-red-500 transition-all skeu-btn-action cursor-pointer" title="Delete Record"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
 
-              {/* Mobile Card */}
-              <div className="md:hidden p-4 hover:bg-[#EEEEEE]/30 transition-colors">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
+              {/* Enhanced Mobile Ceramic Card */}
+              <div className="md:hidden p-4 hover:bg-emerald-50/20 transition-colors">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
                     {item.designUrl ? (
                       <button
                         onClick={() => setDesignViewerItem(item)}
-                        className="w-10 h-10 rounded-xl overflow-hidden border border-gray-200 hover:border-[#2FA084] transition-all shrink-0 cursor-pointer group/design skeu-input"
+                        className="w-12 h-12 rounded-2xl overflow-hidden border border-gray-200 hover:border-[#2FA084] transition-all shrink-0 cursor-pointer shadow-sm relative"
                         title="View Design Preview"
                       >
-                        <img src={item.designUrl} alt="" className="w-full h-full object-cover group-hover/design:scale-110 transition-transform" />
+                        <img src={item.designUrl} alt="" className="w-full h-full object-cover" />
                       </button>
                     ) : (
-                      <div className="w-10 h-10 rounded-xl bg-[#2FA084]/10 flex items-center justify-center text-[#2FA084] shrink-0 skeu-input">
-                        <Package className="w-5 h-5" />
+                      <div className="w-12 h-12 rounded-2xl bg-[#1F6F5F]/10 border border-[#1F6F5F]/20 flex items-center justify-center text-[#1F6F5F] shrink-0">
+                        <Package className="w-6 h-6" />
                       </div>
                     )}
-                    <div className="min-w-0 flex-1 flex flex-col items-start gap-1.5">
-                      <h3 className="text-sm font-medium text-[#333333] leading-snug break-words w-full">{item.name}</h3>
-                      <div className="flex items-center gap-1.5 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-black text-[#0F1715] leading-snug break-words uppercase">{item.name}</h3>
+                      <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                          {item.category}
+                        </span>
                         {item.size && (
-                          <span className="text-[10px] bg-[#2FA084]/10 px-1.5 py-0.5 rounded-md text-[#1F6F5F] font-bold border border-[#2FA084]/25">{item.size}</span>
+                          <span className="tile-dim-tag">
+                            {item.size}
+                          </span>
                         )}
                         {item.type && (
-                          <span className="text-[10px] bg-[#2FA084]/10 px-1.5 py-0.5 rounded-md text-[#1F6F5F] font-bold border border-[#2FA084]/25 capitalize">{item.type}</span>
+                          <span className="text-[10px] bg-[#2FA084]/10 px-1.5 py-0.5 rounded font-bold text-[#1F6F5F] border border-[#2FA084]/20 capitalize">
+                            {item.type}
+                          </span>
                         )}
                       </div>
                     </div>
                   </div>
-                  {/* Stock badge */}
+
+                  {/* Stock counter */}
                   <div className="text-right shrink-0">
-                    <p className="font-black text-lg text-[#1F6F5F] leading-none">{item.stockLevel}</p>
-                    <p className="text-[9px] text-[#111111]/40 font-bold uppercase">{item.unit}s</p>
+                    <p className="font-black text-xl text-[#1F6F5F] font-tabular leading-none">{item.stockLevel}</p>
+                    <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">{item.unit}s</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-300">
+
+                {/* Bottom row: status + direct + adjust action + more icons */}
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                   <div className="flex items-center gap-2">
-                    <div className={`inline-flex px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-md ${
+                    <span className={`inline-flex px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md ${
                       item.stockLevel <= item.lowStockThreshold 
-                      ? 'skeu-badge-red text-red-700' 
-                      : 'skeu-badge-green text-[#1F6F5F]'
+                      ? 'bg-red-100 text-red-700 border border-red-200' 
+                      : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                     }`}>
                       {item.stockLevel <= item.lowStockThreshold ? '⚠ Low Stock' : '✓ Healthy'}
-                    </div>
+                    </span>
                     {item.designUrl && (
                       <button
                         onClick={() => setDesignViewerItem(item)}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-[9px] font-black uppercase tracking-wider rounded-md border border-[#2FA084]/20 bg-[#2FA084]/5 text-[#1F6F5F] hover:bg-[#2FA084]/10 transition-colors"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md border border-[#2FA084]/30 bg-[#2FA084]/10 text-[#1F6F5F]"
                       >
-                        <Eye className="w-3 h-3" /> Design
+                        <Eye className="w-3 h-3" /> Preview
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                     <button onClick={() => setUpdateItem(item)} className="p-2 rounded-xl text-[#111111]/40 hover:text-[#1F6F5F] transition-all skeu-btn-action"><Edit className="w-4 h-4" /></button>
-                     <button onClick={() => setHistoryItem(item)} className="p-2 rounded-xl text-[#111111]/40 hover:text-[#2FA084] transition-all skeu-btn-action"><History className="w-4 h-4" /></button>
-                     <button onClick={() => handleDeleteRequest(item.id)} className="p-2 rounded-xl text-[#111111]/40 hover:text-red-500 transition-all skeu-btn-action"><Trash2 className="w-4 h-4" /></button>
+
+                  <div className="flex items-center gap-1.5">
+                    <button 
+                      onClick={() => setUpdateItem(item)} 
+                      className="px-2.5 py-1.5 rounded-xl bg-[#1F6F5F] text-white text-[10px] font-black tracking-tight active:scale-95 shadow-sm transition-all"
+                    >
+                      + Adjust
+                    </button>
+                    <button onClick={() => setHistoryItem(item)} className="p-2 rounded-xl text-gray-400 hover:text-[#2FA084] transition-all bg-gray-100" title="Logs"><History className="w-4 h-4" /></button>
+                    <button onClick={() => handleDeleteRequest(item.id)} className="p-2 rounded-xl text-gray-400 hover:text-red-500 transition-all bg-gray-100" title="Delete"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
